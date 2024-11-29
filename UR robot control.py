@@ -21,6 +21,7 @@ class URControl:
         self.rtde_inout = None
 
 
+
     #connect to robot
     def connect(self):
         try:
@@ -31,7 +32,6 @@ class URControl:
         except Exception as e:
             logging.error(f"Error connecting to robot: {e}")
 
-
     #stop connection to robot
     def stop_robot_control(self):
         self.rtde_ctrl.stopScript()
@@ -39,7 +39,7 @@ class URControl:
 
 
 
-    #set userframe
+    #set userframe (not working currently)
     def set_user_frame(self, user_frame):
         ur_script = f"set_user_frame(p{user_frame})"
         try:
@@ -47,7 +47,6 @@ class URControl:
             logging.info(f"set userframe: {user_frame}")
         except Exception as e:
             logging.error(f"Error sending user frame: {e}")
-
 
     #set tool frame
     def set_tool_frame(self, tool_frame):
@@ -69,12 +68,12 @@ class URControl:
         except Exception as e:
             logging.error(f"Eror setting digital output {output_id}: {e}")
 
-
     #pulse digital output. duration in seconds
     def pulse_digital_output(self, output_id, duration):
         self.set_digital_output(output_id=output_id, state=True)
         time.sleep(duration)
         self.set_digital_output(output_id=output_id, state=False)
+
 
 
     #move L
@@ -84,9 +83,22 @@ class URControl:
         except Exception as e:
             logging.error(f"can not move: {e}")
 
+    #move j (not tested yet)
+    def move_j(self, pos, speed=0.5, acceleration=0.5):
+        try:
+            self.rtde_ctrl.moveL(pos, speed, acceleration)
+        except Exception as e:
+            logging.error(f"can not move: {e}")
 
+
+
+    #return actual TCP position
     def get_tcp_pos(self):
-        return self.rtde_rec.getActualTCPPose()
+        try:
+            return self.rtde_rec.getActualTCPPose()
+        except Exception as e:
+            logging.error(f"cannot return actual tcp pose: {e}")
+
 
 
 robot_ip = "192.168.0.1" #robot ip
