@@ -4,6 +4,7 @@ import rtde_io # For robot IO
 
 import time
 import logging
+import math
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -56,6 +57,13 @@ class URControl:
         except Exception as e:
             logging.error(f"error setting toolframe: {e}")
 
+    #set payload (not tested). needs payload(kg), center of gravity (CoGx, CoGy, CoGz)
+    def set_payload(self, payload, cog):
+        try:
+            self.rtde_ctrl.setPayLoad(payload, cog)
+        except Exception as e:
+            logging.error(f"can not set COG or/and payload: {e}")    
+            
 
 
     #set digital output
@@ -90,6 +98,23 @@ class URControl:
         except Exception as e:
             logging.error(f"can not move: {e}")
 
+    #move add (relative movement based of current position
+    def move_add_l(self, relative_move, speed=0.5, acceleration=0.5):
+        try:
+            current_tcp_pos = self.get_tcp_pos()
+            new_linear_move = [current_tcp_pos[i] +  relative_move[i] for i in range(6)]
+            self.move_l(new_linear_move, speed, acceleration)
+        except Exception as e:
+            logging.error(f"cannot do relative move: {e}")
+
+    #move add j (relative movement based of current position
+    def move_add_j(self, relative_move, speed=0.5, acceleration=0.5):
+        try:
+            current_tcp_pos = self.get_tcp_pos()
+            new_linear_move = [current_tcp_pos[i] +  relative_move[i] for i in range(6)]
+            self.move_j(new_linear_move, speed, acceleration)
+        except Exception as e:
+            logging.error(f"cannot do relative move: {e}")
 
 
     #return actual TCP position
@@ -98,6 +123,7 @@ class URControl:
             return self.rtde_rec.getActualTCPPose()
         except Exception as e:
             logging.error(f"cannot return actual tcp pose: {e}")
+
 
 
 
@@ -113,10 +139,13 @@ ur_control.set_tool_frame(tool_frame=tool_frame)
 
 pos = ur_control.get_tcp_pos()
 print(pos)
-y = pos[1] + 100/1000
-pos[1] = y
+pos[5] -=1
+ur_control.move_l(pos=pos)
+
+#ur_control.move_add_l([0,0,0,0,0,0], speed=0.1, acceleration=1)
+
+pos = ur_control.get_tcp_pos()
 print(pos)
-ur_control.move_l(pos=pos,speed=1, acceleration=1)
 
 
 ur_control.stop_robot_control()
