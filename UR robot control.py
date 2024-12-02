@@ -146,29 +146,30 @@ tool_frame=[0,0,0,0,0,0]
 ur_control.set_tool_frame(tool_frame=tool_frame)
 
 
-print(ur_control.get_tcp_pos())
-
-
 safe_pos = [0.38, 0.38, 0.165, 1.5694986535657232, 2.708608418199369, 0.09789163536624904]
-ur_control.move_l(safe_pos, 0.5)
+#ur_control.move_l(safe_pos, 0.5)
 
 
 def speed_test():
     #create box_pos_down. other positions will be based of this position
     box_pos_down = [0.38, 0.38, -0.30, 1.5694986535657232, 2.708608418199369, 0.09789163536624904]
-    ur_control.move_l(box_pos_down, 0.1, 1)
+    ur_control.move_l(box_pos_down, 1, 1)
+    box_pos_down = [0.38, 0.38, -0.30, 1.5694986535657232, 2.708608418199369, 0.09789163536624904,3,3,0]
 
 
     #create pos_box_up
-    speed_acc_blend = [0.1,1,0.45]
+    speed_acc_blend = [3,3,0.45]
     pos_box_up = box_pos_down.copy()
     pos_box_up[2] = pos_box_up[2] + 500/1000
+    x = 6
     for y in speed_acc_blend:
-        pos_box_up.append(y)
+        pos_box_up[x]=y
+        x+=1
+    print(pos_box_up)
 
 
     #create pos_belt_up
-    speed_acc_blend = [0.1,1,0.09]
+    speed_acc_blend = [3,3,0.09]
     pos_belt_up = pos_box_up.copy()
     pos_belt_up[1] = pos_belt_up[1] - 1100/1000
     x = 6
@@ -179,7 +180,7 @@ def speed_test():
 
 
     #create pos_belt_down
-    speed_acc_blend = [0.1,1,0.00]
+    speed_acc_blend = [3,3,0.00]
     pos_belt_down = pos_belt_up.copy()
     pos_belt_down[2] = pos_belt_down[2] + -100/1000
     x = 6
@@ -190,10 +191,20 @@ def speed_test():
 
     path = [
         # Positie 1: [X, Y, Z, RX, RY, RZ, snelheid, versnelling, blend]
-        [0.38, 0.38, -0.30, 1.569, 2.708, 0.097, 1, 1, 0.00],  # Eerste positie
+        box_pos_down,  # Eerste positie
         pos_box_up,  # Tweede positie
         pos_belt_up,  # Derde positie
         pos_belt_down,  # Vierde positie
+        # Voeg meer posities toe zoals nodig
+    ]
+    ur_control.move_l_path(path=path)
+
+    path = [
+        # Positie 1: [X, Y, Z, RX, RY, RZ, snelheid, versnelling, blend]
+        pos_belt_down,  # Eerste positie
+        pos_belt_up,  # Tweede positie
+        pos_box_up,  # Derde positie
+        box_pos_down,  # Vierde positie
         # Voeg meer posities toe zoals nodig
     ]
     ur_control.move_l_path(path=path)
