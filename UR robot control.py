@@ -85,34 +85,43 @@ class URControl:
 
 
     #move L
-    def move_l(self, pos, speed=0.5, acceleration=0.5):
+    def move_l(self, pos, speed=0.5, acceleration=0.5, corner_smoothing=0):
         try:
-            self.rtde_ctrl.moveL(pos, speed, acceleration)
+            self.rtde_ctrl.moveL(pos, speed, acceleration, corner_smoothing)
         except Exception as e:
             logging.error(f"can not move: {e}")
 
-    #move j (not tested yet)
-    def move_j(self, pos, speed=0.5, acceleration=0.5):
+            
+    #move L
+    def move_l_path(self, path):
         try:
-            self.rtde_ctrl.moveL(pos, speed, acceleration)
+            self.rtde_ctrl.moveL(path)
+        except Exception as e:
+            logging.error(f"can not move: {e}")
+
+
+    #move j (not tested yet)
+    def move_j(self, pos, speed=0.5, acceleration=0.5, corner_smoothing=0):
+        try:
+            self.rtde_ctrl.moveL(pos, speed, acceleration, corner_smoothing)
         except Exception as e:
             logging.error(f"can not move: {e}")
 
     #move add (relative movement based of current position
-    def move_add_l(self, relative_move, speed=0.5, acceleration=0.5):
+    def move_add_l(self, relative_move, speed=0.5, acceleration=0.5, corner_smoothing=0):
         try:
             current_tcp_pos = self.get_tcp_pos()
             new_linear_move = [current_tcp_pos[i] +  relative_move[i] for i in range(6)]
-            self.move_l(new_linear_move, speed, acceleration)
+            self.move_l(new_linear_move, speed, acceleration, corner_smoothing)
         except Exception as e:
             logging.error(f"cannot do relative move: {e}")
 
     #move add j (relative movement based of current position
-    def move_add_j(self, relative_move, speed=0.5, acceleration=0.5):
+    def move_add_j(self, relative_move, speed=0.5, acceleration=0.5, corner_smoothing=0):
         try:
             current_tcp_pos = self.get_tcp_pos()
             new_linear_move = [current_tcp_pos[i] +  relative_move[i] for i in range(6)]
-            self.move_j(new_linear_move, speed, acceleration)
+            self.move_j(new_linear_move, speed, acceleration, corner_smoothing)
         except Exception as e:
             logging.error(f"cannot do relative move: {e}")
 
@@ -126,7 +135,6 @@ class URControl:
 
 
 
-
 robot_ip = "192.168.0.1" #robot ip
 ur_control = URControl(robot_ip=robot_ip)
 ur_control.connect()
@@ -137,15 +145,60 @@ ur_control.connect()
 tool_frame=[0,0,0,0,0,0]
 ur_control.set_tool_frame(tool_frame=tool_frame)
 
-pos = ur_control.get_tcp_pos()
-print(pos)
-pos[5] -=1
-ur_control.move_l(pos=pos)
 
-#ur_control.move_add_l([0,0,0,0,0,0], speed=0.1, acceleration=1)
+print(ur_control.get_tcp_pos())
 
-pos = ur_control.get_tcp_pos()
-print(pos)
 
+safe_pos = [0.38, 0.38, 0.165, 1.5694986535657232, 2.708608418199369, 0.09789163536624904]
+ur_control.move_l(safe_pos, 0.5)
+
+
+def speed_test():
+    #create box_pos_down. other positions will be based of this position
+    box_pos_down = [0.38, 0.38, -0.30, 1.5694986535657232, 2.708608418199369, 0.09789163536624904]
+    ur_control.move_l(box_pos_down, 0.1, 1)
+
+
+    #create pos_box_up
+    speed_acc_blend = [0.1,1,0.45]
+    pos_box_up = box_pos_down.copy()
+    pos_box_up[2] = pos_box_up[2] + 500/1000
+    for y in speed_acc_blend:
+        pos_box_up.append(y)
+
+
+    #create pos_belt_up
+    speed_acc_blend = [0.1,1,0.09]
+    pos_belt_up = pos_box_up.copy()
+    pos_belt_up[1] = pos_belt_up[1] - 1100/1000
+    x = 6
+    for y in speed_acc_blend:
+        pos_belt_up[x]=y
+        x+=1
+    print(pos_belt_up)
+
+
+    #create pos_belt_down
+    speed_acc_blend = [0.1,1,0.00]
+    pos_belt_down = pos_belt_up.copy()
+    pos_belt_down[2] = pos_belt_down[2] + -100/1000
+    x = 6
+    for y in speed_acc_blend:
+        pos_belt_down[x]=y
+        x+=1
+
+
+    path = [
+        # Positie 1: [X, Y, Z, RX, RY, RZ, snelheid, versnelling, blend]
+        [0.38, 0.38, -0.30, 1.569, 2.708, 0.097, 1, 1, 0.00],  # Eerste positie
+        pos_box_up,  # Tweede positie
+        pos_belt_up,  # Derde positie
+        pos_belt_down,  # Vierde positie
+        # Voeg meer posities toe zoals nodig
+    ]
+    ur_control.move_l_path(path=path)
+    
+
+speed_test()
 
 ur_control.stop_robot_control()
