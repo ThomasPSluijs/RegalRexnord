@@ -1,7 +1,7 @@
 from ultralytics import YOLO
 import os
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#########################################################################
 #Lookup weight model in current directory
 
 # Get the directory of the current script
@@ -12,7 +12,7 @@ model_path = os.path.join(current_directory, "best.pt")
 
 # Load the trained model
 model = YOLO(model_path)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#########################################################################
 
 import pyrealsense2 as rs
 import numpy as np
