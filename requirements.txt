@@ -1,2 +1,5 @@
 ur_rtde
 ultralytics
+pyrealsense2
+numpy
+opencv-python
