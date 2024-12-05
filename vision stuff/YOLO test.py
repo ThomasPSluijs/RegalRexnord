@@ -1,7 +1,18 @@
 from ultralytics import YOLO
+import os
+
+#########################################################################
+#Lookup weight model in current directory
+
+# Get the directory of the current script
+current_directory = os.path.dirname(os.path.abspath(__file__))
+
+# Construct the full path to best.pt
+model_path = os.path.join(current_directory, "best.pt")
 
 # Load the trained model
-model = YOLO("C:/Users/jawar/Documents/Work/SMR2/Vision/YOLO/best.pt")  # Replace with the path to your trained weights
+model = YOLO(model_path)
+#########################################################################
 
 import pyrealsense2 as rs
 import numpy as np
