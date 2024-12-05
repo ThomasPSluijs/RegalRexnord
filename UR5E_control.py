@@ -5,6 +5,7 @@ import rtde_io # For robot IO
 import time
 import logging
 import math
+import numpy as np
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -53,6 +54,7 @@ class URControl:
     def set_tool_frame(self, tool_frame):
         try:
             self.rtde_ctrl.setTcp(tool_frame)
+            logging.info(self.rtde_ctrl.getTCPOffset())
             logging.info(f"succesfully setted toolframe: {tool_frame}")
         except Exception as e:
             logging.error(f"error setting toolframe: {e}")
@@ -85,9 +87,9 @@ class URControl:
 
 
     #move L
-    def move_l(self, pos, speed=0.5, acceleration=0.5, corner_smoothing=0):
+    def move_l(self, pos, speed=0.5, acceleration=0.5):
         try:
-            self.rtde_ctrl.moveL(pos, speed, acceleration, corner_smoothing)
+            self.rtde_ctrl.moveL(pos, speed, acceleration)
         except Exception as e:
             logging.error(f"can not move: {e}")
 
@@ -101,29 +103,76 @@ class URControl:
 
 
     #move j (not tested yet)
-    def move_j(self, pos, speed=0.5, acceleration=0.5, corner_smoothing=0):
+    def move_j(self, pos, speed=0.5, acceleration=0.5):
         try:
-            self.rtde_ctrl.moveL(pos, speed, acceleration, corner_smoothing)
+            self.rtde_ctrl.moveL(pos, speed, acceleration)
         except Exception as e:
             logging.error(f"can not move: {e}")
 
     #move add (relative movement based of current position
-    def move_add_l(self, relative_move, speed=0.5, acceleration=0.5, corner_smoothing=0):
+    def move_add_l(self, relative_move, speed=0.5, acceleration=0.5):
         try:
             current_tcp_pos = self.get_tcp_pos()
             new_linear_move = [current_tcp_pos[i] +  relative_move[i] for i in range(6)]
-            self.move_l(new_linear_move, speed, acceleration, corner_smoothing)
+            self.move_l(new_linear_move, speed, acceleration)
         except Exception as e:
             logging.error(f"cannot do relative move: {e}")
 
     #move add j (relative movement based of current position
-    def move_add_j(self, relative_move, speed=0.5, acceleration=0.5, corner_smoothing=0):
+    def move_add_j(self, relative_move, speed=0.5, acceleration=0.5):
         try:
             current_tcp_pos = self.get_tcp_pos()
             new_linear_move = [current_tcp_pos[i] +  relative_move[i] for i in range(6)]
-            self.move_j(new_linear_move, speed, acceleration, corner_smoothing)
+            self.move_j(new_linear_move, speed, acceleration)
         except Exception as e:
             logging.error(f"cannot do relative move: {e}")
+
+
+
+
+    def rodrigues_to_rotation_matrix(self,r):
+        """Converteer een rodrigues-vector naar een rotatiematrix."""
+        theta = np.linalg.norm(r)
+        if theta < 1e-6:  # Geen rotatie
+            return np.eye(3)
+        k = r / theta
+        K = np.array([
+            [0, -k[2], k[1]],
+            [k[2], 0, -k[0]],
+            [-k[1], k[0], 0]
+        ])
+        return np.eye(3) + np.sin(theta) * K + (1 - np.cos(theta)) * np.dot(K, K)
+
+    def pose_to_matrix(self,pose):
+        """Converteer een 6D-pose naar een 4x4 transformatie-matrix."""
+        R = self.rodrigues_to_rotation_matrix(pose[3:])  # Rotatie
+        t = np.array(pose[:3])  # Translatie
+        T = np.eye(4)
+        T[:3, :3] = R
+        T[:3, 3] = t
+        return T
+
+    def matrix_to_pose(self,matrix):
+        """Converteer een 4x4 transformatie-matrix terug naar een 6D-pose."""
+        R = matrix[:3, :3]
+        t = matrix[:3, 3]
+        theta = np.arccos((np.trace(R) - 1) / 2)
+        if theta < 1e-6:
+            r = np.zeros(3)
+        else:
+            r = theta / (2 * np.sin(theta)) * np.array([
+                R[2, 1] - R[1, 2],
+                R[0, 2] - R[2, 0],
+                R[1, 0] - R[0, 1]
+            ])
+        return np.concatenate((t, r))
+
+    def pose_trans(self,pose1, pose2):
+        """Combineer twee poses met behulp van matrixvermenigvuldiging."""
+        T1 = self.pose_to_matrix(pose1)
+        T2 = self.pose_to_matrix(pose2)
+        T_result = np.dot(T1, T2)
+        return self.matrix_to_pose(T_result)
 
 
     #return actual TCP position
@@ -135,7 +184,7 @@ class URControl:
 
 
 
-robot_ip = "192.168.0.1" #robot ip
+'''robot_ip = "192.168.0.1" #robot ip
 ur_control = URControl(robot_ip=robot_ip)
 ur_control.connect()
 
@@ -210,4 +259,4 @@ def speed_test(speed=1, acc=1):
 
 speed_test(0.5,0.5)
 
-ur_control.stop_robot_control()
+ur_control.stop_robot_control()'''
