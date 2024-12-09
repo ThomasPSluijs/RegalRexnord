@@ -1,8 +1,8 @@
 from ultralytics import YOLO
 import os
-
-#########################################################################
-#Lookup weight model in current directory
+import pyrealsense2 as rs
+import numpy as np
+import cv2
 
 # Get the directory of the current script
 current_directory = os.path.dirname(os.path.abspath(__file__))
@@ -12,14 +12,9 @@ model_path = os.path.join(current_directory, "best.pt")
 
 # Load the trained model
 model = YOLO(model_path)
-#########################################################################
 
-import pyrealsense2 as rs
-import numpy as np
-import cv2
-
-# Custom labels for your classes
-labels = ["Bad-Wide-Blue", "Wide-Blue"]  # Swapped the labels
+# Retrieve class labels from the model
+labels = model.names
 
 # Configure RealSense pipeline
 pipeline = rs.pipeline()
@@ -29,7 +24,7 @@ config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
 # Start the camera stream
 pipeline.start(config)
 
-def draw_boxes(frame, boxes):
+def draw_boxes(frame, boxes, labels):
     for box in boxes:
         x1, y1, x2, y2 = map(int, box.xyxy[0][:4])
         class_id = int(box.cls.item())  # Get the class ID
@@ -60,7 +55,7 @@ try:
         filtered_boxes = [box for box in results[0].boxes if box.conf >= 0.7]
 
         # Draw detection boxes with labels and confidence scores
-        draw_boxes(color_image, filtered_boxes)
+        draw_boxes(color_image, filtered_boxes, labels)
 
         # Show the frame with detection boxes
         cv2.imshow("YOLOv11 RealSense Integration", color_image)
