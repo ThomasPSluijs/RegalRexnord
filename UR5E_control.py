@@ -174,3 +174,28 @@ class URControl:
             return self.rtde_rec.getActualTCPPose()
         except Exception as e:
             logging.error(f"cannot return actual tcp pose: {e}")
+
+
+    def set_tcp_rotation(self,rx, ry, rz,speed=0.1,acc=0.1):
+        """
+        Sets the rotation of the tool center point (TCP).
+
+        Args:
+            rx (float): Rotation around the X-axis in degrees.
+            ry (float): Rotation around the Y-axis in degrees.
+            rz (float): Rotation around the Z-axis in degrees.
+
+        Returns:
+            None
+        """
+        # Get the current TCP pose
+        current_pose = self.get_tcp_pose()  # Assume this returns [x, y, z, rx, ry, rz]
+
+        # Update the rotation components
+        current_pose[3] = rx  # Set rotation around X-axis
+        current_pose[4] = ry  # Set rotation around Y-axis
+        current_pose[5] = rz  # Set rotation around Z-axis
+
+        # Move the robot to the new rotation
+        self.move_l(current_pose, speed, acc)  # Execute a linear move to the updated pose
+
