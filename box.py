@@ -8,13 +8,18 @@ logging.basicConfig(
 )
 
 
+
+#class that stores information for the boxes:
+#total boxes, box centers(in x,y) box bottom z, boxsize
 class Box:
-    def __init__(self, total_boxes, box_centers, box_size):
+    def __init__(self, total_boxes, box_pos, box_size):
         self.total_boxes = total_boxes
-        self.box_centers = box_centers
+        self.box_centers = box_pos # center x, center y, bottom z
         self.box_size = box_size  # (length, width, height)
 
 
+#class that stores information about parts: 
+#part size x, y and z
 class Part:
     def __init__(self, product_size):
         self.product_size = product_size
@@ -23,83 +28,88 @@ class Part:
         self.part_size_z = product_size[2]
 
 
+
+#class that determines all the coordinates for the parts in the boxes. 
+#in total 4 parts per box, two rotated 90 degrees
+#total parts in height gets calculated
 class Pack_Box:
     def __init__(self, box, part):
+        #get box info
         self.box = box
+        self.box_length, self.box_width, self.box_height = self.box.box_size
+        
+        #get part info
         self.part = part
+        self.part_length = self.part.part_size_x
+        self.part_width = self.part.part_size_y
+        self.part_height = self.part.part_size_z
+
+
+        #array with boxes and parts locations
+        self.filled_boxes = []
 
     def get_pack_pos(self):
-        positions = []
-        rotations = []
-        layers_info = []
-
+        #for loop to go throug boxes and fill boxes 1 by 1
         for box_index in range(self.box.total_boxes):
+            #get box center
             box_center = self.box.box_centers[box_index]
             logging.info(f"Packing in Box {box_index + 1} at center {box_center}")
 
-            # Determine dimensions of the box
-            box_length, box_width, box_height = self.box.box_size
+            #check total z parts per box
+            total_z_parts = floor(self.box_height/self.part_height)
+            logging.info(f"total z parts: {total_z_parts}")
 
-            # Determine possible orientations for placing parts
-            part_orientations = [
-                (self.part.part_size_x, self.part.part_size_y, 0),   # Default orientation
-                (self.part.part_size_y, self.part.part_size_x, 90),  # Rotated orientation
-            ]
+            #set start z_pos at bototm of box
+            z_pos = box_center[2]
 
-            
+            #array for adding part locations for this box
+            part_positions_box = []
 
-            # Find optimal orientation
-            max_parts_per_layer = 0
-            best_orientation = None
-            for part_length, part_width, rotation in part_orientations:
-                parts_in_length = floor(box_length / part_length)
-                parts_in_width = floor(box_width / part_width)
-                parts_per_layer = parts_in_length * parts_in_width
-                if parts_per_layer > max_parts_per_layer:
-                    max_parts_per_layer = parts_per_layer
-                    best_orientation = (part_length, part_width, rotation)
+            #for loop to go through total z parts to fill a box
+            for z in range(total_z_parts):
+                #array to place four parts per layer
+                for i in range(4):  # Only 4 parts for now
+                    if i == 0:
+                        # First part (top left)
+                        x_pos = box_center[0] - self.box_length / 2 + self.part_length / 2
+                        y_pos = box_center[1] - self.box_width / 2 + self.part_width / 2
+                        rotation=0
+                    elif i == 1:
+                        # Second part (top right)
+                        x_pos = box_center[0] + self.box_length / 2 - self.part_width / 2
+                        y_pos = box_center[1] - self.box_width / 2 + self.part_length / 2
+                        rotation=90
+                    elif i == 2:
+                        # Third part (bottom left)
+                        x_pos = box_center[0] - self.box_length / 2 + self.part_width / 2
+                        y_pos = box_center[1] + self.box_width / 2 - self.part_length / 2
+                        rotation=90
+                    elif i == 3:
+                        # Fourth part (bottom right)
+                        x_pos = box_center[0] + self.box_length / 2 - self.part_length / 2
+                        y_pos = box_center[1] + self.box_width / 2 - self.part_width / 2
+                        rotation=0
 
-            part_length, part_width, rotation = best_orientation
-            logging.info(f"Best orientation: {part_length}x{part_width} with rotation {rotation}°")
-            logging.info(f"Max parts per layer: {max_parts_per_layer}")
+                    # Store the positions
+                    part_positions_box.append((x_pos, y_pos, z_pos, rotation))
 
+                #layer has been filled, increase z_pos for next layer    
+                z_pos += self.part_height
 
+            #add filled box to total boxes
+            self.filled_boxes.append(part_positions_box)
 
-
-
-            # Generate placement positions layer by layer
-            parts_in_length = floor(box_length / part_length)
-            parts_in_width = floor(box_width / part_width)
-            layer_height = self.part.part_size_z
-            layers = floor(box_height / layer_height)
-
-            for layer in range(layers):
-                for row in range(parts_in_length):
-                    for col in range(parts_in_width):
-                        x = box_center[0] - box_length / 2 + (row + 0.5) * part_length
-                        y = box_center[1] - box_width / 2 + (col + 0.5) * part_width
-                        z = layer * layer_height
-                        positions.append((x, y, z))
-                        rotations.append(rotation)
-                        layers_info.append(layer + 1)
-
-                        logging.debug(
-                            f"Placed part at ({x:.1f}, {y:.1f}, {z:.1f}) "
-                            f"with rotation {rotation}° in Box {box_index + 1}, Layer {layer + 1}"
-                        )
-
-        return positions, rotations, layers_info
+        return self.filled_boxes
 
 
-# Create instances for box and part
-box = Box(total_boxes=2, box_centers=[(100, 200), (100, 400)], box_size=(365, 365, 170))
+# Create instances for box and part.
+#neeeds: total boxes, box pos (x and y center, z bottom), box dimensions: (x, y, z)
+box = Box(total_boxes=2, box_pos=[(0, 0, 0.1), [400,400, 0.1]], box_size=(365, 365, 170))
+
+#needs: part width, part length, part height
 part = Part((187, 170, 13))
 
 # Initialize Pack_Box and get packing positions
 pack_box = Pack_Box(box=box, part=part)
-positions, rotations, layers = pack_box.get_pack_pos()
-
-# Print the placement positions, rotations, and layers
-#print("Placement Coordinates, Rotations, and Layers:")
-#for pos, rot, layer in zip(positions, rotations, layers):
-#    print(f"Position: {pos}, Rotation: {rot}°, Layer: {layer}")
+positions = pack_box.get_pack_pos()
+logging.info(positions[0])
