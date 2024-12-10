@@ -1,7 +1,10 @@
 import logging
 from UR5E_control import URControl
 import math
-import pyrealsense2 as rs
+#import pyrealsense2 as rs
+
+from pick_parts import *
+from box import *
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -10,10 +13,8 @@ logging.basicConfig(
 )
 
 
-robot = URControl("192.168.0.1")
 
-
-#connects to robot, sets toolframe and moves to start position
+#function that connects to robot, sets TCP and moves robot to a safe start position
 def setup_robot():
     #connect to robot
     robot.connect()
@@ -24,8 +25,6 @@ def setup_robot():
 
     #set safe start pos
     start_pos = [-0.3968556411508649, 0.049047830881604054, 0.1, 2.1355663224764934, 2.288791439427752, -0.0]
-    fold_up_pos = [0.21806621866470055, -0.08845418646768148, 0.5716754446825703, 0.2011446368010403, -1.0833366225923702, 2.7864552788165944]
-
 
     logging.info(f"current tcp pos: {robot.get_tcp_pos()}")
 
@@ -33,7 +32,8 @@ def setup_robot():
     #robot.move_l(start_pos, 0.1, 0.1)
 
 
-def setup_camera():
+#function that sets up camera
+'''def setup_camera():
      try:
         # Configure RealSense pipeline
         pipeline = rs.pipeline()
@@ -45,7 +45,8 @@ def setup_camera():
         logging.info("succesfully connected to camera")
 
      except Exception as e:
-        logging.error(f"problem connecting to camera: {e}")
+        logging.error(f"problem connecting to camera: {e}")'''
+
 
 
 
@@ -58,17 +59,6 @@ def take_picture():
     robot.move_l(parts_pos, 0.05)
 
 
-#start function that first sets up robot, camera etc end then calls the main loop function
-def start():
-    logging.info("setup robot")
-    setup_robot()
-    #setup_camera()
-
-    take_picture()
-
-    robot.stop_robot_control()
-
-
 
 def main_loop():
     while True:
@@ -78,4 +68,29 @@ def main_loop():
 
 
 logging.info("START")
-start()
+
+
+''' setup robot '''
+robot = URControl("192.168.0.1")   #defines robot. 
+setup_robot()                      #connects to robot
+
+
+''' setup boxes and parts '''
+# Create instances for box and part.
+#neeeds: total boxes, box pos (x and y center, z bottom), box dimensions: (x, y, z) #box z should be 30/1000. 100 is used for safe testing
+box = Box(total_boxes=2, box_pos=[(-224/1000, -588/1000, 100/1000), [237/1000,-588/1000, 100/1000]], box_size=(0.365, 0.365, 0.170))
+
+#needs: part width, part length, part height
+part = Part((0.187, 0.170, 0.013))
+
+
+''' initializes pack box class '''
+# Initialize Pack_Box and get packing positions
+pack_box = Pack_Box(box=box, part=part)
+
+
+''' initializes pick parts class '''
+pick_part = Pick_parts(robot=robot)
+
+
+main_loop()
