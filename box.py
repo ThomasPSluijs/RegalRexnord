@@ -202,7 +202,10 @@ class Pack_Box:
         self.robot.set_tcp_rotation(0, 0, 0) '''
 
 
+    '''
+    #put it in main loop
     #goes throug boxes and parts, then calls 'pickup part', 'place part'
+    
     def pack_box(self):
         self.get_pack_pos()     #gets packing locations
 
@@ -219,7 +222,7 @@ class Pack_Box:
                     #pack_box.place_part(part, box_index)
                     count  += 1
             box_index += 1
-
+'''
 
 
 '''
