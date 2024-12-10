@@ -1,17 +1,13 @@
 import logging
 from math import floor
 import math
+from UR5E_control import URControl
 
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s - %(levelname)s - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
-
-
-
-from UR5E_control import URControl
-robot = URControl("192.168.0.1")
 
 
 
@@ -112,13 +108,6 @@ class Pack_Box:
 
 
     def place_part(self, part_position, box_index):
-        """
-        Moves the robot arm to place the part at the specified position in the box.
-
-        Args:
-            part_position (tuple): The target position of the part within the box (x, y, z).
-            box_index (int): The index of the box where the part is being placed. used to get box center pos
-        """
         box_center = self.box.box_centers[box_index]
         logging.info(f"Box center: {box_center}")
 
@@ -132,11 +121,17 @@ class Pack_Box:
         robot.set_tool_frame(placement_tcp)
 
 
+        #step 2: move to proper z height
+        robot.get_tcp_pos()
+        cur_pos[2] = 0.3
+        robot.move_l(cur_pos, 0.1, 0.1)
+
+
         # Step 2: Move above the box center
         cur_pos = robot.get_tcp_pos()  # Get current robot position (x, y, z)
         cur_pos[0] = box_center[0]     # Align x position with box center
         cur_pos[1] = box_center[1]     # Align y position with box center
-        cur_pos[2] = 0.2               # Set a safe z height above the box
+        cur_pos[2] = 0.3               # Set a safe z height above the box
         logging.info(f"Move to box center: {cur_pos}")
         robot.move_l(cur_pos, 0.1, 0.1)
 
@@ -151,20 +146,20 @@ class Pack_Box:
         result_pose = robot.pose_trans(pose1, pose2)
         robot.move_l(result_pose, 0.5, 0.5)
 
-
+        
         # Step 4: Move to the desired Z height for placement
         cur_pos[2] = part_position[2]  # Set Z height to target position within the box
         logging.info(f"Move to placement height: {cur_pos}")
         robot.move_l(cur_pos, 0.1, 0.1)
 
-
+        
         # Step 5: Move to the part's target X, Y position
         cur_pos[0] = part_position[0]  # Set X to the part's target position
         cur_pos[1] = part_position[1]  # Set Y to the part's target position
         logging.info(f"Move to part placement position: {cur_pos}")
         robot.move_l(cur_pos, 0.1, 0.1)
 
-
+        '''
         # Step 6: Slide part into place (rotates about x axis)
         logging.info("Performing final placement adjustments")
         rotate_x = [0,0,0,math.radians(-15),math.radians(0),math.radians(0)]
@@ -200,21 +195,43 @@ class Pack_Box:
 
         # Step 8: Reset rotation to level position
         logging.info("Reset rotation to level position (0 degrees)")
-        robot.set_tcp_rotation(0, 0, 0)
+        robot.set_tcp_rotation(0, 0, 0) '''
+
+
+
+robot = URControl("192.168.0.1")
+robot.connect()
+
+#set toolframe
+tool_frame=[-47.5/1000,-140/1000,102.6/1000,math.radians(-1.2),math.radians(2),math.radians(-5)]
+robot.set_tool_frame(tool_frame=tool_frame)
+
+#move to safe z height
+cur_pos = robot.get_tcp_pos()
+if cur_pos: cur_pos[2] = 0.4
+if cur_pos: robot.move_l(cur_pos, 0.1, 0.1)
+
+#set safe start pos
+start_pos = [-0.3968556411508649, 0.049047830881604054, 0.3, 2.1355663224764934, 2.288791439427752, -0.0]
+
+logging.info(f"current tcp pos: {robot.get_tcp_pos()}")
+robot.move_l(start_pos, 0.1, 0.1) 
 
 
 # Create instances for box and part.
 #neeeds: total boxes, box pos (x and y center, z bottom), box dimensions: (x, y, z)
-box = Box(total_boxes=2, box_pos=[(0, 0, 0.1), [400,400, 0.1]], box_size=(365, 365, 170))
+box = Box(total_boxes=2, box_pos=[(-224/1000, -588/1000, 100/1000), [237/1000,-588/1000, 100/1000]], box_size=(0.365, 0.365, 0.170))
+    #box z should be 30/1000. 100 is used for safe testing
+
 
 #needs: part width, part length, part height
-part = Part((187, 170, 13))
+part = Part((0.187, 0.170, 0.013))
 
 # Initialize Pack_Box and get packing positions
 pack_box = Pack_Box(box=box, part=part)
 filled_boxes = pack_box.get_pack_pos()
 
-tot_parts = 3
+tot_parts = 5
 count = 0
 
 box_index = 0
@@ -227,3 +244,5 @@ for box in filled_boxes:
             #pack_box.place_part(part, box_index)
             count  += 1
     box_index += 1
+
+robot.stop_robot_control()
