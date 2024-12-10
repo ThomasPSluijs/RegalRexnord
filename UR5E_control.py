@@ -41,38 +41,48 @@ class URControl:
 
     #stop connection to robot
     def stop_robot_control(self):
-        self.rtde_ctrl.stopScript()
-        logging.info("stopped connection with robot")
+        if self.rtde_ctrl:
+            self.rtde_ctrl.stopScript()
+            logging.info("stopped connection with robot")
+        else:
+            logging.warning("not connected to robot")
 
 
 
     #set tool frame (TCP frame)
     def set_tool_frame(self, tool_frame):
-        try:
-            self.rtde_ctrl.setTcp(tool_frame)
-            logging.info(self.rtde_ctrl.getTCPOffset())
-            logging.info(f"succesfully setted toolframe: {tool_frame}")
-        except Exception as e:
-            logging.error(f"error setting toolframe: {e}")
+        if self.rtde_ctrl:
+            try:
+                self.rtde_ctrl.setTcp(tool_frame)
+                logging.info(self.rtde_ctrl.getTCPOffset())
+                logging.info(f"succesfully setted toolframe: {tool_frame}")
+            except Exception as e:
+                logging.error(f"error setting toolframe: {e}")
+        else:
+            logging.warning("not connected to robot")
 
     #set payload (not tested). needs payload(kg), center of gravity (CoGx, CoGy, CoGz)
     def set_payload(self, payload, cog):
-        try:
-            self.rtde_ctrl.setPayLoad(payload, cog)
-        except Exception as e:
-            logging.error(f"can not set COG or/and payload: {e}")    
+        if self.rtde_ctrl:
+            try:
+                self.rtde_ctrl.setPayLoad(payload, cog)
+            except Exception as e:
+                logging.error(f"can not set COG or/and payload: {e}")    
+        else:
+            logging.warning("not connected to robot")
             
 
 
     #set digital output
     def set_digital_output(self, output_id, state):
-        if not self.rtde_ctrl:
-            logging.error("error: no connection with robot")
-        try:
-            self.rtde_inout.setStandardDigitalOut(output_id, state)
-            logging.info(f"digital output {output_id} is {state}")
-        except Exception as e:
-            logging.error(f"Eror setting digital output {output_id}: {e}")
+        if self.rtde_inout:
+            try:
+                self.rtde_inout.setStandardDigitalOut(output_id, state)
+                logging.info(f"digital output {output_id} is {state}")
+            except Exception as e:
+                logging.error(f"Eror setting digital output {output_id}: {e}")
+        else:
+            logging.warning("not connected to robot")
 
     #pulse digital output. duration in seconds
     def pulse_digital_output(self, output_id, duration):
@@ -84,42 +94,57 @@ class URControl:
 
     #move L
     def move_l(self, pos, speed=0.5, acceleration=0.5):
-        try:
-            self.rtde_ctrl.moveL(pos, speed, acceleration)
-        except Exception as e:
-            logging.error(f"can not move: {e}")
+        if self.rtde_ctrl:
+            try:
+                self.rtde_ctrl.moveL(pos, speed, acceleration)
+            except Exception as e:
+                logging.error(f"can not move: {e}")
+        else:
+            logging.warning("not connected to robot")
 
     #move L path
     def move_l_path(self, path):
-        try:
-            self.rtde_ctrl.moveL(path)
-        except Exception as e:
-            logging.error(f"can not move: {e}")
+        if self.rtde_ctrl:
+            try:
+                self.rtde_ctrl.moveL(path)
+            except Exception as e:
+                logging.error(f"can not move: {e}")
+        else:
+            logging.warning("not connected to robot")
 
     #move j (not tested yet)
     def move_j(self, pos, speed=0.5, acceleration=0.5):
-        try:
-            self.rtde_ctrl.moveJ(pos, speed, acceleration)
-        except Exception as e:
-            logging.error(f"can not move: {e}")
+        if self.rtde_ctrl:
+            try:
+                self.rtde_ctrl.moveJ(pos, speed, acceleration)
+            except Exception as e:
+                logging.error(f"can not move: {e}")
+        else:
+            logging.warning("not connected to robot")
 
     #move add (relative movement based of current position
     def move_add_l(self, relative_move, speed=0.5, acceleration=0.5):
-        try:
-            current_tcp_pos = self.get_tcp_pos()
-            new_linear_move = [current_tcp_pos[i] +  relative_move[i] for i in range(6)]
-            self.move_l(new_linear_move, speed, acceleration)
-        except Exception as e:
-            logging.error(f"cannot do relative move: {e}")
+        if self.rtde_ctrl:
+            try:
+                current_tcp_pos = self.get_tcp_pos()
+                new_linear_move = [current_tcp_pos[i] +  relative_move[i] for i in range(6)]
+                self.move_l(new_linear_move, speed, acceleration)
+            except Exception as e:
+                logging.error(f"cannot do relative move: {e}")
+        else:
+            logging.warning("not connected to robot")
 
     #move add j (relative movement based of current position
     def move_add_j(self, relative_move, speed=0.5, acceleration=0.5):
-        try:
-            current_tcp_pos = self.get_tcp_pos()
-            new_linear_move = [current_tcp_pos[i] +  relative_move[i] for i in range(6)]
-            self.move_j(new_linear_move, speed, acceleration)
-        except Exception as e:
-            logging.error(f"cannot do relative move: {e}")
+        if self.rtde_ctrl:
+            try:
+                current_tcp_pos = self.get_tcp_pos()
+                new_linear_move = [current_tcp_pos[i] +  relative_move[i] for i in range(6)]
+                self.move_j(new_linear_move, speed, acceleration)
+            except Exception as e:
+                logging.error(f"cannot do relative move: {e}")
+        else:
+            logging.warning("not connected to robot")
 
 
     #help functions for pose_trans
@@ -170,10 +195,13 @@ class URControl:
 
     #return actual TCP position
     def get_tcp_pos(self):
-        try:
-            return self.rtde_rec.getActualTCPPose()
-        except Exception as e:
-            logging.error(f"cannot return actual tcp pose: {e}")
+        if self.rtde_rec:
+            try:
+                return self.rtde_rec.getActualTCPPose()
+            except Exception as e:
+                logging.error(f"cannot return actual tcp pose: {e}")
+        else:
+            logging.warning("not connected to robot")
 
 
     def set_tcp_rotation(self,rx, ry, rz,speed=0.1,acc=0.1):
