@@ -3,8 +3,8 @@ from UR5E_control import URControl
 import math
 #import pyrealsense2 as rs
 
-from pick_parts import *
-from box import *
+from pick_parts import *    #used for picking parts from belt. needs x and y coordinates
+from box import *           #used for getting place locations and placing parts in boxes
 
 logging.basicConfig(
     level=logging.DEBUG,
