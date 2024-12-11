@@ -268,7 +268,7 @@ class Pack_Box:
                     logging.info(f"part: {part}")
                     logging.info("pickup part")
                     logging.info("place part")
-                    if count == 2: pack_box.place_part(part, box_index)
+                    if count == 0: pack_box.place_part(part, box_index)
                     count  += 1
             box_index += 1
 
