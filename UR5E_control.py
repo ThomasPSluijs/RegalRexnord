@@ -29,15 +29,25 @@ class URControl:
 
 
 
-    #connect to robot
+    # Connect to robot with retry logic
     def connect(self):
-        try:
-            self.rtde_ctrl = rtde_control.RTDEControlInterface(self.robot_ip) 
-            self.rtde_rec = rtde_receive.RTDEReceiveInterface(self.robot_ip)
-            self.rtde_inout = rtde_io.RTDEIOInterface(self.robot_ip)
-            logging.info(f"Connected to robot: {self.robot_ip}")
-        except Exception as e:
-            logging.error(f"Error connecting to robot: {e}")
+        max_retries = 10
+        retry_delay = 0.5  # Delay in seconds between retries
+
+        for attempt in range(1, max_retries + 1):
+            try:
+                self.rtde_ctrl = rtde_control.RTDEControlInterface(self.robot_ip)
+                self.rtde_rec = rtde_receive.RTDEReceiveInterface(self.robot_ip)
+                self.rtde_inout = rtde_io.RTDEIOInterface(self.robot_ip)
+                logging.info(f"Connected to robot: {self.robot_ip} on attempt {attempt}")
+                return  # Exit the method upon successful connection
+            except Exception as e:
+                logging.error(f"Attempt {attempt} failed: {e}")
+                if attempt < max_retries:
+                    time.sleep(retry_delay)  # Wait before retrying
+                else:
+                    logging.error("Max retries reached. Unable to connect to the robot.")
+                    raise
 
     #stop connection to robot
     def stop_robot_control(self):
