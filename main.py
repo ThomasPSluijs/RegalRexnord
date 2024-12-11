@@ -26,8 +26,6 @@ def setup_robot():
     #set safe start pos
     start_pos = [-0.3968556411508649, 0.049047830881604054, 0.1, 2.1355663224764934, 2.288791439427752, -0.0]
 
-    logging.info(f"current tcp pos: {robot.get_tcp_pos()}")
-
     #move to start pos
     #robot.move_l(start_pos, 0.1, 0.1)
 
