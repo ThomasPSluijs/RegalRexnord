@@ -34,6 +34,7 @@ class URControl:
         max_retries = 10
         retry_delay = 0.5  # Delay in seconds between retries
 
+
         for attempt in range(1, max_retries + 1):
             try:
                 self.rtde_ctrl = rtde_control.RTDEControlInterface(self.robot_ip)
@@ -51,7 +52,7 @@ class URControl:
 
     #stop connection to robot
     def stop_robot_control(self):
-        if self.rtde_ctrl:
+        if self.rtde_ctrl.isConnected():
             self.rtde_ctrl.stopScript()
             logging.info("stopped connection with robot")
         else:
@@ -61,7 +62,7 @@ class URControl:
 
     #set tool frame (TCP frame)
     def set_tool_frame(self, tool_frame):
-        if self.rtde_ctrl:
+        if self.rtde_ctrl.isConnected():
             try:
                 self.rtde_ctrl.setTcp(tool_frame)
                 logging.info(self.rtde_ctrl.getTCPOffset())
@@ -104,7 +105,7 @@ class URControl:
 
     #move L
     def move_l(self, pos, speed=0.5, acceleration=0.5):
-        if self.rtde_ctrl:
+        if self.rtde_ctrl.isConnected():
             try:
                 self.rtde_ctrl.moveL(pos, speed, acceleration)
             except Exception as e:
@@ -114,7 +115,7 @@ class URControl:
 
     #move L path
     def move_l_path(self, path):
-        if self.rtde_ctrl:
+        if self.rtde_ctrl.isConnected():
             try:
                 self.rtde_ctrl.moveL(path)
             except Exception as e:
@@ -124,7 +125,7 @@ class URControl:
 
     #move j (not tested yet)
     def move_j(self, pos, speed=0.5, acceleration=0.5):
-        if self.rtde_ctrl:
+        if self.rtde_ctrl.isConnected():
             try:
                 self.rtde_ctrl.moveJ(pos, speed, acceleration)
             except Exception as e:
@@ -134,7 +135,7 @@ class URControl:
 
     #move add (relative movement based of current position
     def move_add_l(self, relative_move, speed=0.5, acceleration=0.5):
-        if self.rtde_ctrl:
+        if self.rtde_ctrl.isConnected():
             try:
                 current_tcp_pos = self.get_tcp_pos()
                 new_linear_move = [current_tcp_pos[i] +  relative_move[i] for i in range(6)]
@@ -146,7 +147,7 @@ class URControl:
 
     #move add j (relative movement based of current position
     def move_add_j(self, relative_move, speed=0.5, acceleration=0.5):
-        if self.rtde_ctrl:
+        if self.rtde_ctrl.isConnected():
             try:
                 current_tcp_pos = self.get_tcp_pos()
                 new_linear_move = [current_tcp_pos[i] +  relative_move[i] for i in range(6)]
@@ -205,7 +206,7 @@ class URControl:
 
     #return actual TCP position
     def get_tcp_pos(self):
-        if self.rtde_rec:
+        if self.rtde_rec.isConnected():
             try:
                 return self.rtde_rec.getActualTCPPose()
             except Exception as e:
@@ -215,25 +216,26 @@ class URControl:
 
 
     def set_tcp_rotation(self,rx, ry, rz,speed=0.1,acc=0.1):
-        """
-        Sets the rotation of the tool center point (TCP).
+        if self.rtde_ctrl.isConnected():
+            """
+            Sets the rotation of the tool center point (TCP).
 
-        Args:
-            rx (float): Rotation around the X-axis in degrees.
-            ry (float): Rotation around the Y-axis in degrees.
-            rz (float): Rotation around the Z-axis in degrees.
+            Args:
+                rx (float): Rotation around the X-axis in degrees.
+                ry (float): Rotation around the Y-axis in degrees.
+                rz (float): Rotation around the Z-axis in degrees.
 
-        Returns:
-            None
-        """
-        # Get the current TCP pose
-        current_pose = self.get_tcp_pose()  # Assume this returns [x, y, z, rx, ry, rz]
+            Returns:
+                None
+            """
+            # Get the current TCP pose
+            current_pose = self.get_tcp_pose()  # Assume this returns [x, y, z, rx, ry, rz]
 
-        # Update the rotation components
-        current_pose[3] = rx  # Set rotation around X-axis
-        current_pose[4] = ry  # Set rotation around Y-axis
-        current_pose[5] = rz  # Set rotation around Z-axis
+            # Update the rotation components
+            current_pose[3] = rx  # Set rotation around X-axis
+            current_pose[4] = ry  # Set rotation around Y-axis
+            current_pose[5] = rz  # Set rotation around Z-axis
 
-        # Move the robot to the new rotation
-        self.move_l(current_pose, speed, acc)  # Execute a linear move to the updated pose
+            # Move the robot to the new rotation
+            self.move_l(current_pose, speed, acc)  # Execute a linear move to the updated pose
 
