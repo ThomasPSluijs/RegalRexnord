@@ -2,6 +2,7 @@ import logging
 from math import floor
 import math
 from UR5E_control import URControl
+import time
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -72,29 +73,31 @@ class Pack_Box:
             #array for adding part locations for this box
             part_positions_box = []
 
+            margin = 2.5/1000 #5mm marge y en x
+
             #for loop to go through total z parts to fill a box
             for z in range(total_z_parts):
                 #array to place four parts per layer
                 for i in range(4):  # Only 4 parts for now
                     if i == 0:
                         # First part (top left)
-                        x_pos = box_center[0] - self.box_length / 2 + self.part_length / 2
-                        y_pos = box_center[1] - self.box_width / 2 + self.part_width / 2
+                        x_pos = box_center[0] - self.box_length / 2 + self.part_length / 2 + margin
+                        y_pos = box_center[1] - self.box_width / 2 + self.part_width / 2 + margin
                         rotation=0
                     elif i == 1:
                         # Second part (top right)
-                        x_pos = box_center[0] + self.box_length / 2 - self.part_width / 2
-                        y_pos = box_center[1] - self.box_width / 2 + self.part_length / 2
-                        rotation=90
+                        x_pos = box_center[0] + self.box_length / 2 - self.part_width / 2 - margin
+                        y_pos = box_center[1] - self.box_width / 2 + self.part_length / 2 + margin
+                        rotation=-90
                     elif i == 2:
                         # Third part (bottom left)
-                        x_pos = box_center[0] - self.box_length / 2 + self.part_width / 2
-                        y_pos = box_center[1] + self.box_width / 2 - self.part_length / 2
-                        rotation=270
+                        x_pos = box_center[0] - self.box_length / 2 + self.part_width / 2 + margin
+                        y_pos = box_center[1] + self.box_width / 2 - self.part_length / 2 - margin
+                        rotation=90
                     elif i == 3:
                         # Fourth part (bottom right)
-                        x_pos = box_center[0] + self.box_length / 2 - self.part_length / 2
-                        y_pos = box_center[1] + self.box_width / 2 - self.part_width / 2
+                        x_pos = box_center[0] + self.box_length / 2 - self.part_length / 2 - margin
+                        y_pos = box_center[1] + self.box_width / 2 - self.part_width / 2 - margin
                         rotation=180
 
                     # Store the positions
@@ -111,105 +114,151 @@ class Pack_Box:
 
 
     #place parts
+    #1: move to proper z height (above box)
+    #2: move above box center
+    #3: move down (20mm above needed z level)
+    #4: rotate tool
+    #5: move to target x and y position
+    #6: move to desired height
+    #7: rotate ardound x axis of EOAT so parts can slide out
+    #8: move x or y so parts can slide of
+    #9: return to above box
+    #10: move to safe x and y
     def place_part(self, part_position, box_index):
+        #fast and slow speeds and accelerations. fast for general movements, slow for special movements. 
+        speed_fast = 1
+        acc_fast = 1
+
+        speed_slow = 0.1
+        acc_slow = 0.5
+
         box_center = self.box.box_centers[box_index]
         logging.info(f"Box center: {box_center}")
 
         # TCP offsets
-        pickup_tcp = [-47.5/1000,-140/1000,102.6/1000,math.radians(-1.2),math.radians(2),math.radians(-5)]  #edge of part (x=centerpart, y=edge)
-        placement_tcp = [-47.5/1000,-46.5/1000,102.6/1000,math.radians(-1.2),math.radians(2),math.radians(-5)]  #center of part (x=center,y=center)
+        pickup_tcp = [-47.5/1000,-140/1000,135/1000,math.radians(0),math.radians(0),math.radians(0)]  #edge of part (x=centerpart, y=edge)
+        placement_tcp = [-47.5/1000,-46.5/1000,135/1000,math.radians(0),math.radians(0),math.radians(0)]  #center of part (x=center,y=center)
 
+        self.robot.set_tool_frame(pickup_tcp)
+        start_pos = [-0.3968556411508649, 0.049047830881604054, 0.3, 2.213, 2.215, -0.013]
+        self.robot.move_l(start_pos, speed_fast, acc_fast) 
 
-        # Step 1: Set TCP to plcament tcp for rotating about z axis and x/y movement
-        logging.info(f"Setting TCP to pickup position: {placement_tcp}")
+        z_above_box = 0.3
+
+        #step 1: move to proper z height
         self.robot.set_tool_frame(placement_tcp)
-
-
-        #step 2: move to proper z height
-        self.robot.get_tcp_pos()
-        cur_pos[2] = 0.3
-        self.robot.move_l(cur_pos, 0.1, 0.1)
+        cur_pos = self.robot.get_tcp_pos()
+        cur_pos[2] = z_above_box
+        self.robot.move_l(cur_pos, speed_fast, acc_fast)
 
 
         # Step 2: Move above the box center
+#        self.robot.set_tool_frame(placement_tcp)
         cur_pos = self.robot.get_tcp_pos()  # Get current robot position (x, y, z)
         cur_pos[0] = box_center[0]     # Align x position with box center
         cur_pos[1] = box_center[1]     # Align y position with box center
-        cur_pos[2] = 0.3               # Set a safe z height above the box
-        logging.info(f"Move to box center: {cur_pos}")
-        self.robot.move_l(cur_pos, 0.1, 0.1)
+        cur_pos[2] = z_above_box               # Set a safe z height above the box
+        logging.info(f"Step 2: Move to box center: {cur_pos}")
+        self.robot.move_l(cur_pos, speed_fast, acc_fast)
+        
+        # Step 3: Move to the desired Z height for placement + 20mm
+#        self.robot.set_tool_frame(placement_tcp)
+        cur_pos = self.robot.get_tcp_pos()
+        cur_pos[2] = part_position[2] + 20/1000  # Set Z height to target position within the box
+        logging.info(f"Step 3: Move to placement height: {cur_pos}")
+        self.robot.move_l(cur_pos, speed_slow, acc_slow)
 
-
-        # Step 3: Adjust rotation around the Z-axis
+        # Step 4: Adjust rotation around the Z-axis
+        #WARNING: when using 180 degrees, it randomly rotates to 180 or -180, you will get to the same point but 
+        # when rotating back the joint limit can be reached. this fucks up the program
+#        self.robot.set_tool_frame(placement_tcp)
         rotation_angle = part_position[3]  # pick rotation from part info. convert to radians
-        logging.info(f"Set rotation around Z-axis to: {rotation_angle}")
-        #robot.set_tcp_rotation(0, 0, rotation_angle)
+        logging.info(f"Step 4: Set rotation around Z-axis to: {rotation_angle}")
         rotate = [0,0,0,math.radians(0),math.radians(0),math.radians(rotation_angle)]
         pose1 = self.robot.get_tcp_pos()
         pose2 = rotate
         result_pose = self.robot.pose_trans(pose1, pose2)
-        self.robot.move_l(result_pose, 0.5, 0.5)
-
+        self.robot.move_l(result_pose, speed_slow, acc_slow)
         
-        # Step 4: Move to the desired Z height for placement
-        cur_pos[2] = part_position[2]  # Set Z height to target position within the box
-        logging.info(f"Move to placement height: {cur_pos}")
-        self.robot.move_l(cur_pos, 0.1, 0.1)
 
-        
         # Step 5: Move to the part's target X, Y position
+#        self.robot.set_tool_frame(placement_tcp)
         cur_pos[0] = part_position[0]  # Set X to the part's target position
         cur_pos[1] = part_position[1]  # Set Y to the part's target position
-        logging.info(f"Move to part placement position: {cur_pos}")
-        self.robot.move_l(cur_pos, 0.1, 0.1)
+        logging.info(f"Step 5: Move to part placement position: {cur_pos}")
+        self.robot.move_l(cur_pos, speed_slow, acc_slow)
 
-        '''
-        # Step 6: Slide part into place (rotates about x axis)
-        logging.info("Performing final placement adjustments")
-        rotate_x = [0,0,0,math.radians(-15),math.radians(0),math.radians(0)]
+
+        # Step 6: Move to the desired Z height for placement
+#        self.robot.set_tool_frame(placement_tcp)
+        cur_pos = self.robot.get_tcp_pos()
+        cur_pos[2] = part_position[2]  # Set Z height to target position within the box
+        logging.info(f"Step 6: Move to placement height: {cur_pos}")
+        self.robot.move_l(cur_pos, speed_slow, acc_slow)
+
+
+        # Step 7: Slide part into place (rotates about x axis)
+        logging.info("Step 7: Performing final placement adjustments")
+        rotate_x = [0,0,0,math.radians(-30),math.radians(0),math.radians(0)]
         self.robot.set_tool_frame(pickup_tcp)
-        pose1 = robot.get_tcp_pos()
+        pose1 = self.robot.get_tcp_pos()
         pose2 = rotate_x
-        result_pose = robot.pose_trans(pose1, pose2)
-        self.robot.move_l(result_pose, 0.5, 0.5)
+        result_pose = self.robot.pose_trans(pose1, pose2)
+        self.robot.move_l(result_pose, speed_slow, acc_slow)
 
-        #step 7: depending on rotation, move x or y
+
+        #step 8: depending on rotation, move x or y
+        logging.info("Step 8: depending on rotation, move x or y")
         self.robot.set_tool_frame(pickup_tcp)
+        offset=170
         if rotation_angle == 0:
             #move x positive
-            offset= [187/1000,0,0,0,0,0]
-        elif rotation_angle == 90:
+            offset= [offset/1000,0,0,0,0,0]
+        elif rotation_angle == -90:
             #move y positive
-            offset= [0,187/1000,0,0,0,0]
+            offset= [0,offset/1000,0,0,0,0]
+        elif rotation_angle == 90:
+            #move y negative
+            offset= [0,-offset/1000,0,0,0,0]  
         elif rotation_angle == 180:
-            #move x negative
-            offset= [-187/1000,0,0,0,0,0]
-        elif rotation_angle == 270:
             #move y negatie
-            offset= [0,-187/1000,0,0,0,0]
-        self.robot.move_l(offset, 0.1, 0.1)
-
-        # Step 7: Return above the box with pickup_tcp
-        logging.info(f"Resetting TCP to pickup position: {pickup_tcp}")
-        self.robot.set_tcp(pickup_tcp)
+            offset= [-offset/1000,0,0,0,0,0]
+        self.robot.move_add_l(offset, speed_slow, acc_slow)
+    	
+        # Step 9: Return above the box with pickup_tcp
+        logging.info(f"Step 9: Resetting TCP to pickup position: {pickup_tcp}")
+#        self.robot.set_tool_frame(pickup_tcp)
         cur_pos = self.robot.get_tcp_pos()
-        cur_pos[2] = 0.2  # Return to a safe Z height above the box
-        logging.info(f"Return above the box: {cur_pos}")
-        self.robot.move_l(cur_pos, 0.1, 0.1)
-
-        # Step 8: Reset rotation to level position
-        logging.info("Reset rotation to level position (0 degrees)")
-        self.robot.set_tcp_rotation(0, 0, 0) '''
+        cur_pos[2] = z_above_box  # Return to a safe Z height above the box
+        self.robot.move_l(cur_pos, speed_fast, acc_fast)
 
 
-    '''
+        #step 10: move to safe x and y position
+        logging.info("Step 10: Move to safe x and y")
+        self.robot.set_tool_frame(placement_tcp)
+        cur_pos = self.robot.get_tcp_pos()
+        cur_pos[0] = -0.35
+        cur_pos[1] = -0.30
+        self.robot.move_l(cur_pos, speed_fast, acc_fast)
+
+
+        self.robot.set_tool_frame(pickup_tcp)
+        start_pos = [-0.3968556411508649, 0.049047830881604054, 0.3, 2.213, 2.215, -0.013]
+        self.robot.move_l(start_pos, speed_fast, acc_fast) 
+
+        #step 11:
+        #done
+        #probably move to take pic pos
+
+    
     #put it in main loop
+
     #goes throug boxes and parts, then calls 'pickup part', 'place part'
     
     def pack_box(self):
         self.get_pack_pos()     #gets packing locations
 
-        tot_parts = 5   #for testing, limit part amount
+        tot_parts = 4   #for testing, limit part amount
         count = 0
 
         box_index = 0
@@ -219,47 +268,47 @@ class Pack_Box:
                     logging.info(f"part: {part}")
                     logging.info("pickup part")
                     logging.info("place part")
-                    #pack_box.place_part(part, box_index)
+                    if count == 2: pack_box.place_part(part, box_index)
                     count  += 1
             box_index += 1
-'''
+
 
 
 '''
 code below is to test this file. should be commented.
 '''
 
-'''
+
 robot = URControl("192.168.0.1")
 robot.connect()
 
-#set toolframe
-tool_frame=[-47.5/1000,-140/1000,102.6/1000,math.radians(-1.2),math.radians(2),math.radians(-5)]
-robot.set_tool_frame(tool_frame=tool_frame)
+if robot.rtde_ctrl and robot.rtde_rec:
+    #set toolframe
+    tool_frame=[-47.5/1000,-140/1000,135/1000,math.radians(0),math.radians(0),math.radians(0)]
+    robot.set_tool_frame(tool_frame=tool_frame)
 
-#move to safe z height
-cur_pos = robot.get_tcp_pos()
-cur_pos[2] = 0.4
-robot.move_l(cur_pos, 0.1, 0.1)
+    #move to safe z height
+    cur_pos = robot.get_tcp_pos()
+    cur_pos[2] = 0.3
+    robot.move_l(cur_pos, 0.1, 0.1)
 
-#set safe start pos
-start_pos = [-0.3968556411508649, 0.049047830881604054, 0.3, 2.1355663224764934, 2.288791439427752, -0.0]
-robot.move_l(start_pos, 0.1, 0.1) 
-
-
-# Create instances for box and part.
-#neeeds: total boxes, box pos (x and y center, z bottom), box dimensions: (x, y, z)
-box = Box(total_boxes=2, box_pos=[(-224/1000, -588/1000, 100/1000), [237/1000,-588/1000, 100/1000]], box_size=(0.365, 0.365, 0.170))
-    #box z should be 30/1000. 100 is used for safe testing
+    #set safe start pos
+    start_pos = [-0.3968556411508649, 0.049047830881604054, 0.3, 2.1, 2.374, 0.073]
+    robot.move_l(start_pos, 0.1, 0.1) 
 
 
-#needs: part width, part length, part height
-part = Part((0.187, 0.170, 0.013))
+    # Create instances for box and part.
+    #neeeds: total boxes, box pos (x and y center, z bottom), box dimensions: (x, y, z)
+    box = Box(total_boxes=2, box_pos=[(-214/1000, -575/1000, -5/1000), [237/1000,-588/1000, -5/1000]], box_size=(0.365, 0.365, 0.170))
 
-# Initialize Pack_Box and get packing positions
-pack_box = Pack_Box(box=box, part=part)
-pack_box.pack_box()
+    #needs: part width, part length, part height
+    part = Part((0.187, 0.170, 0.013))
+
+    # Initialize Pack_Box and get packing positions
+    pack_box = Pack_Box(box=box, part=part, robot=robot)
+    pack_box.pack_box()
+else:
+    logging.error("not connected to robot properly")
 
 
-
-robot.stop_robot_control() '''
+robot.stop_robot_control() 
