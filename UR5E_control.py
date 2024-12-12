@@ -66,6 +66,9 @@ class URControl:
         except Exception as e:
             logging.error(f"error setting toolframe: {e}")
 
+    def set_tcp(self, tool_frame):
+        self.set_tool_frame(tool_frame)
+
 
     #set payload (not tested). needs payload(kg), center of gravity (CoGx, CoGy, CoGz)
     def set_payload(self, payload, cog):
