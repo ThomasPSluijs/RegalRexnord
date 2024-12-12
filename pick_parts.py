@@ -30,6 +30,9 @@ class Pick_parts():
     #9: rotate parts into gripper
     #done
     def pick_parts(self, part_x, part_y):
+        pickup_tcp = [-47.5/1000,-140/1000,135/1000,math.radians(0),math.radians(0),math.radians(0)]  #edge of part (x=centerpart, y=edge)
+        self.robot.set_tool_frame(pickup_tcp)
+
         #step 2
         #move to part x and part y, apply a offset on the x so the gripper is a bit before the part
         cur_pos = self.robot.get_tcp_pos()
@@ -68,8 +71,6 @@ class Pick_parts():
         pose2 = self.rotate_x
         self.rotate_x[3] *= -1
         result_pose = self.robot.pose_trans(pose1, pose2)
-        result_pose[2] += 6/1000
-        result_pose[0] += 5/1000
         self.robot.move_l(result_pose, 0.5, 3)
 
 
