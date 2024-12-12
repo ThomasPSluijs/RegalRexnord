@@ -141,8 +141,13 @@ class Pack_Box:
         pickup_tcp = [-47.5/1000,-140/1000,135/1000,math.radians(0),math.radians(0),math.radians(0)]  #edge of part (x=centerpart, y=edge)
         placement_tcp = [-47.5/1000,-52.5/1000,135/1000,math.radians(0),math.radians(0),math.radians(0)]  #center of part (x=center,y=center)
 
+
+
+
+        start_rotation = [2.213, 2.215, -0.013]
+
         self.robot.set_tool_frame(pickup_tcp)
-        start_pos = [-0.3968556411508649, 0.049047830881604054, 0.3, 2.213, 2.215, -0.013]
+        start_pos = [-0.3968556411508649, 0.049047830881604054, 0.3, 2.213, 2.215, -0.013]  #only for testing
         self.robot.move_l(start_pos, speed_fast, acc_fast) 
 
         z_above_box = 0.3
@@ -154,12 +159,16 @@ class Pack_Box:
         self.robot.move_l(cur_pos, speed_fast, acc_fast)
 
 
-        # Step 2: Move above the box center
+
+        # Step 2: Move above the box center and set proper rotation
 #        self.robot.set_tool_frame(placement_tcp)
         cur_pos = self.robot.get_tcp_pos()  # Get current robot position (x, y, z)
         cur_pos[0] = box_center[0]     # Align x position with box center
         cur_pos[1] = box_center[1]     # Align y position with box center
         cur_pos[2] = z_above_box               # Set a safe z height above the box
+        cur_pos[3] = start_rotation[0]
+        cur_pos[4] = start_rotation[1]
+        cur_pos[5] = start_rotation[2]
         logging.info(f"Step 2: Move to box center: {cur_pos}")
         self.robot.move_l(cur_pos, speed_fast, acc_fast)
         
