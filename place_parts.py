@@ -152,7 +152,7 @@ class Pack_Box:
 
         z_above_box = 0.3
 
-        #step 1: move to proper z height
+        #step 1: move to proper z height (currently pos: just picked up parts)
         self.robot.set_tool_frame(placement_tcp)
         cur_pos = self.robot.get_tcp_pos()
         cur_pos[2] = z_above_box
@@ -162,7 +162,7 @@ class Pack_Box:
 
         # Step 2: Move above the box center and set proper rotation
 #        self.robot.set_tool_frame(placement_tcp)
-        cur_pos = self.robot.get_tcp_pos()  # Get current robot position (x, y, z)
+        cur_pos = [0,0,0,0,0,0] #self.robot.get_tcp_pos()  # Get current robot position 
         cur_pos[0] = box_center[0]     # Align x position with box center
         cur_pos[1] = box_center[1]     # Align y position with box center
         cur_pos[2] = z_above_box               # Set a safe z height above the box
@@ -185,13 +185,23 @@ class Pack_Box:
         #WARNING: when using 180 degrees, it randomly rotates to 180 or -180, you will get to the same point but 
         # when rotating back the joint limit can be reached. this fucks up the program
 #        self.robot.set_tool_frame(placement_tcp)
+
+        #when angle=180, first do + 10 then do + 170
         rotation_angle = part_position[3]  # pick rotation from part info. convert to radians
         logging.info(f"Step 4: Set rotation around Z-axis to: {rotation_angle}")
-        rotate = [0,0,0,math.radians(0),math.radians(0),math.radians(rotation_angle)]
-        pose1 = self.robot.get_tcp_pos()
-        pose2 = rotate
-        result_pose = self.robot.pose_trans(pose1, pose2)
-        self.robot.move_l(result_pose, speed_slow, acc_slow)
+        rotations = 1
+        if rotation_angle == 180: 
+            rotation_angle = 10
+            rotations = 2
+        for rotation in range(rotations):
+            rotate = [0,0,0,math.radians(0),math.radians(0),math.radians(rotation_angle)]
+            pose1 = self.robot.get_tcp_pos()
+            pose2 = rotate
+            result_pose = self.robot.pose_trans(pose1, pose2)
+            self.robot.move_l(result_pose, speed_slow, acc_slow)
+            if rotations == 2:
+                rotation_angle = 170
+        if rotations == 2: rotation_angle = 180
         
         
         # Step 5: Move to the part's target X, Y position
@@ -256,6 +266,17 @@ class Pack_Box:
         cur_pos = self.robot.get_tcp_pos()
         cur_pos[2] = z_above_box  # Return to a safe Z height above the box
         self.robot.move_l(cur_pos, speed_fast, acc_fast)   
+
+        #step 9.1: rotate a bit back if rotationangle=180
+        if rotation_angle == 180:
+            self.robot.set_tool_frame(placement_tcp)
+            rotation_angle = -25
+            rotate = [0,0,0,math.radians(0),math.radians(0),math.radians(rotation_angle)]
+            pose1 = self.robot.get_tcp_pos()
+            pose2 = rotate
+            result_pose = self.robot.pose_trans(pose1, pose2)
+            self.robot.move_l(result_pose, speed_slow, acc_slow)
+
 
 
         #step 10: move to safe x and y position
