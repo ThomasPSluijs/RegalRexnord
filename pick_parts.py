@@ -105,7 +105,7 @@ class Pick_parts():
 
         #step 8
         #move up relative.
-        relative_move=[0,0,200/1000,0,0,0]
+        relative_move=[0,0,0.15,0,0,0]
         logging.info(f"move up relative to current position: {relative_move}")
         self.robot.move_add_l(relative_move, speed_fast, acc_fast)
 
