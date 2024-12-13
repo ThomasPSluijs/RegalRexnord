@@ -55,7 +55,7 @@ class Pack_Box:
         #robot
         self.robot = robot
 
-
+   
     #get al packing positions in the boxes. These are the center coordinates of the parts, rotations of the parts and the z_height of the parts
     def get_pack_pos(self):
         #for loop to go throug boxes and fill boxes 1 by 1
@@ -76,7 +76,7 @@ class Pack_Box:
 
             margin_y = 9/1000 #5mm marge y en x
             margin_x = 7/1000
-
+ 
             #for loop to go through total z parts to fill a box
             for z in range(total_z_parts):
                 #array to place four parts per layer
@@ -84,7 +84,7 @@ class Pack_Box:
                     if i == 0:
                         # First part (top left)
                         x_pos = box_center[0] - self.box_length / 2 + self.part_length / 2 + 0.012
-                        y_pos = box_center[1] - self.box_width / 2 + self.part_width / 2 -0.000
+                        y_pos = box_center[1] - self.box_width / 2 + self.part_width / 2 +0.000
                         rotation=0
                     elif i == 1:
                         # Second part (top right)
@@ -93,15 +93,15 @@ class Pack_Box:
                         rotation=-90
                     elif i == 2:        #works
                         # Third part (bottom left)
-                        x_pos = box_center[0] - self.box_length / 2 + self.part_width / 2 + 0.008
-                        y_pos = box_center[1] + self.box_width / 2 - self.part_length / 2 - 0.010    
+                        x_pos = box_center[0] - self.box_length / 2 + self.part_width / 2 + 0.012
+                        y_pos = box_center[1] + self.box_width / 2 - self.part_length / 2 - 0.000
                         rotation=90
                     elif i == 3:
                         # Fourth part (bottom right)
-                        x_pos = box_center[0] + self.box_length / 2 - self.part_length / 2 - 0.000
+                        x_pos = box_center[0] + self.box_length / 2 - self.part_length / 2 - 0.006
                         y_pos = box_center[1] + self.box_width / 2 - self.part_width / 2 - 0.012
                         rotation=180
- 
+   
                     # Store the positions
                     part_positions_box.append((x_pos, y_pos, z_pos, rotation))
 
@@ -314,7 +314,7 @@ class Pack_Box:
                     logging.info(f"part: {part}")
                     logging.info("pickup part")
                     logging.info("place part")
-                    pack_box.place_part(part, box_index)
+                    if count == 2: pack_box.place_part(part, box_index)
                     keyboard.wait('space')
                     
                     count  += 1
