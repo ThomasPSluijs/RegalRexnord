@@ -23,6 +23,7 @@ class Vision():
         self.camera_stream_status = False
 
 
+    #get image from camera, get yolo results, show results. to add: get x and y coordinates
     def do_vision(self):
         if not self.camera_stream_status: 
             self.camera.start_stream()
@@ -36,7 +37,7 @@ class Vision():
         else: logging.warning("got no image to put in Yolo Model. ")
         
 
-    #stops camera stream etc
+    #stop vision, for now: stop camera stream
     def stop(self):
         self.camera.stop_stream()
 
@@ -133,6 +134,7 @@ class Camera():
 
 
 
+'''used for testing this file. commend out later'''
 vision = Vision()
 
 try:
