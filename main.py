@@ -1,10 +1,10 @@
 import logging
 from UR5E_control import URControl
 import math
-#import pyrealsense2 as rs
 
-from pick_parts import *    #used for picking parts from belt. needs x and y coordinates
-from box import *           #used for getting place locations and placing parts in boxes
+from pick_parts import *            #used for picking parts from belt. needs x and y coordinates
+from place_parts import *           #used for getting place locations and placing parts in boxes
+from vision import Vision           #used for vision, camera and yolo model
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -28,34 +28,6 @@ def setup_robot():
 
     #move to start pos
     #robot.move_l(start_pos, 0.1, 0.1)
-
-
-#function that sets up camera
-'''def setup_camera():
-     try:
-        # Configure RealSense pipeline
-        pipeline = rs.pipeline()
-        config = rs.config()
-        config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
-
-        # Start the camera stream
-        pipeline.start(config)
-        logging.info("succesfully connected to camera")
-
-     except Exception as e:
-        logging.error(f"problem connecting to camera: {e}")'''
-
-
-
-
-#function to take picture: first move to take pic pos, then take picture etc
-def take_picture():
-    take_pick_pos = [-0.7891716074470788, -0.05873062914748386, 0.48092687604716666, 2.1252209148236973, 2.2821904119092338, 0.00206831311019891]
-    robot.move_l(take_pick_pos, 1, 1)
-
-    parts_pos = [-0.08793947845697403, 0.017009420320391655, 0.05, 2.1252209148236973, 2.2821904119092338, 0.00206831311019891]
-    robot.move_l(parts_pos, 0.05)
-
 
 
 #main loop: gets partlocations, then starts a for loop to fill all the boxes
@@ -110,9 +82,11 @@ part = Part((0.187, 0.170, 0.013))
 # Initialize Pack_Box and get packing positions
 pack_box = Pack_Box(box=box, part=part,robot=robot)
 
-
 ''' initializes pick parts class '''
 pick_part = Pick_parts(robot=robot)
+
+''' initializes vision/camera class '''
+#no class yet
 
 
 #start main loop
