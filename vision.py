@@ -12,7 +12,7 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 
-
+#testt##################
 
 '''vision class. uses yolovision and camera classes and combines them to get the required results'''
 class Vision():
