@@ -194,6 +194,14 @@ class URControl:
             logging.error(f"cannot return actual tcp pose: {e}")
 
 
+    #return actual joint pos
+    def get_joint_pos(self):
+        try:
+            return self.rtde_rec.getActualQ()
+        except Exception as e:
+            logging.error(f"cannot return actual joint pose: {e}")
+
+
     def set_tcp_rotation(self,rx, ry, rz,speed=0.1,acc=0.1):
         """
         Sets the rotation of the tool center point (TCP).
