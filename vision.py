@@ -1,3 +1,4 @@
+# Setup and Initialization ########################################################################################################
 from ultralytics import YOLO
 import os
 import pyrealsense2 as rs
@@ -5,25 +6,18 @@ import numpy as np
 import cv2
 import logging
 
-
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 
-#testt##################
-
-'''vision class. uses yolovision and camera classes and combines them to get the required results'''
 class Vision():
     def __init__(self):
         self.yolo = YoloVision()
         self.camera = Camera()
-
         self.camera_stream_status = False
 
-
-    #get image from camera, get yolo results, show results. to add: get x and y coordinates
     def do_vision(self):
         if not self.camera_stream_status: 
             self.camera.start_stream()
@@ -32,17 +26,22 @@ class Vision():
         yolo_image = self.camera.get_color_frame()
 
         if isinstance(yolo_image, np.ndarray):  
-            result = self.yolo.get_results(yolo_image)
-            cv2.imshow("YOLOv11 RealSense Integration", result)  
-        else: logging.warning("got no image to put in Yolo Model. ")
-        
+            result_image, coordinates = self.yolo.get_results(yolo_image)
+            cv2.imshow("YOLOv11 RealSense Integration", result_image)
+            if coordinates:
+                x_tcp, y_tcp = self.camera.transform_coordinates_to_tcp(coordinates[0])
+                return x_tcp, y_tcp
+            else:
+                logging.warning("No objects detected.")
+                return None, None
+        else:
+            logging.warning("Got no image to put in Yolo Model.")
+            return None, None
 
-    #stop vision, for now: stop camera stream
     def stop(self):
         self.camera.stop_stream()
 
-
-'''yolovision: get results from a camera frame using the Yolo model'''
+# YoloVision Class ########################################################################################
 class YoloVision():
     def __init__(self):
         '''setup yolo model'''
@@ -60,18 +59,26 @@ class YoloVision():
 
     def get_results(self, color_image):
         logging.info("get yolo vision results")
-        #run model
-        results = self.model.predict(source=color_image,show=False)
+        # Run model
+        results = self.model.predict(source=color_image, show=False)
 
         # Filter results based on confidence score
         filtered_boxes = [box for box in results[0].boxes if box.conf >= 0.7]
 
-        #draw boxes
+        # Get coordinates of detected object
+        coordinates = []
+        for box in filtered_boxes:
+            x1, y1, x2, y2 = map(int, box.xyxy[0][:4])
+            center_x = (x1 + x2) // 2
+            center_y = (y1 + y2) // 2
+            coordinates.append((center_x, center_y))
+
+        # Draw boxes on the image
         result_image = self.draw_boxes(color_image, filtered_boxes, self.labels)
-        return result_image
+        return result_image, coordinates
 
     def draw_boxes(self, frame, boxes, labels):
-        logging.info("draw boxes an yolo image")
+        logging.info("draw boxes on yolo image")
         for box in boxes:
             x1, y1, x2, y2 = map(int, box.xyxy[0][:4])
             class_id = int(box.cls.item())  # Get the class ID
@@ -83,19 +90,17 @@ class YoloVision():
             # Put the label text above the bounding box
             cv2.putText(frame, label_text, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
-            return frame
+        return frame
 
-
-
-'''camera class: connects to camera and gets camera frames'''
+# Camera Class ##################################################################################
 class Camera():
     def __init__(self):
         '''setup camera'''
         self.pipeline = None
         self.config = None
-        self.setup()        #start pipeling, config 
+        self.setup()        #start pipelining and config 
 
-    #start camera stream/pipelin
+    #start camera stream/pipeline
     def setup(self):
         try:
             logging.info("setup camera")
@@ -103,6 +108,7 @@ class Camera():
             self.pipeline = rs.pipeline()
             self.config = rs.config()
             self.config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
+            self.config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)  # Enable depth stream
         except Exception as e:
             logging.error(f"problem setting up camera: {e}")
 
@@ -113,15 +119,14 @@ class Camera():
         except Exception as e:
             logging.error(f"cannot start camera stream: {e}")
 
-    #stop camera strema
+    #stop camera stream
     def stop_stream(self):
         try:
             self.pipeline.stop()
         except Exception as e:
             logging.error(f"cannot stop camera stream: {e}")
 
-
-    #get frames etc
+    #get color frames from the camera
     def get_color_frame(self):
         frames = self.pipeline.wait_for_frames()
         color_frame = frames.get_color_frame()
@@ -131,18 +136,41 @@ class Camera():
 
         return color_image
 
+    #get depth frames from the camera
+    def get_depth_frame(self):
+        frames = self.pipeline.wait_for_frames()
+        depth_frame = frames.get_depth_frame()
+        return depth_frame
 
+    # Transform camera coordinates to robot TCP coordinates
+    def transform_coordinates_to_tcp(self, coordinates):
+        center_x, center_y = coordinates
+        depth_frame = self.get_depth_frame()
+        depth = depth_frame.get_distance(center_x, center_y)
 
+        # Convert to camera coordinates relative to the camera
+        X_cm = (center_x - C_x) * depth / F_x * 100  # Convert to cm
+        Y_cm = -(center_y - C_y) * depth / F_y * 100  # Convert to cm
 
-'''used for testing this file. commend out later'''
-vision = Vision()
+        # Transform to robot TCP coordinates
+        xd, yd = transform_coordinates(X_cm, Y_cm)
+        return xd, yd
 
-try:
-    while True:
-        vision.do_vision()
+# Test ####################################################################################################
+if __name__ == "__main__":
+    vision = Vision()
+
+    try:
+        while True:
+            x_tcp, y_tcp = vision.do_vision()
+            if x_tcp is not None and y_tcp is not None:
+                logging.info(f"Detected object TCP coordinates: X={x_tcp}, Y={y_tcp}")
+                    
             # Exit on 'q' key press
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-finally:
-    vision.stop()
-    cv2.destroyAllWindows()
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+    finally:
+        vision.stop()
+        cv2.destroyAllWindows()
+
+
