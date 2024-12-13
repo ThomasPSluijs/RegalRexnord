@@ -36,8 +36,8 @@ def main_loop():
 
     logging.info("get all packing positions")
     filled_boxes = pack_box.get_pack_pos()
-        
-    tot_parts = 5   #for testing, limit part amount
+     
+    tot_parts = 5  # for testing, limit part amount
     count = 0
 
     box_index = 0
@@ -45,50 +45,42 @@ def main_loop():
         for part in box:
             if count < tot_parts:
                 logging.info(f"part: {part}")
-                logging.info("do vision") #-> result x and y for part
-                x,y = 1,1 #should be fucntion instead of 0,0
+                logging.info("do vision")  # -> result x and y for part
+                x, y = vision.do_vision()  # get actual coordinates from vision
                 
                 logging.info("pickup part")
-                pick_part.pick_parts(x,y)  #pick part at given location
+                pick_part.pick_parts(x, y)  # pick part at given location
                 
                 logging.info("place part")
-                pack_box.place_part(part, box_index)   #place part at correct box and place. part contains location data in box. box_index is box 0 or 1 etc
-                count  += 1
+                pack_box.place_part(part, box_index)  # place part at correct box and place. part contains location data in box. box_index is box 0 or 1 etc
+                count += 1
         box_index += 1
-    
-    #end
+ 
+    # end
     robot.stop_robot_control()
 
-
+# initialize vision class
+vision = Vision()
 
 logging.info("START")
 
+# setup robot
+robot = URControl("192.168.0.1")  # defines robot.
+setup_robot()  # connects to robot
 
-''' setup robot '''
-robot = URControl("192.168.0.1")   #defines robot. 
-setup_robot()                      #connects to robot
-
-
-''' setup boxes and parts '''
+# setup boxes and parts
 # Create instances for box and part.
-#neeeds: total boxes, box pos (x and y center, z bottom), box dimensions: (x, y, z) #box z should be 30/1000. 100 is used for safe testing
-box = Box(total_boxes=2, box_pos=[(-224/1000, -588/1000, 100/1000), [237/1000,-588/1000, 100/1000]], box_size=(0.365, 0.365, 0.170))
+box = Box(total_boxes=2, box_pos=[(-224 / 1000, -588 / 1000, 100 / 1000), [237 / 1000, -588 / 1000, 100 / 1000]], box_size=(0.365, 0.365, 0.170))
 
-#needs: part width, part length, part height
+# needs: part width, part length, part height
 part = Part((0.187, 0.170, 0.013))
 
+# initializes pack box class
+pack_box = Pack_Box(box=box, part=part, robot=robot)
 
-''' initializes pack box class '''
-# Initialize Pack_Box and get packing positions
-pack_box = Pack_Box(box=box, part=part,robot=robot)
-
-''' initializes pick parts class '''
+# initializes pick parts class
 pick_part = Pick_parts(robot=robot)
 
-''' initializes vision/camera class '''
-#no class yet
-
-
-#start main loop
+# start main loop
 if __name__ == '__main__':
     main_loop()
