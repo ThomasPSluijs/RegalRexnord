@@ -15,18 +15,37 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 
-# Suppress YOLO logging
-yolo_logger = logging.getLogger("yolo_logger")
-yolo_logger.addFilter(YoloLogFilter())
+class Vision():
+    def __init__(self):
+        self.yolo = YoloVision()
+        self.camera = Camera()
+        self.camera_stream_status = False
 
-def transform_coordinates(xp, yp):
-    a, b, c = -0.0959043379 / 100, -0.0040884899 / 100, -13.2387630728 / 100
-    d, e, f = 0.0015836117 / 100, 0.1064093728 / 100, -26.4297290624 / 100
-    xd = a * xp + b * yp + c
-    yd = d * xp + e * yp + f
-    return xd, yd
+    def do_vision(self):
+        if not self.camera_stream_status: 
+            self.camera.start_stream()
+            self.camera_stream_status = True
 
-class ObjectDetector:
+        yolo_image = self.camera.get_color_frame()
+
+        if isinstance(yolo_image, np.ndarray):  
+            result_image, coordinates = self.yolo.get_results(yolo_image)
+            cv2.imshow("YOLOv11 RealSense Integration", result_image)
+            if coordinates:
+                x_tcp, y_tcp = self.camera.transform_coordinates_to_tcp(coordinates[0])
+                return x_tcp, y_tcp
+            else:
+                logging.warning("No objects detected.")
+                return None, None
+        else:
+            logging.warning("Got no image to put in Yolo Model.")
+            return None, None
+
+    def stop(self):
+        self.camera.stop_stream()
+
+# YoloVision Class ########################################################################################
+class YoloVision():
     def __init__(self):
         '''setup yolo model'''
         current_directory = os.path.dirname(os.path.abspath(__file__))
@@ -64,9 +83,72 @@ class ObjectDetector:
                     cv2.putText(frame, text, (x_left, y_middle - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
 
         return frame
-    
 
-#Test
+# Camera Class ##################################################################################
+class Camera():
+    def __init__(self):
+        '''setup camera'''
+        self.pipeline = None
+        self.config = None
+        self.setup()        #start pipelining and config 
+
+    #start camera stream/pipeline
+    def setup(self):
+        try:
+            logging.info("setup camera")
+            # Configure RealSense pipeline
+            self.pipeline = rs.pipeline()
+            self.config = rs.config()
+            self.config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
+            self.config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)  # Enable depth stream
+        except Exception as e:
+            logging.error(f"problem setting up camera: {e}")
+
+    #start camera stream
+    def start_stream(self):
+        try:
+            self.pipeline.start(self.config)
+        except Exception as e:
+            logging.error(f"cannot start camera stream: {e}")
+
+    #stop camera stream
+    def stop_stream(self):
+        try:
+            self.pipeline.stop()
+        except Exception as e:
+            logging.error(f"cannot stop camera stream: {e}")
+
+    #get color frames from the camera
+    def get_color_frame(self):
+        frames = self.pipeline.wait_for_frames()
+        color_frame = frames.get_color_frame()
+    
+        #convert color frame to numpy array
+        color_image = np.asanyarray(color_frame.get_data())
+
+        return color_image
+
+    #get depth frames from the camera
+    def get_depth_frame(self):
+        frames = self.pipeline.wait_for_frames()
+        depth_frame = frames.get_depth_frame()
+        return depth_frame
+
+    # Transform camera coordinates to robot TCP coordinates
+    def transform_coordinates_to_tcp(self, coordinates):
+        center_x, center_y = coordinates
+        depth_frame = self.get_depth_frame()
+        depth = depth_frame.get_distance(center_x, center_y)
+
+        # Convert to camera coordinates relative to the camera
+        X_cm = (center_x - C_x) * depth / F_x * 100  # Convert to cm
+        Y_cm = -(center_y - C_y) * depth / F_y * 100  # Convert to cm
+
+        # Transform to robot TCP coordinates
+        xd, yd = transform_coordinates(X_cm, Y_cm)
+        return xd, yd
+
+# Test ####################################################################################################
 if __name__ == "__main__":
     detector = ObjectDetector()
     cap = cv2.VideoCapture(0)
