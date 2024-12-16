@@ -14,22 +14,6 @@ logging.basicConfig(
 
 
 
-#function that connects to robot, sets TCP and moves robot to a safe start position
-def setup_robot():
-    #connect to robot
-    robot.connect()
-
-    #set toolframe
-    tool_frame=[-47.5/1000,-140/1000,102.6/1000,math.radians(-1.2),math.radians(2),math.radians(-5)]
-    robot.set_tool_frame(tool_frame=tool_frame)
-
-    #set safe start pos
-    start_pos = [-0.3968556411508649, 0.049047830881604054, 0.1, 2.1355663224764934, 2.288791439427752, -0.0]
-
-    #move to start pos
-    #robot.move_l(start_pos, 0.1, 0.1)
-
-
 #main loop: gets partlocations, then starts a for loop to fill all the boxes
 def main_loop():
     logging.info("in main loop")
@@ -65,7 +49,7 @@ logging.info("START")
 
 # setup robot
 robot = URControl("192.168.0.1")  # defines robot.
-setup_robot()  # connects to robot
+robot.connect()
 
 
 base_z = -12/1000
