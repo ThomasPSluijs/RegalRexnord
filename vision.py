@@ -19,12 +19,7 @@ logging.basicConfig(
 yolo_logger = logging.getLogger("yolo_logger")
 yolo_logger.addFilter(YoloLogFilter())
 
-def transform_coordinates(xp, yp):
-    a, b, c = -0.0959043379 / 100, -0.0040884899 / 100, -13.2387630728 / 100
-    d, e, f = 0.0015836117 / 100, 0.1064093728 / 100, -26.4297290624 / 100
-    xd = a * xp + b * yp + c
-    yd = d * xp + e * yp + f
-    return xd, yd
+
 
 class ObjectDetector:
     def __init__(self):
@@ -37,6 +32,13 @@ class ObjectDetector:
     def detect_objects(self, frame):
         results = self.model(frame)
         return results
+    
+    def transform_coordinates(self, xp, yp):
+        a, b, c = -0.0959043379 / 100, -0.0040884899 / 100, -13.2387630728 / 100
+        d, e, f = 0.0015836117 / 100, 0.1064093728 / 100, -26.4297290624 / 100
+        xd = a * xp + b * yp + c
+        yd = d * xp + e * yp + f
+        return xd, yd
 
     def process_frame(self, frame):
         logging.debug("Processing frame...")
@@ -52,7 +54,7 @@ class ObjectDetector:
 
                     x_left = bbox[0]
                     y_middle = int((bbox[1] + bbox[3]) / 2)
-                    xd, yd = transform_coordinates(x_left, y_middle)
+                    xd, yd = self.transform_coordinates(x_left, y_middle)
                     target_position = [xd, yd, 0.5297075288092719, -2.1926151354478987, -2.2424509339020156, 0.009950454521939689]
 
                     # Print the detected camera coordinates and the resulting TCP position
@@ -67,6 +69,7 @@ class ObjectDetector:
     
 
 #Test
+'''
 if __name__ == "__main__":
     detector = ObjectDetector()
     cap = cv2.VideoCapture(0)
@@ -80,3 +83,4 @@ if __name__ == "__main__":
             break
     cap.release()
     cv2.destroyAllWindows()
+    '''
