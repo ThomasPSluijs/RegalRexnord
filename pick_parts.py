@@ -34,8 +34,8 @@ class Pick_parts():
     #done
     def pick_parts(self, part_x, part_y):
         #fast and slow speeds and accelerations. fast for general movements, slow for special movements. 
-        speed_fast = 0.5
-        acc_fast = 1
+        speed_fast = 0.1
+        acc_fast = 0.1
 
         speed_slow = 0.1   
         acc_slow = 0.5
@@ -52,9 +52,9 @@ class Pick_parts():
         cur_pos = self.robot.get_tcp_pos()
         cur_pos[0] = part_x + self.part_pos_x_offset
         cur_pos[1] = part_y
-        cur_pos[3] = start_rotation[0]
-        cur_pos[4] = start_rotation[1]
-        cur_pos[5] = start_rotation[2]
+        #cur_pos[3] = start_rotation[0]
+        #cur_pos[4] = start_rotation[1]
+        #cur_pos[5] = start_rotation[2]
         self.robot.move_l(cur_pos, speed_fast, acc_fast)
 
 
