@@ -1,6 +1,7 @@
 import cv2
 from vision import ObjectDetector
 import time
+from UR5E_control import *
 
 class CameraPosition:
     def __init__(self, robot):
@@ -33,7 +34,7 @@ class CameraPosition:
     def detect_object(self, min_length=100):
         self.capture_position()
         # Open the camera
-        self.cap = cv2.VideoCapture(1)
+        self.cap = cv2.VideoCapture(2)
 
         while True:
             # Capture a frame from the camera
@@ -60,25 +61,25 @@ class CameraPosition:
                             # Calculate the length of the object blob
                             length = max(width, height)
 
-                            # Check if the length is greater than or equal to the minimum length
+                            # Check if the length is greater than or equal to the minimum length '''
                             if length >= min_length:
                                 xd, yd = self.detector.transform_coordinates(x_left, y_middle)
                                 target_position = [xd, yd, 0.1297075288092719, 2.222, 2.248, 0.004]
 
                                 # Print the detected camera coordinates and the resulting TCP position
-                                print(f"Detected (x, y): ({x_left}, {y_middle}) -> Calculated TCP Position: {target_position}")
+                                print(f"Detected (x, y): ({x_left}, {y_middle}) -> Calculated TCP Position: {target_position}  conf: {box.conf.item}")
 
                                 # Draw a red dot at the left-most middle part and print coordinates
                                 cv2.circle(frame, (x_left, y_middle), 5, (0, 0, 255), -1)
                                 text = f'X: {x_left}, Y: {y_middle}'
                                 cv2.putText(frame, text, (x_left, y_middle - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-                                cv2.imshow("Detected Object", frame)
+                                
+                                
+                                #cv2.imshow("Detected Object", frame)
+                                #cv2.destroyAllWindows()
 
-                                cv2.imshow('test', frame)
-                                time.sleep(5)
-
-                                # Return the x and y coordinates
-                                return x_left, y_middle
+                                # Return the x and y coordinate
+                                return x_left, y_middle 
 
             # If no object is detected, continue to the next frame
             continue
@@ -92,11 +93,16 @@ class CameraPosition:
 '''
 #Test
 if __name__ == "__main__":
-    camera = CameraPosition()
+    robot = URControl("192.168.0.1")
+    robot.connect()
+
+    camera = CameraPosition(robot)
     frame = camera.detect_object()
-    if frame is not None:
-        cv2.imshow("Detection", frame)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-    else:
-        print("Failed to detect object.") '''
+    #if frame is not None:
+    #    cv2.imshow("Detection", frame)
+    #    cv2.waitKey(0)
+    #    cv2.destroyAllWindows()
+    ##else:
+    #   print("Failed to detect object.") 
+
+    robot.stop_robot_control()  '''
