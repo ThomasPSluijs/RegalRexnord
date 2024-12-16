@@ -46,22 +46,20 @@ def main_loop():
             if count < tot_parts:
                 logging.info(f"part: {part}")
                 logging.info("do vision")  # -> result x and y for part
-                camera = CameraPosition()
                 x, y = camera.detect_object()  # get actual coordinates from vision
                 
                 logging.info("pickup part")
                 pick_part.pick_parts(x, y)  # pick part at given location
                 
                 logging.info("place part")
-                pack_box.place_part(part, box_index)  # place part at correct box and place. part contains location data in box. box_index is box 0 or 1 etc
+                pack_box.place_part(part, box_index, part_type='wide')  # place part at correct box and place. part contains location data in box. box_index is box 0 or 1 etc
                 count += 1
         box_index += 1
  
     # end
     robot.stop_robot_control()
 
-# initialize vision class
-vision = Vision()
+
 
 logging.info("START")
 
@@ -69,12 +67,16 @@ logging.info("START")
 robot = URControl("192.168.0.1")  # defines robot.
 setup_robot()  # connects to robot
 
-# setup boxes and parts
-# Create instances for box and part.
-box = Box(total_boxes=2, box_pos=[(-224 / 1000, -588 / 1000, 100 / 1000), [237 / 1000, -588 / 1000, 100 / 1000]], box_size=(0.365, 0.365, 0.170))
 
-# needs: part width, part length, part height
-part = Part((0.187, 0.170, 0.013))
+base_z = -12/1000
+#neeeds: total boxes, box pos (x and y center, z bottom), box dimensions: (x, y, z)
+box = Box(total_boxes=2, box_pos=[(-230/1000, -575/1000, base_z), [237/1000,-588/1000, base_z]], box_size=(0.365, 0.365, 0.180 ))
+
+#needs: part width, part length, part height
+part = Part((0.187, 0.170, 0.009))
+
+# initialize vision camera class
+camera = CameraPosition(robot=robot)
 
 # initializes pack box class
 pack_box = Pack_Box(box=box, part=part, robot=robot)

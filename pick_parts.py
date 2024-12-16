@@ -11,7 +11,7 @@ logging.basicConfig(
 
 class Pick_parts():
     def __init__(self, robot):
-        self.belt_z = [0,0,-0.089,0,0,0]                                            #belt z location (should be )
+        self.belt_z = [0,0,-115/1000,0,0,0]                                            #belt z location (should be )
         self.rotate_x = [0,0,0,math.radians(-15),math.radians(0),math.radians(0)]   #rotation about x axis of tool  
         
         self.part_pos_x_offset = 0.02                                #x offset so gripper starts before parts and does not crash down when going down
@@ -55,7 +55,7 @@ class Pick_parts():
         cur_pos[3] = start_rotation[0]
         cur_pos[4] = start_rotation[1]
         cur_pos[5] = start_rotation[2]
-        self.robot.moveL(cur_pos, speed_fast, acc_fast)
+        self.robot.move_l(cur_pos, speed_fast, acc_fast)
 
 
         #step 3
@@ -127,15 +127,12 @@ class Pick_parts():
 code below is to test this file. should be commented.
 '''
 
+'''
 #connect to robot
 robot = URControl("192.168.0.1")
 robot.connect()
 
-#set toolframe
-tool_frame=[-47.5/1000,-140/1000,102.6/1000,math.radians(-1.2),math.radians(2),math.radians(-5)]
-
-
 #pick_part = Pick_parts(robot=robot)
 #pick_part.pick_parts(0.1,0.2)
 
-robot.stop_robot_control() 
+robot.stop_robot_control()  '''
