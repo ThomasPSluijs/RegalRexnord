@@ -25,8 +25,8 @@ class Vision():
 
         yolo_image = self.camera.get_color_frame()
 
-        if isinstance(yolo_image, np.ndarray):  
-            result_image, coordinates = self.yolo.get_results(yolo_image)
+        if isinstance(yolo_image, np.ndarray):  #check if image is correct instance/type
+            result_image, coordinates = self.yolo.get_results(yolo_image)   #get yolo results
             cv2.imshow("YOLOv11 RealSense Integration", result_image)
             if coordinates:
                 x_tcp, y_tcp = self.camera.transform_coordinates_to_tcp(coordinates[0])
@@ -141,6 +141,15 @@ class Camera():
         frames = self.pipeline.wait_for_frames()
         depth_frame = frames.get_depth_frame()
         return depth_frame
+    
+    	
+    #transform coordinates
+    def transform_coordinates(self, xp, yp):
+        a, b, c = -0.0959043379 / 100, -0.0040884899 / 100, -13.2387630728 / 100
+        d, e, f = 0.0015836117 / 100, 0.1064093728 / 100, -26.4297290624 / 100
+        xd = a * xp + b * yp + c
+        yd = d * xp + e * yp + f
+        return xd, yd
 
     # Transform camera coordinates to robot TCP coordinates
     def transform_coordinates_to_tcp(self, coordinates):
@@ -153,7 +162,7 @@ class Camera():
         Y_cm = -(center_y - C_y) * depth / F_y * 100  # Convert to cm
 
         # Transform to robot TCP coordinates
-        xd, yd = transform_coordinates(X_cm, Y_cm)
+        xd, yd = self.transform_coordinates(X_cm, Y_cm)
         return xd, yd
 
 # Test ####################################################################################################
