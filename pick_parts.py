@@ -133,9 +133,9 @@ robot.connect()
 
 #set toolframe
 tool_frame=[-47.5/1000,-140/1000,102.6/1000,math.radians(-1.2),math.radians(2),math.radians(-5)]
-robot.set_tool_frame(tool_frame=tool_frame)
 
-pick_part = Pick_parts(robot=robot)
-pick_part.pick_parts(0.1,0.2)
+
+#pick_part = Pick_parts(robot=robot)
+#pick_part.pick_parts(0.1,0.2)
 
 robot.stop_robot_control() 
