@@ -1,6 +1,12 @@
 import cv2
 from vision import ObjectDetector
 from vision import transform_coordinates
+from UR5E_control import URControl
+
+class CameraPosition:
+    def __init__(self):
+        self.detector = ObjectDetector()
+        self.cap = None
 
 class CameraPosition:
     def __init__(self):
@@ -8,8 +14,35 @@ class CameraPosition:
         self.cap = None
 
     def capture_position(self):
-        # Move the robot arm to the capture position
-        pass
+        import logging
+        import math
+        from UR5E_control import URControl
+
+        # Suppress logging for this example
+        logging.basicConfig(
+            level=logging.INFO,
+            format="%(asctime)s - %(levelname)s - %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
+        )
+
+        # Define the tool frame
+        tool_frame = [-47.5/1000,-140/1000,135/1000,math.radians(0),math.radians(0),math.radians(0)]
+
+        # Define the target position and orientation
+        target_position = [-0.5981433108063265, -0.10770597622051334, 0.5297075288092719, 2.222, 2.248, 0.004]
+
+        # Connect to the robot
+        robot = URControl("192.168.0.1")
+
+        try:
+            robot.connect()
+            robot.set_tool_frame(tool_frame=tool_frame)  # Set the tool frame
+            logging.info(f"Tool frame set to: {tool_frame}")
+            logging.info(f"Current TCP position: {robot.get_tcp_pos()}")
+            robot.move_l(target_position, 1, 0.5)  # Move to the target position
+            logging.info(f"Moved to position: {target_position}")
+        except Exception as e:
+            logging.error(f"Error setting up robot: {e}")
 
     def detect_object(self, min_length=100):
         # Open the camera
@@ -41,7 +74,7 @@ class CameraPosition:
                             # Check if the length is greater than or equal to the minimum length
                             if length >= min_length:
                                 xd, yd = transform_coordinates(x_left, y_middle)
-                                target_position = [xd, yd, 0.5297075288092719, -2.1926151354478987, -2.2424509339020156, 0.009950454521939689]
+                                target_position = [xd, yd, 0.1297075288092719, 2.222, 2.248, 0.004]
 
                                 # Print the detected camera coordinates and the resulting TCP position
                                 print(f"Detected (x, y): ({x_left}, {y_middle}) -> Calculated TCP Position: {target_position}")
