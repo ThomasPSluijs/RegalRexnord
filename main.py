@@ -31,6 +31,7 @@ def main_loop():
                 logging.info(f"part: {part}")
                 logging.info("do vision")  # -> result x and y for part
                 x, y = camera.detect_object()  # get actual coordinates from vision
+                if x == 0 and y == 0: break
                 
                 logging.info("pickup part")
                 pick_part.pick_parts(x, y)  # pick part at given location
