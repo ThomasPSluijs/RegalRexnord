@@ -21,6 +21,7 @@ yolo_logger.addFilter(YoloLogFilter())
 
 
 
+#runs yolo model and detects objects
 class ObjectDetector:
     def __init__(self):
         '''setup yolo model'''
@@ -42,8 +43,7 @@ class ObjectDetector:
 
 
 
-#Test
-'''
+#Test only run if file is run directly
 if __name__ == "__main__":
     detector = ObjectDetector()
     cap = cv2.VideoCapture(0)
@@ -57,4 +57,4 @@ if __name__ == "__main__":
             break
     cap.release()
     cv2.destroyAllWindows()
-    '''
+    
