@@ -1,25 +1,41 @@
 import cv2
-from vision import ObjectDetector
-import time
+import os
+import logging
+import math
 from UR5E_control import *
+from ultralytics import YOLO
 
+
+
+# Suppress logging for this example
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+
+
+#yolo log filter
+class YoloLogFilter(logging.Filter):
+    def filter(self, record):
+        return not any(keyword in record.getMessage() for keyword in ['Speed:', 'per image', 'ms'])
+
+# Suppress YOLO logging
+yolo_logger = logging.getLogger("yolo_logger")
+yolo_logger.addFilter(YoloLogFilter())
+
+
+
+
+#uses camera to run yolo model and get x and y coordinates of the parts
 class CameraPosition:
     def __init__(self, robot):
         self.detector = ObjectDetector()
         self.cap = None
         self.robot = robot
 
+    #moves robot to capture position
     def capture_position(self):
-        import logging
-        import math
-
-        # Suppress logging for this example
-        logging.basicConfig(
-            level=logging.INFO,
-            format="%(asctime)s - %(levelname)s - %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S",
-        )
-
         # Define the tool frame
         tool_frame = [-47.5/1000,-140/1000,135/1000,math.radians(0),math.radians(0),math.radians(0)]
         self.robot.set_tcp(tool_frame)
@@ -28,9 +44,21 @@ class CameraPosition:
         target_position = [-0.5981433108063265, -0.10770597622051334, 0.5297075288092719, 2.222, 2.248, 0.004]
 
         #move
-        self.robot.move_l(target_position, 0.1, 0.1)
+        self.robot.move_l(target_position, 1, 1)
 
 
+
+    #transform camera coordinates to real world (robot) coordinates
+    def transform_coordinates(self, xp, yp):
+        a, b, c = -0.0959043379 / 100, -0.0040884899 / 100, -13.2387630728 / 100
+        d, e, f = 0.0015836117 / 100, 0.1064093728 / 100, -26.4297290624 / 100
+        xd = a * xp + b * yp + c
+        yd = d * xp + e * yp + f
+        return xd, yd
+
+
+
+    #main function that detects opbjects and returns the object locations
     def detect_object(self, min_length=100):
         self.capture_position()
         # Open the camera
@@ -48,8 +76,9 @@ class CameraPosition:
             results = self.detector.detect_objects(frame)
             if results is not None:
                 for result in results:
-                    if result.boxes is not None:
-                        for box in result.boxes:
+                    #if result.boxes is not None:
+                    for box in result.boxes:
+                        if box.conf > 0.7:
                             bbox = box.xyxy[0].cpu().numpy()
                             bbox = [int(coord) for coord in bbox[:4]]
                             x_left = bbox[0]
@@ -63,11 +92,11 @@ class CameraPosition:
 
                             # Check if the length is greater than or equal to the minimum length '''
                             if length >= min_length:
-                                xd, yd = self.detector.transform_coordinates(x_left, y_middle)
+                                xd, yd = self.transform_coordinates(x_left, y_middle)
                                 target_position = [xd, yd, 0.1297075288092719, 2.222, 2.248, 0.004]
 
                                 # Print the detected camera coordinates and the resulting TCP position
-                                print(f"Detected (x, y): ({x_left}, {y_middle}) -> Calculated TCP Position: {target_position}  conf: {box.conf.item}")
+                                print(f"Detected (x, y): ({x_left}, {y_middle}) -> Calculated TCP Position: {target_position}  conf: {box.conf}")
 
                                 # Draw a red dot at the left-most middle part and print coordinates
                                 cv2.circle(frame, (x_left, y_middle), 5, (0, 0, 255), -1)
@@ -78,8 +107,11 @@ class CameraPosition:
                                 #cv2.imshow("Detected Object", frame)
                                 #cv2.destroyAllWindows()
 
-                                # Return the x and y coordinate
-                                return x_left, y_middle 
+                                # Return the rounded x and y coordinate
+                                return (round(xd,5), round(yd,5))
+                            
+                        else:
+                            logging.info(f"not certain if there are parts: {box.conf}")
 
             # If no object is detected, continue to the next frame
             continue
@@ -89,10 +121,29 @@ class CameraPosition:
 
         # Return default values if no object is detected after multiple frames
         return (0, 0)
+    
 
-'''
-#Test
-if __name__ == "__main__":
+
+#runs yolo model and detects objects
+class ObjectDetector:
+    def __init__(self):
+        '''setup yolo model'''
+        current_directory = os.path.dirname(os.path.abspath(__file__))
+        model_path = os.path.join(current_directory, "best.pt")
+        self.model = YOLO(model_path)
+        self.labels = self.model.names
+
+    def detect_objects(self, frame):
+        results = self.model.predict(source=frame, show=False)
+        return results
+    
+
+
+
+
+
+#for testing only
+if __name__ == "__main__":      #only run if this file is run
     robot = URControl("192.168.0.1")
     robot.connect()
 
@@ -105,4 +156,4 @@ if __name__ == "__main__":
     ##else:
     #   print("Failed to detect object.") 
 
-    robot.stop_robot_control()  '''
+    robot.stop_robot_control()  
