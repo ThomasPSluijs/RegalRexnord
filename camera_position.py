@@ -4,6 +4,7 @@ import logging
 import math
 from UR5E_control import *
 from ultralytics import YOLO
+from matplotlib import pyplot as plt
 
 
 
@@ -102,10 +103,15 @@ class CameraPosition:
                                 cv2.circle(frame, (x_left, y_middle), 5, (0, 0, 255), -1)
                                 text = f'X: {x_left}, Y: {y_middle}'
                                 cv2.putText(frame, text, (x_left, y_middle - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+    
+
+                                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                                 
-                                
-                                #cv2.imshow("Detected Object", frame)
-                                #cv2.destroyAllWindows()
+                                #plt.imshow(frame_rgb)
+                                #plt.title("Detected Object")  # Set a title for the image
+                                #plt.axis("off")  # Hide the axes for a cleaner look
+                                #plt.show()
+                
 
                                 # Return the rounded x and y coordinate
                                 return (round(xd,5), round(yd,5))
