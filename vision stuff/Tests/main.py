@@ -1,4 +1,3 @@
-import cv2
 from camera_position import CameraPosition
 
 def main():
