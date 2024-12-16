@@ -1,10 +1,10 @@
 import logging
 from UR5E_control import URControl
 import math
+from camera_position import CameraPosition         #used for scanning the belt for detected parts
+from pick_parts import *                           #used for picking parts from belt. needs x and y coordinates
+from place_parts import *                          #used for getting place locations and placing parts in boxes
 
-from pick_parts import *            #used for picking parts from belt. needs x and y coordinates
-from place_parts import *           #used for getting place locations and placing parts in boxes
-from vision import Vision           #used for vision, camera and yolo model
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -46,7 +46,8 @@ def main_loop():
             if count < tot_parts:
                 logging.info(f"part: {part}")
                 logging.info("do vision")  # -> result x and y for part
-                x, y = vision.do_vision()  # get actual coordinates from vision
+                camera = CameraPosition()
+                x, y = camera.detect_object()  # get actual coordinates from vision
                 
                 logging.info("pickup part")
                 pick_part.pick_parts(x, y)  # pick part at given location

@@ -1,176 +1,82 @@
-# Setup and Initialization ########################################################################################################
-from ultralytics import YOLO
-import os
-import pyrealsense2 as rs
-import numpy as np
 import cv2
+import numpy as np
+import os
+from ultralytics import YOLO
 import logging
 
+class YoloLogFilter(logging.Filter):
+    def filter(self, record):
+        return not any(keyword in record.getMessage() for keyword in ['Speed:', 'per image', 'ms'])
+
+# Configure logging
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,  # Set to DEBUG for detailed logs
     format="%(asctime)s - %(levelname)s - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 
-class Vision():
-    def __init__(self):
-        self.yolo = YoloVision()
-        self.camera = Camera()
-        self.camera_stream_status = False
+# Suppress YOLO logging
+yolo_logger = logging.getLogger("yolo_logger")
+yolo_logger.addFilter(YoloLogFilter())
 
-    def do_vision(self):
-        if not self.camera_stream_status: 
-            self.camera.start_stream()
-            self.camera_stream_status = True
+def transform_coordinates(xp, yp):
+    a, b, c = -0.0959043379 / 100, -0.0040884899 / 100, -13.2387630728 / 100
+    d, e, f = 0.0015836117 / 100, 0.1064093728 / 100, -26.4297290624 / 100
+    xd = a * xp + b * yp + c
+    yd = d * xp + e * yp + f
+    return xd, yd
 
-        yolo_image = self.camera.get_color_frame()
-
-        if isinstance(yolo_image, np.ndarray):  
-            result_image, coordinates = self.yolo.get_results(yolo_image)
-            cv2.imshow("YOLOv11 RealSense Integration", result_image)
-            if coordinates:
-                x_tcp, y_tcp = self.camera.transform_coordinates_to_tcp(coordinates[0])
-                return x_tcp, y_tcp
-            else:
-                logging.warning("No objects detected.")
-                return None, None
-        else:
-            logging.warning("Got no image to put in Yolo Model.")
-            return None, None
-
-    def stop(self):
-        self.camera.stop_stream()
-
-# YoloVision Class ########################################################################################
-class YoloVision():
+class ObjectDetector:
     def __init__(self):
         '''setup yolo model'''
-        # Get the directory of the current script
         current_directory = os.path.dirname(os.path.abspath(__file__))
-
-        # Construct the full path to best.pt
-        model_path = os.path.join(current_directory, "vision stuff/best.pt")
-
-        # Load the trained model
+        model_path = os.path.join(current_directory, "best.pt")
         self.model = YOLO(model_path)
-
-        # Retrieve class labels from the model
         self.labels = self.model.names
 
-    def get_results(self, color_image):
-        logging.info("get yolo vision results")
-        # Run model
-        results = self.model.predict(source=color_image, show=False)
+    def detect_objects(self, frame):
+        results = self.model(frame)
+        return results
 
-        # Filter results based on confidence score
-        filtered_boxes = [box for box in results[0].boxes if box.conf >= 0.7]
+    def process_frame(self, frame):
+        logging.debug("Processing frame...")
+        results = self.detect_objects(frame)
+        
+        for result in results:
+            if result.boxes is not None:
+                for box in result.boxes:
+                    logging.debug(f"Detected object with bbox: {box.xyxy}")
+                    bbox = box.xyxy[0].cpu().numpy()
+                    bbox = [int(coord) for coord in bbox[:4]]
+                    cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 0, 0), 2)
 
-        # Get coordinates of detected object
-        coordinates = []
-        for box in filtered_boxes:
-            x1, y1, x2, y2 = map(int, box.xyxy[0][:4])
-            center_x = (x1 + x2) // 2
-            center_y = (y1 + y2) // 2
-            coordinates.append((center_x, center_y))
+                    x_left = bbox[0]
+                    y_middle = int((bbox[1] + bbox[3]) / 2)
+                    xd, yd = transform_coordinates(x_left, y_middle)
+                    target_position = [xd, yd, 0.5297075288092719, -2.1926151354478987, -2.2424509339020156, 0.009950454521939689]
 
-        # Draw boxes on the image
-        result_image = self.draw_boxes(color_image, filtered_boxes, self.labels)
-        return result_image, coordinates
+                    # Print the detected camera coordinates and the resulting TCP position
+                    print(f"Detected (x, y): ({x_left}, {y_middle}) -> Calculated TCP Position: {target_position}")
 
-    def draw_boxes(self, frame, boxes, labels):
-        logging.info("draw boxes on yolo image")
-        for box in boxes:
-            x1, y1, x2, y2 = map(int, box.xyxy[0][:4])
-            class_id = int(box.cls.item())  # Get the class ID
-            confidence = box.conf.item()
-            label_text = f"{labels[class_id]}: {confidence:.2f}"
-            
-            # Draw the bounding box
-            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-            # Put the label text above the bounding box
-            cv2.putText(frame, label_text, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+                    # Draw a red dot at the left-most middle part and print coordinates
+                    cv2.circle(frame, (x_left, y_middle), 5, (0, 0, 255), -1)
+                    text = f'X: {x_left}, Y: {y_middle}'
+                    cv2.putText(frame, text, (x_left, y_middle - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
 
         return frame
-
-# Camera Class ##################################################################################
-class Camera():
-    def __init__(self):
-        '''setup camera'''
-        self.pipeline = None
-        self.config = None
-        self.setup()        #start pipelining and config 
-
-    #start camera stream/pipeline
-    def setup(self):
-        try:
-            logging.info("setup camera")
-            # Configure RealSense pipeline
-            self.pipeline = rs.pipeline()
-            self.config = rs.config()
-            self.config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
-            self.config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)  # Enable depth stream
-        except Exception as e:
-            logging.error(f"problem setting up camera: {e}")
-
-    #start camera stream
-    def start_stream(self):
-        try:
-            self.pipeline.start(self.config)
-        except Exception as e:
-            logging.error(f"cannot start camera stream: {e}")
-
-    #stop camera stream
-    def stop_stream(self):
-        try:
-            self.pipeline.stop()
-        except Exception as e:
-            logging.error(f"cannot stop camera stream: {e}")
-
-    #get color frames from the camera
-    def get_color_frame(self):
-        frames = self.pipeline.wait_for_frames()
-        color_frame = frames.get_color_frame()
     
-        #convert color frame to numpy array
-        color_image = np.asanyarray(color_frame.get_data())
 
-        return color_image
-
-    #get depth frames from the camera
-    def get_depth_frame(self):
-        frames = self.pipeline.wait_for_frames()
-        depth_frame = frames.get_depth_frame()
-        return depth_frame
-
-    # Transform camera coordinates to robot TCP coordinates
-    def transform_coordinates_to_tcp(self, coordinates):
-        center_x, center_y = coordinates
-        depth_frame = self.get_depth_frame()
-        depth = depth_frame.get_distance(center_x, center_y)
-
-        # Convert to camera coordinates relative to the camera
-        X_cm = (center_x - C_x) * depth / F_x * 100  # Convert to cm
-        Y_cm = -(center_y - C_y) * depth / F_y * 100  # Convert to cm
-
-        # Transform to robot TCP coordinates
-        xd, yd = transform_coordinates(X_cm, Y_cm)
-        return xd, yd
-
-# Test ####################################################################################################
+#Test
 if __name__ == "__main__":
-    vision = Vision()
-
-    try:
-        while True:
-            x_tcp, y_tcp = vision.do_vision()
-            if x_tcp is not None and y_tcp is not None:
-                logging.info(f"Detected object TCP coordinates: X={x_tcp}, Y={y_tcp}")
-                    
-            # Exit on 'q' key press
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-    finally:
-        vision.stop()
-        cv2.destroyAllWindows()
-
-
+    detector = ObjectDetector()
+    cap = cv2.VideoCapture(0)
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+        frame = detector.process_frame(frame)
+        cv2.imshow("Detected Object", frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+    cap.release()
+    cv2.destroyAllWindows()
