@@ -21,7 +21,7 @@ def main_loop():
     logging.info("get all packing positions")
     filled_boxes = pack_box.get_pack_pos()
      
-    tot_parts = 5  # for testing, limit part amount
+    tot_parts = 1  # for testing, limit part amount
     count = 0
 
     box_index = 0
@@ -37,7 +37,7 @@ def main_loop():
                 pick_part.pick_parts(x, y)  # pick part at given location
                 
                 logging.info("place part")
-                pack_box.place_part(part, box_index, part_type='wide')  # place part at correct box and place. part contains location data in box. box_index is box 0 or 1 etc
+                pack_box.place_part(part, part_type='wide')  # place part at correct box and place. part contains location data in box. box_index is box 0 or 1 etc
                 count += 1
         box_index += 1
  
