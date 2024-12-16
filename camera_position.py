@@ -1,6 +1,6 @@
 import cv2
 from vision import ObjectDetector
-
+import time
 
 class CameraPosition:
     def __init__(self, robot):
@@ -33,7 +33,7 @@ class CameraPosition:
     def detect_object(self, min_length=100):
         self.capture_position()
         # Open the camera
-        self.cap = cv2.VideoCapture(0)
+        self.cap = cv2.VideoCapture(1)
 
         while True:
             # Capture a frame from the camera
@@ -41,6 +41,7 @@ class CameraPosition:
             if not ret:
                 print("Error: Could not read frame.")
                 break
+
 
             # Use the ObjectDetector to detect the object
             results = self.detector.detect_objects(frame)
@@ -54,6 +55,7 @@ class CameraPosition:
                             y_middle = int((bbox[1] + bbox[3]) / 2)
                             width = bbox[2] - bbox[0]
                             height = bbox[3] - bbox[1]
+                            cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 0, 0), 2)
 
                             # Calculate the length of the object blob
                             length = max(width, height)
@@ -65,6 +67,15 @@ class CameraPosition:
 
                                 # Print the detected camera coordinates and the resulting TCP position
                                 print(f"Detected (x, y): ({x_left}, {y_middle}) -> Calculated TCP Position: {target_position}")
+
+                                # Draw a red dot at the left-most middle part and print coordinates
+                                cv2.circle(frame, (x_left, y_middle), 5, (0, 0, 255), -1)
+                                text = f'X: {x_left}, Y: {y_middle}'
+                                cv2.putText(frame, text, (x_left, y_middle - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+                                cv2.imshow("Detected Object", frame)
+
+                                cv2.imshow('test', frame)
+                                time.sleep(5)
 
                                 # Return the x and y coordinates
                                 return x_left, y_middle
