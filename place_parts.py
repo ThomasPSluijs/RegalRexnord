@@ -130,7 +130,7 @@ class Pack_Box:
 
 
     #place parts
-    def place_part(self, part):
+    def place_part(self, part, part_type):
         box_index = part['box_number']
         part_position = part['position']
 
@@ -148,18 +148,19 @@ class Pack_Box:
         pickup_tcp = [-47.5/1000,-140/1000,135/1000,math.radians(0),math.radians(0),math.radians(0)]  #edge of part (x=centerpart, y=edge)
         placement_tcp = [-47.5/1000,-52.5/1000,135/1000,math.radians(0),math.radians(0),math.radians(0)]  #center of part (x=center,y=center)
 
-
-
-
+        #start rotation, this makes x,y,z aligned to the boxes
         start_rotation = [2.213, 2.215, -0.013]
 
+
+        '''only for testing'''
         self.robot.set_tool_frame(pickup_tcp)
-        start_pos = [-0.5981433108063265, -0.10770597622051334, 0.5297075288092719, 2.222, 2.248, 0.004]  #only for testing
+        start_pos = [-0.5981433108063265, -0.10770597622051334, 0.5297075288092719, 2.222, 2.248, 0.004]  
         self.robot.move_l(start_pos, speed_fast, acc_fast) 
 
-        z_above_box = 0.3
 
+        
         #step 1: move to proper z height (currently pos: just picked up parts)
+        z_above_box = 0.3
         self.robot.set_tool_frame(placement_tcp)
         cur_pos = self.robot.get_tcp_pos()
         cur_pos[2] = z_above_box
@@ -209,7 +210,6 @@ class Pack_Box:
         
         
         # Step 5: Move to the part's target X, Y position
-#        self.robot.set_tool_frame(placement_tcp)
         cur_pos = self.robot.get_tcp_pos()
         cur_pos[0] = part_position[0]  # Set X to the part's target position
         cur_pos[1] = part_position[1]  # Set Y to the part's target position
@@ -218,6 +218,8 @@ class Pack_Box:
 
 
         #step 5.1: rotate a bit about x of tcp
+        if part_type == 'wide': rotate_x = -5
+        elif part_type == 'narrow': rotate_x = -2
         rotate_x = [0,0,0,math.radians(-2),math.radians(0),math.radians(0)]     #shouold be -5
         self.robot.set_tool_frame(pickup_tcp)
         pose1 = self.robot.get_tcp_pos()
@@ -227,16 +229,19 @@ class Pack_Box:
 
        
         # Step 6: Move to the desired Z height for placement
-#        self.robot.set_tool_frame(placement_tcp)
         cur_pos = self.robot.get_tcp_pos()
-        cur_pos[2] = part_position[2]   # Set Z height to target position within the box
+        if part['layer_number'] == 0 and part_type == 'narrow': z_offset = -4    #layer 0: negative z offset for pressing down the box a bit
+        elif part['layer_number'] > 0 and part_type == 'narrow': z_offset = 0   #rest of the layers: normal height
+        cur_pos[2] = part_position[2] + z_offset   # Set Z height to target position within the box
         logging.info(f"Step 6: Move to placement height: {cur_pos}")
         self.robot.move_l(cur_pos, speed_slow, acc_slow)
 
 
-        # Step 7: Slide part into place (rotates about x axis)      #should be -20
+        if part_type == 'wide': rotate_x = -20
+        elif part_type == 'narrow': rotate_x = -26
+        # Step 7: Slide part into place (rotates about x axis)     
         logging.info("Step 7: Performing final placement adjustments")
-        rotate_x = [0,0,0,math.radians(-26),math.radians(0),math.radians(0)]
+        rotate_x = [0,0,0,math.radians(rotate_x),math.radians(0),math.radians(0)]
         self.robot.set_tool_frame(pickup_tcp)
         pose1 = self.robot.get_tcp_pos()
         pose2 = rotate_x
@@ -248,7 +253,8 @@ class Pack_Box:
         logging.info("Step 8: depending on rotation, move x or y")
         self.robot.set_tool_frame(pickup_tcp)
         offset=157    #should be 175
-        z_offset = 2            #should be 7 for normal working
+        if part_type == 'wide': z_offset = 7
+        elif part_type == 'narrow': z_offset = 2
         if rotation_angle == 0:
             #move x positive
             offset= [offset/1000,0,z_offset/1000,0,0,0]
@@ -322,7 +328,7 @@ class Pack_Box:
          
     #goes throug boxes and parts, then calls 'pickup part', 'place part'
     
-    def pack_box(self):
+    def pack_box(self, part_type='wide'):
         self.get_pack_pos()     #gets packing locations
 
          
@@ -336,7 +342,7 @@ class Pack_Box:
                 logging.info("place part")
                 if part['box_number'] == 0:  #only pack box 1
                     if count >= 0 :     #start at specific layer and part position
-                        pack_box.place_part(part)
+                        pack_box.place_part(part, part_type)
                         keyboard.wait('space')
                         pass
                     
@@ -356,21 +362,15 @@ robot.connect()
 
 base_z_wide_parts = -12/1000
 base_z_narrow_parts = -16/1000 
+base_z = -12/1000
      
 # Create instances for box and part.
 #neeeds: total boxes, box pos (x and y center, z bottom), box dimensions: (x, y, z)
-box = Box(total_boxes=2, box_pos=[(-230/1000, -575/1000, base_z_narrow_parts), [237/1000,-588/1000, base_z_narrow_parts]], box_size=(0.365, 0.365, 0.180 ))
+box = Box(total_boxes=2, box_pos=[(-230/1000, -575/1000, base_z), [237/1000,-588/1000, base_z]], box_size=(0.365, 0.365, 0.180 ))
 
 #needs: part width, part length, part height
 part = Part((0.187, 0.170, 0.009))
    
-
-
-
-
-#robot.set_tcp([-47.5/1000,-140/1000,135/1000,math.radians(0),math.radians(0),math.radians(0)]) #edge of part (x=centerpart, y=edge) 
-#robot.move_l([-0.5981433108063265, -0.10770597622051334, 0.5297075288092719, 2.222, 2.248, 0.004])
-
 
 #gray parts: z= 0.0085                                              
 #big blue parts: z=0.01260
@@ -379,7 +379,7 @@ part = Part((0.187, 0.170, 0.009))
 
 # Initialize Pack_Box and get packing positions
 pack_box = Pack_Box(box=box, part=part, robot=robot)
-pack_box.pack_box()
+pack_box.pack_box(part_type='wide')
 
 
 robot.stop_robot_control() 
