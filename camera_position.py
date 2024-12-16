@@ -114,7 +114,7 @@ class CameraPosition:
                 
 
                                 # Return the rounded x and y coordinate
-                                return (round(xd,5), round(yd,5))
+                                return (xd, yd)
                             
                         else:
                             logging.info(f"not certain if there are parts: {box.conf}")
