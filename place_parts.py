@@ -328,6 +328,7 @@ class Pack_Box:
          
     #goes throug boxes and parts, then calls 'pickup part', 'place part'
     
+    '''
     def pack_box(self, part_type='wide'):
         self.get_pack_pos()     #gets packing locations
 
@@ -342,18 +343,18 @@ class Pack_Box:
                 logging.info("place part")
                 if part['box_number'] == 0:  #only pack box 1
                     if count >= 0 :     #start at specific layer and part position
-                        pack_box.place_part(part, part_type)
+                        self.place_part(part, part_type)
                         keyboard.wait('space')
                         pass
                     
-                count  += 1
+                count  += 1'''
  
     
 
 '''
 code below is to test this file. should be commented.
 '''
-
+'''
 
 robot = URControl("192.168.0.1")
 robot.connect()
@@ -382,4 +383,4 @@ pack_box = Pack_Box(box=box, part=part, robot=robot)
 pack_box.pack_box(part_type='wide')
 
 
-robot.stop_robot_control() 
+robot.stop_robot_control()  '''
