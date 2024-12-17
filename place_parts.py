@@ -4,6 +4,7 @@ import math
 from UR5E_control import URControl
 import time
 import keyboard
+import numpy as np
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -152,9 +153,6 @@ class Pack_Box:
         start_rotation = [2.213, 2.215, -0.013]
 
 
-        move_l = True
-        move_path = False
-
 
         speed_acc_blend = [1,1,0.45]
         start_pos = self.robot.get_tcp_pos()
@@ -164,63 +162,51 @@ class Pack_Box:
 
         '''start placement tcp'''
         #step 1: move to proper z height (currently pos: just picked up parts)
-        z_above_box = 0.3
-        self.robot.set_tool_frame(placement_tcp)
-        
-        if move_path: cur_pos = start_pos.copy()
-        if move_l: cur_pos = self.robot.get_tcp_pos()
+        z_above_box = 0.3        
+        cur_pos = start_pos.copy()
         cur_pos[2] = z_above_box
-        if move_l: self.robot.move_l(cur_pos, speed_fast, acc_fast)
 
-        if move_path:
-            x = 6
-            path_step_1 = cur_pos.copy()
-            speed_acc_blend = [speed_fast, acc_fast, 0.45]
-            for y in speed_acc_blend:
-                path_step_1[x]=y
-                x+=1
+        x = 6
+        path_step_1 = cur_pos.copy()
+        speed_acc_blend = [speed_fast, acc_fast, 0.0]
+        for y in speed_acc_blend:
+            path_step_1[x]=y
+            x+=1
 
 
 
         # Step 2: Move above the box center and set proper rotation
-        if move_path: cur_pos = path_step_1.copy()
-        if move_l: cur_pos = self.robot.get_tcp_pos()  # Get current robot position 
+        cur_pos = path_step_1.copy()
         cur_pos[0] = box_center[0]     # Align x position with box center
         cur_pos[1] = box_center[1]     # Align y position with box center
         cur_pos[2] = z_above_box               # Set a safe z height above the box
         logging.info(f"Step 2: Move to box center: {cur_pos}")
-        self.robot.move_l(cur_pos, speed_fast, acc_fast)
 
-        if move_path:
-            x = 6
-            path_step_2 = cur_pos.copy()
-            speed_acc_blend = [speed_fast, acc_fast, 0.45]
-            for y in speed_acc_blend:
-                path_step_2[x]=y
-                x+=1
+        x = 6
+        path_step_2 = cur_pos.copy()
+        speed_acc_blend = [speed_fast, acc_fast, 0.2]
+        for y in speed_acc_blend:
+            path_step_2[x]=y
+            x+=1
         
         
         # Step 3: Move to the desired Z height for placement + 30mm
-#        self.robot.set_tool_frame(placement_tcp)
-        cur_pos = self.robot.get_tcp_pos()
+        cur_pos = path_step_2.copy()
         cur_pos[2] = part_position[2] + 30/1000  # Set Z height to target position within the box
         cur_pos[3] = start_rotation[0]
         cur_pos[4] = start_rotation[1]
         cur_pos[5] = start_rotation[2]
         logging.info(f"Step 3: Move to placement height: {cur_pos}")
-        self.robot.move_l(cur_pos, speed_fast, acc_fast)
 
-        if move_path:
-            x = 6
-            path_step_3 = cur_pos.copy()
-            speed_acc_blend = [speed_fast, acc_fast, 0.45]
-            for y in speed_acc_blend:
-                path_step_3[x]=y
-                x+=1
+        x = 6
+        path_step_3 = cur_pos.copy()
+        speed_acc_blend = [speed_fast, acc_fast, 0.4]
+        for y in speed_acc_blend:
+            path_step_3[x]=y
+            x+=1
 
     
         # Step 4: Adjust rotation around the Z-axis
-#        self.robot.set_tool_frame(placement_tcp)
         #when angle=180, first do + 10 then do + 170
         rotation_angle = part['rotation']  # pick rotation from part info. convert to radians
         logging.info(f"Step 4: Set rotation around Z-axis to: {rotation_angle}")
@@ -230,19 +216,15 @@ class Pack_Box:
             rotations = 2
         for rotation in range(rotations):
             rotate = [0,0,0,math.radians(0),math.radians(0),math.radians(rotation_angle)]
-            if move_l: pose1 = self.robot.get_tcp_pos()
-            if move_path: pose1 = path_step_3.copy()
+            pose1 = path_step_3.copy()
+            pose1 = pose1[:-3]
             pose2 = rotate
             result_pose = self.robot.pose_trans(pose1, pose2)
-            if move_l: self.robot.move_l(result_pose, speed_fast, acc_fast)
 
-            if move_path:
-                x = 6
-                path_step_4 = result_pose.copy()
-                speed_acc_blend = [speed_fast, acc_fast, 0.45]
-                for y in speed_acc_blend:
-                    path_step_4[x]=y
-                    x+=1
+            path_step_4 = result_pose.copy()
+            speed_acc_blend = [speed_fast, acc_fast, 0.0]
+            for y in speed_acc_blend:
+                path_step_4 = np.append(path_step_4, y)
             if rotations == 2:
                 rotation_angle = 170
         if rotations == 2: rotation_angle = 180
@@ -251,23 +233,21 @@ class Pack_Box:
         
         
         # Step 5: Move to the part's target X, Y position
-        if move_path: cur_pos = path_step_4.copy()
-        if move_l: cur_pos = self.robot.get_tcp_pos()
+        cur_pos = path_step_4.copy()
         cur_pos[0] = part_position[0]  # Set X to the part's target position
         cur_pos[1] = part_position[1]  # Set Y to the part's target position
         logging.info(f"Step 5: Move to part placement position: {cur_pos}")
-        if move_l: self.robot.move_l(cur_pos, speed_slow, acc_slow)
 
-        if move_path:
-            x = 6
-            path_step_5 = cur_pos.copy()
-            speed_acc_blend = [speed_fast, acc_fast, 0.45]
-            for y in speed_acc_blend:
-                path_step_5[x]=y
-                x+=1
+        x = 6
+        path_step_5 = cur_pos.copy()
+        speed_acc_blend = [speed_slow, acc_slow, 0]
+        for y in speed_acc_blend:
+            path_step_5[x]=y
+            x+=1
 
         '''end placement tcp'''
 
+        self.robot.set_tool_frame(placement_tcp)
         path = [
             # Positie 1: [X, Y, Z, RX, RY, RZ, snelheid, versnelling, blend]
             path_step_1,  # step 1: move up
@@ -281,44 +261,64 @@ class Pack_Box:
 
 
 
+        self.robot.set_tcp(pickup_tcp)
+        cur_pos = self.robot.get_tcp_pos()
+        speed_acc_blend = [speed_slow, acc_slow, 0]
+        for y in speed_acc_blend:
+            cur_pos.append(y)
 
 
         '''start pickup tcp'''
-
         #step 5.1: rotate a bit about x of tcp
+        start_pos = cur_pos.copy()
         if part_type == 'wide': rotate_x = -5
         elif part_type == 'narrow': rotate_x = -2
         rotate_x = [0,0,0,math.radians(-2),math.radians(0),math.radians(0)]     #shouold be -5
-        self.robot.set_tool_frame(pickup_tcp)
-        pose1 = self.robot.get_tcp_pos()
+        
+        pose1 = start_pos
+        pose1 = pose1[:-3]
         pose2 = rotate_x
         result_pose = self.robot.pose_trans(pose1, pose2)
-        self.robot.move_l(result_pose, speed_slow, acc_slow)
+
+        path_step_5 = result_pose.copy()
+        speed_acc_blend = [speed_slow, acc_slow, 0]
+        for y in speed_acc_blend:
+            path_step_5 = np.append(path_step_5, y)
 
        
         # Step 6: Move to the desired Z height for placement
-        cur_pos = self.robot.get_tcp_pos()
+        cur_pos = path_step_5.copy()
         z_offset = 0
         if part['layer_number'] == 0 and part_type == 'narrow': z_offset = -4    #layer 0: negative z offset for pressing down the box a bit
         elif part['layer_number'] > 0 and part_type == 'narrow': z_offset = 0   #rest of the layers: normal height
         cur_pos[2] = part_position[2] + z_offset   # Set Z height to target position within the box
-        logging.info(f"Step 6: Move to placement height: {cur_pos}")
-        self.robot.move_l(cur_pos, speed_slow, acc_slow)
+
+        x = 6
+        path_step_6 = cur_pos.copy()  
+        speed_acc_blend = [speed_slow, acc_slow, 0]
+        for y in speed_acc_blend:
+            path_step_6[x]=y
+            x+=1
+
 
 
         if part_type == 'wide': rotate_x = -20
         elif part_type == 'narrow': rotate_x = -26
         # Step 7: Slide part into place (rotates about x axis)     
-        logging.info("Step 7: Performing final placement adjustments")
         rotate_x = [0,0,0,math.radians(rotate_x),math.radians(0),math.radians(0)]
-        pose1 = self.robot.get_tcp_pos()
+        pose1 = path_step_6.copy()
+        pose1 = pose1[:-3]
         pose2 = rotate_x
         result_pose = self.robot.pose_trans(pose1, pose2)
-        self.robot.move_l(result_pose, speed_slow, acc_slow)
+
+        path_step_7 = result_pose.copy()
+        speed_acc_blend = [speed_slow, acc_slow, 0]
+        for y in speed_acc_blend:
+            path_step_7 = np.append(path_step_7, y)
+
 
            
         #step 8: depending on rotation, move x or y
-        logging.info("Step 8: depending on rotation, move x or y")
         offset=157    #should be 175
         if part_type == 'wide': z_offset = 7
         elif part_type == 'narrow': z_offset = 2
@@ -334,54 +334,121 @@ class Pack_Box:
         elif rotation_angle == 180:
             #move y negatie
             offset= [-offset/1000,0,z_offset/1000,0,0,0]
-        self.robot.move_add_l(offset, speed_slow, acc_slow) 
 
+        cur_pos = path_step_7.copy()
+        cur_pos = cur_pos[:-3]
+        new_pos = [cur_pos[i] +  offset[i] for i in range(6)]
+
+        path_step_8 = new_pos.copy()
+        speed_acc_blend = [speed_slow, acc_slow, 0]
+        for y in speed_acc_blend:
+            path_step_8 = np.append(path_step_8, y)
+
+
+        #step 9
         #rotatate more at last part
         rotate_x = [0,0,0,math.radians(-10),math.radians(0),math.radians(0)]
-        pose1 = self.robot.get_tcp_pos()
+        pose1 = path_step_8.copy()
+        pose1 = pose1[:-3]
         pose2 = rotate_x
         result_pose = self.robot.pose_trans(pose1, pose2)
-        self.robot.move_l(result_pose, speed_slow, acc_slow)
 
+        path_step_9 = result_pose.copy()
+        speed_acc_blend = [speed_slow, acc_slow, 0]
+        for y in speed_acc_blend:
+            path_step_9 = np.append(path_step_9, y)
+
+
+        #step 10
         #move y relative to the axiis to the tool, so last part can be pushed of and there is clearance for other parts already laying in the boxs
         relative_from_tcp = [0,0.03,0,math.radians(0),math.radians(0),math.radians(0)]
-        pose1 = self.robot.get_tcp_pos()
+        pose1 = path_step_9.copy()
+        pose1 = pose1[:-3]
         pose2 = relative_from_tcp
         result_pose = self.robot.pose_trans(pose1, pose2)
-        self.robot.move_l(result_pose, speed_slow, acc_slow)
 
-    
-   
-        # Step 9: Return above the box with pickup_tcp
-        logging.info(f"Step 9: Resetting TCP to pickup position: {pickup_tcp}")
-        cur_pos = self.robot.get_tcp_pos()
-        cur_pos[2] = z_above_box  # Return to a safe Z height above the box
-        self.robot.move_l(cur_pos, speed_fast, acc_fast)   
+        path_step_10 = result_pose.copy()
+        speed_acc_blend = [speed_slow, acc_slow, 0]
+        for y in speed_acc_blend:
+            path_step_10 = np.append(path_step_10, y)
 
+
+
+        self.robot.set_tool_frame(pickup_tcp)  
+        path = [
+            # Positie 1: [X, Y, Z, RX, RY, RZ, snelheid, versnelling, blend]
+            path_step_6,  # step 1: move up
+            path_step_7,  # step 2: move to center box
+            path_step_8,  # step 3: move down
+            path_step_9,  # step 4: rotate around z
+            path_step_10,  #step 5: move to target x and y
+            # Voeg meer posities toe zoals nodig
+        ]
+        self.robot.move_l_path(path=path)
         '''end pickup tcp'''
 
 
 
-        '''start placement tcp'''
-        #step 9.1: rotate a bit back if rotationangle=180
+
+        self.robot.set_tcp(placement_tcp)
+        cur_pos = self.robot.get_tcp_pos()
+        speed_acc_blend = [speed_slow, acc_slow, 0]
+        for y in speed_acc_blend:
+            cur_pos.append(y)
+
+
+        # Step 11: Return above the box 
+        cur_pos = cur_pos.copy()
+        cur_pos = cur_pos[:-3]
+        cur_pos[2] = z_above_box  # Return to a safe Z height above the box
+        
+        path_step_11 = cur_pos.copy()
+        speed_acc_blend = [speed_fast, acc_fast, 0.2]
+        for y in speed_acc_blend:
+            path_step_11 = np.append(path_step_11, y)
+
+
+        #step 12 rotate a bit back if rotationangle=180
+        path_step_12 = path_step_11.copy()
         if rotation_angle == 180:
-            self.robot.set_tool_frame(placement_tcp)
             rotation_angle = -25
             rotate = [0,0,0,math.radians(0),math.radians(0),math.radians(rotation_angle)]
-            pose1 = self.robot.get_tcp_pos()
+            pose1 = path_step_11.copy()
+            pose1 = pose1[:-3]
             pose2 = rotate
             result_pose = self.robot.pose_trans(pose1, pose2)
-            self.robot.move_l(result_pose, speed_fast, acc_fast)
+
+            path_step_12 = result_pose.copy()
+            speed_acc_blend = [speed_fast, acc_fast, 0]
+            for y in speed_acc_blend:
+                path_step_12 = np.append(path_step_12, y)
 
 
-
-        #step 10: move to safe x and y position
-        logging.info("Step 10: Move to safe x and y")
+        #step 13: move to safe x and y position
         self.robot.set_tool_frame(placement_tcp)
-        cur_pos = self.robot.get_tcp_pos()
+        cur_pos = path_step_12.copy()
+        cur_pos = cur_pos[:-3]
         cur_pos[0] = -0.35
         cur_pos[1] = -0.30
-        self.robot.move_l(cur_pos, speed_fast, acc_fast)
+
+        path_step_13 = cur_pos.copy()
+        speed_acc_blend = [speed_fast, acc_fast, 0]
+        for y in speed_acc_blend:
+            path_step_13 = np.append(path_step_13, y)
+
+    
+
+
+        self.robot.set_tool_frame(placement_tcp)  
+        path = [
+            # Positie 1: [X, Y, Z, RX, RY, RZ, snelheid, versnelling, blend]
+            path_step_11,  # step 1: move up
+            path_step_12,  # step 2: move to center box
+            path_step_13,  # step 3: move down
+            # Voeg meer posities toe zoals nodig
+        ]
+        self.robot.move_l_path(path=path)
+
 
 
         '''end placement tcp'''
