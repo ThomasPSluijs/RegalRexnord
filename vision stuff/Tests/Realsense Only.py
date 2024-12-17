@@ -51,26 +51,32 @@ class ObjectDetector:
                     bbox = box.xyxy[0].cpu().numpy()
                     bbox = [int(coord) for coord in bbox[:4]]
                     cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 0, 0), 2)
-            
+                    
                     # Calculate the length of the blob
                     length = bbox[2] - bbox[0]
-            
+                    
                     # Print the detected camera coordinates and the resulting TCP position
                     x_left = bbox[0]
                     y_middle = int((bbox[1] + bbox[3]) / 2)
                     xd, yd = transform_coordinates(x_left, y_middle)
                     target_position = [xd, yd, 0.5297075288092719, -2.1926151354478987, -2.2424509339020156, 0.009950454521939689]
                     print(f"Detected (x, y): ({x_left}, {y_middle}) -> Calculated TCP Position: {target_position}")
-            
+                    
                     # Draw a red dot at the left-most middle part and print coordinates
                     cv2.circle(frame, (x_left, y_middle), 5, (0, 0, 255), -1)
                     text = f'X: {x_left}, Y: {y_middle}'
                     cv2.putText(frame, text, (x_left, y_middle - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-            
+                    
                     # Display the length of the blob
                     text = f'Length: {length}'
                     cv2.putText(frame, text, (bbox[0], bbox[1] - 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-            
+                    
+                    # Display the detected item label
+                    label = self.labels[int(box.cls[0])]
+                    confidence = box.conf.item()
+                    text = f'{label} ({confidence:.2f})'
+                    cv2.putText(frame, text, (bbox[0], bbox[1] - 40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+                    
         return frame
 
 def main():
