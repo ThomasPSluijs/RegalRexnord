@@ -66,66 +66,64 @@ class CameraPosition:
     def detect_object_without_start(self, min_length=170):
         self.capture_position()
 
-        # Wait for a frame
-        frames = self.pipeline.wait_for_frames()
-        color_frame = frames.get_color_frame()
 
-        # Convert the frame to a numpy array
-        frame = np.asanyarray(color_frame.get_data())
+        not_found = True
+        while not_found:
+            # Wait for a frame
+            frames = self.pipeline.wait_for_frames()
+            color_frame = frames.get_color_frame()
 
-        # Use the ObjectDetector to detect the object
-        results = self.detector.detect_objects(frame)
-        if results is not None:
-            for result in results:
-                #if result.boxes is not None:
-                for box in result.boxes:
-                    if box.conf > 0.65:
-                        bbox = box.xyxy[0].cpu().numpy()
-                        bbox = [int(coord) for coord in bbox[:4]]
-                        x_left = bbox[0]
-                        y_middle = int((bbox[1] + bbox[3]) / 2)
-                        width = bbox[2] - bbox[0]
-                        height = bbox[3] - bbox[1]
-                        logging.info(f" width * height :  {width * height}")
-                        cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 0, 0), 2)
+            # Convert the frame to a numpy array
+            frame = np.asanyarray(color_frame.get_data())
 
-                        # Calculate the length of the object blob
-                        length = max(width, height)
+            # Use the ObjectDetector to detect the object
+            results = self.detector.detect_objects(frame)
+            if results is not None:
+                for result in results:
+                    #if result.boxes is not None:
+                    for box in result.boxes:
+                        if box.conf > 0.65:
+                            bbox = box.xyxy[0].cpu().numpy()
+                            bbox = [int(coord) for coord in bbox[:4]]
+                            x_left = bbox[0]
+                            y_middle = int((bbox[1] + bbox[3]) / 2)
+                            width = bbox[2] - bbox[0]
+                            height = bbox[3] - bbox[1]
+                            logging.info(f" width * height :  {width * height}")
+                            cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 0, 0), 2)
 
-                        cv2.imshow('RealSense Camera Stream', frame)
-                        if cv2.waitKey(1) & 0xFF == ord('q'):
-                            break
-                        
-                        time.sleep(5) #for testing only!!!
-
-
-                        # Check if the length is greater than or equal to the minimum length and area not to big( error)
-                        if length >= min_length and width * height < 200000:
-                            xd, yd = self.transform_coordinates(x_left, y_middle)
-                            target_position = [xd, yd, 0.1297075288092719, 2.222, 2.248, 0.004]
-
-                            # Print the detected camera coordinates and the resulting TCP position
-                            print(f"Detected (x, y): ({x_left}, {y_middle}) -> Calculated TCP Position: {target_position}  conf: {box.conf}")
-
-                            # Draw a red dot at the left-most middle part and print coordinates
-                            cv2.circle(frame, (x_left, y_middle), 5, (0, 0, 255), -1)
-                            text = f'X: {x_left}, Y: {y_middle}'
-                            cv2.putText(frame, text, (x_left, y_middle - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-
-                            # Display the frame
+                            # Calculate the length of the object blob
+                            length = max(width, height)
 
                             cv2.imshow('RealSense Camera Stream', frame)
                             if cv2.waitKey(1) & 0xFF == ord('q'):
                                 break
-                            
-                            time.sleep(5) #for testing only!!!
+   
+                            # Check if the length is greater than or equal to the minimum length and area not to big( error)
+                            if length >= min_length and width * height < 75000:
+                                xd, yd = self.transform_coordinates(x_left, y_middle)
+                                target_position = [xd, yd, 0.1297075288092719, 2.222, 2.248, 0.004]
 
-                            # Return the rounded x and y coordinate
-                            #return #frame for testing. should be #
-                            return (xd, yd)
+                                # Print the detected camera coordinates and the resulting TCP position
+                                print(f"Detected (x, y): ({x_left}, {y_middle}) -> Calculated TCP Position: {target_position}  conf: {box.conf}")
+
+                                # Draw a red dot at the left-most middle part and print coordinates
+                                cv2.circle(frame, (x_left, y_middle), 5, (0, 0, 255), -1)
+                                text = f'X: {x_left}, Y: {y_middle}'
+                                cv2.putText(frame, text, (x_left, y_middle - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+
+                                # Display the frame
+
+                                cv2.imshow('RealSense Camera Stream', frame)
+                                if cv2.waitKey(1) & 0xFF == ord('q'):
+                                    break
+                                
+                                #not_found = false so loop stops. after that returns x and y
+                                not_found = False
+                                return (xd, yd)
+                            
 
         # Display the frame
-        #cv2.imshow('RealSense Camera Stream', frame)
         #return frame #for testing shouldb be #
         return (0,0)
         
@@ -142,9 +140,6 @@ class ObjectDetector:
         results = self.model.predict(source=frame, show=False)
         return results
     
-
-
-
 
 
 
