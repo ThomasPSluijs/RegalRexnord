@@ -19,7 +19,7 @@ def main_loop():
     logging.info("get all packing positions")
     filled_boxes = pack_box.get_pack_pos()
      
-    tot_parts = 2  # for testing, limit part amount
+    tot_parts = 3  # for testing, limit part amount
     count = 0
 
     box_index = 0
@@ -29,10 +29,9 @@ def main_loop():
                 logging.info(f"part: {part}")
                 logging.info("do vision")  # -> result x and y for part
                 x, y = camera.detect_object_without_start()  # get actual coordinates from vision
-                logging.info(f"x: {x}  y: {y}")
                 
                 logging.info("pickup part")
-                #pick_part.pick_parts(x, y)  # pick part at given location
+                pick_part.pick_parts(x, y)  # pick part at given location
                 
                 logging.info("place part")
                 pack_box.place_part(part, part_type='wide')  # place part at correct box and place. part contains location data in box. box_index is box 0 or 1 etc
