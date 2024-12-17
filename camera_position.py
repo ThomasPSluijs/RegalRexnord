@@ -5,7 +5,6 @@ import logging
 import math
 from UR5E_control import *
 from ultralytics import YOLO
-from matplotlib import pyplot as plt
 
 # Suppress logging for this example
 logging.basicConfig(
@@ -36,6 +35,7 @@ class CameraPosition:
         self.pipeline = rs.pipeline()
         self.config = rs.config()
         self.config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
+        self.pipeline.start(self.config)
 
 
     #moves robot to capture position
@@ -64,6 +64,8 @@ class CameraPosition:
 
     #main function that detects opbjects and returns the object locations
     def detect_object_without_start(self, min_length=170):
+        self.capture_position()
+
         # Wait for a frame
         frames = self.pipeline.wait_for_frames()
         color_frame = frames.get_color_frame()
@@ -84,13 +86,21 @@ class CameraPosition:
                         y_middle = int((bbox[1] + bbox[3]) / 2)
                         width = bbox[2] - bbox[0]
                         height = bbox[3] - bbox[1]
+                        logging.info(f" width * height :  {width * height}")
                         cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 0, 0), 2)
 
                         # Calculate the length of the object blob
                         length = max(width, height)
 
-                        # Check if the length is greater than or equal to the minimum length
-                        if length >= min_length:
+                        cv2.imshow('RealSense Camera Stream', frame)
+                        if cv2.waitKey(1) & 0xFF == ord('q'):
+                            break
+                        
+                        time.sleep(5) #for testing only!!!
+
+
+                        # Check if the length is greater than or equal to the minimum length and area not to big( error)
+                        if length >= min_length and width * height < 200000:
                             xd, yd = self.transform_coordinates(x_left, y_middle)
                             target_position = [xd, yd, 0.1297075288092719, 2.222, 2.248, 0.004]
 
@@ -103,14 +113,21 @@ class CameraPosition:
                             cv2.putText(frame, text, (x_left, y_middle - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
 
                             # Display the frame
+
                             cv2.imshow('RealSense Camera Stream', frame)
+                            if cv2.waitKey(1) & 0xFF == ord('q'):
+                                break
+                            
+                            time.sleep(5) #for testing only!!!
 
                             # Return the rounded x and y coordinate
-                            return frame
+                            #return #frame for testing. should be #
+                            return (xd, yd)
 
         # Display the frame
-        cv2.imshow('RealSense Camera Stream', frame)
-        return frame
+        #cv2.imshow('RealSense Camera Stream', frame)
+        #return frame #for testing shouldb be #
+        return (0,0)
         
 #runs yolo model and detects objects
 class ObjectDetector:
@@ -130,6 +147,8 @@ class ObjectDetector:
 
 
 
+
+
 #for testing only
 if __name__ == "__main__":
     robot = URControl("192.168.0.1")
@@ -139,11 +158,12 @@ if __name__ == "__main__":
     camera.capture_position()
 
     # Start the pipeline
-    camera.pipeline.start(camera.config)
+    #camera.pipeline.start(camera.config)
 
     while True:
         frame = camera.detect_object_without_start()
-        cv2.imshow('RealSense Camera Stream', frame)
+
+        #cv2.imshow('RealSense Camera Stream', frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
