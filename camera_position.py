@@ -1,12 +1,11 @@
 import cv2
+import pyrealsense2 as rs
 import os
 import logging
 import math
 from UR5E_control import *
 from ultralytics import YOLO
 from matplotlib import pyplot as plt
-
-
 
 # Suppress logging for this example
 logging.basicConfig(
@@ -34,6 +33,10 @@ class CameraPosition:
         self.detector = ObjectDetector()
         self.cap = None
         self.robot = robot
+        self.pipeline = rs.pipeline()
+        self.config = rs.config()
+        self.config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
+
 
     #moves robot to capture position
     def capture_position(self):
@@ -42,7 +45,7 @@ class CameraPosition:
         self.robot.set_tcp(tool_frame)
 
         # Define the target position and orientation
-        target_position = [-0.5981433108063265, -0.10770597622051334, 0.5297075288092719, 2.222, 2.248, 0.004]
+        target_position = [-0.6653950974172558, -0.0982792833217151, 0.5297078618906171, 2.222, 2.248, 0.004]
 
         #move
         self.robot.move_l(target_position, 1, 1)
@@ -60,76 +63,55 @@ class CameraPosition:
 
 
     #main function that detects opbjects and returns the object locations
-    def detect_object(self, min_length=100):
-        self.capture_position()
-        # Open the camera
-        self.cap = cv2.VideoCapture(2)
+    def detect_object_without_start(self, min_length=170):
+        # Wait for a frame
+        frames = self.pipeline.wait_for_frames()
+        color_frame = frames.get_color_frame()
 
-        while True:
-            # Capture a frame from the camera
-            ret, frame = self.cap.read()
-            if not ret:
-                print("Error: Could not read frame.")
-                break
+        # Convert the frame to a numpy array
+        frame = np.asanyarray(color_frame.get_data())
 
+        # Use the ObjectDetector to detect the object
+        results = self.detector.detect_objects(frame)
+        if results is not None:
+            for result in results:
+                #if result.boxes is not None:
+                for box in result.boxes:
+                    if box.conf > 0.65:
+                        bbox = box.xyxy[0].cpu().numpy()
+                        bbox = [int(coord) for coord in bbox[:4]]
+                        x_left = bbox[0]
+                        y_middle = int((bbox[1] + bbox[3]) / 2)
+                        width = bbox[2] - bbox[0]
+                        height = bbox[3] - bbox[1]
+                        cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 0, 0), 2)
 
-            # Use the ObjectDetector to detect the object
-            results = self.detector.detect_objects(frame)
-            if results is not None:
-                for result in results:
-                    #if result.boxes is not None:
-                    for box in result.boxes:
-                        if box.conf > 0.7:
-                            bbox = box.xyxy[0].cpu().numpy()
-                            bbox = [int(coord) for coord in bbox[:4]]
-                            x_left = bbox[0]
-                            y_middle = int((bbox[1] + bbox[3]) / 2)
-                            width = bbox[2] - bbox[0]
-                            height = bbox[3] - bbox[1]
-                            cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 0, 0), 2)
+                        # Calculate the length of the object blob
+                        length = max(width, height)
 
-                            # Calculate the length of the object blob
-                            length = max(width, height)
+                        # Check if the length is greater than or equal to the minimum length
+                        if length >= min_length:
+                            xd, yd = self.transform_coordinates(x_left, y_middle)
+                            target_position = [xd, yd, 0.1297075288092719, 2.222, 2.248, 0.004]
 
-                            # Check if the length is greater than or equal to the minimum length '''
-                            if length >= min_length:
-                                xd, yd = self.transform_coordinates(x_left, y_middle)
-                                target_position = [xd, yd, 0.1297075288092719, 2.222, 2.248, 0.004]
+                            # Print the detected camera coordinates and the resulting TCP position
+                            print(f"Detected (x, y): ({x_left}, {y_middle}) -> Calculated TCP Position: {target_position}  conf: {box.conf}")
 
-                                # Print the detected camera coordinates and the resulting TCP position
-                                print(f"Detected (x, y): ({x_left}, {y_middle}) -> Calculated TCP Position: {target_position}  conf: {box.conf}")
+                            # Draw a red dot at the left-most middle part and print coordinates
+                            cv2.circle(frame, (x_left, y_middle), 5, (0, 0, 255), -1)
+                            text = f'X: {x_left}, Y: {y_middle}'
+                            cv2.putText(frame, text, (x_left, y_middle - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
 
-                                # Draw a red dot at the left-most middle part and print coordinates
-                                cv2.circle(frame, (x_left, y_middle), 5, (0, 0, 255), -1)
-                                text = f'X: {x_left}, Y: {y_middle}'
-                                cv2.putText(frame, text, (x_left, y_middle - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-    
+                            # Display the frame
+                            cv2.imshow('RealSense Camera Stream', frame)
 
-                                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                                
-                                #plt.imshow(frame_rgb)
-                                #plt.title("Detected Object")  # Set a title for the image
-                                #plt.axis("off")  # Hide the axes for a cleaner look
-                                #plt.show()
-                
+                            # Return the rounded x and y coordinate
+                            return frame
 
-                                # Return the rounded x and y coordinate
-                                return (xd, yd)
-                            
-                        else:
-                            logging.info(f"not certain if there are parts: {box.conf}")
-
-            # If no object is detected, continue to the next frame
-            continue
-
-        # Release the camera
-        self.cap.release()
-
-        # Return default values if no object is detected after multiple frames
-        return (0, 0)
-    
-
-
+        # Display the frame
+        cv2.imshow('RealSense Camera Stream', frame)
+        return frame
+        
 #runs yolo model and detects objects
 class ObjectDetector:
     def __init__(self):
@@ -149,17 +131,24 @@ class ObjectDetector:
 
 
 #for testing only
-if __name__ == "__main__":      #only run if this file is run
+if __name__ == "__main__":
     robot = URControl("192.168.0.1")
     robot.connect()
 
     camera = CameraPosition(robot)
-    frame = camera.detect_object()
-    #if frame is not None:
-    #    cv2.imshow("Detection", frame)
-    #    cv2.waitKey(0)
-    #    cv2.destroyAllWindows()
-    ##else:
-    #   print("Failed to detect object.") 
+    camera.capture_position()
 
-    robot.stop_robot_control()  
+    # Start the pipeline
+    camera.pipeline.start(camera.config)
+
+    while True:
+        frame = camera.detect_object_without_start()
+        cv2.imshow('RealSense Camera Stream', frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    # Stop the pipeline
+    camera.pipeline.stop()
+
+    robot.stop_robot_control()
+    cv2.destroyAllWindows()
