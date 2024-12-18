@@ -44,6 +44,12 @@ class BoxingMachine:
         logging.info("Resuming operations...")
         self.pause_event.set()
 
+    def packing_mode(self):
+        logging.info("move to packing mode")
+
+    def normal_mode(self):
+        logging.info("move to normal working mode")
+
     def wait_if_paused(self):
         logging.info("Waiting if paused...")
         self.pause_event.wait()  # Block if paused
@@ -101,13 +107,13 @@ if __name__ == '__main__':
     box_config = {
         "total_boxes": 2,
         "box_pos": [
-            (-230 / 1000, -575 / 1000, -12 / 1000),
-            (237 / 1000, -588 / 1000, -12 / 1000)
+            (-230 / 1000, -575 / 1000, -12 / 1000), 	    #x center, y center, z 0 (bottom of box)
+            (237 / 1000, -588 / 1000, -12 / 1000)           #x center, y center, z 0 (bottom of box)
         ],
-        "box_size": (0.365, 0.365, 0.180),
+        "box_size": (0.365, 0.365, 0.180),                  #width, lengt, height
     }
     part_config = {
-        "part_dimensions": (0.187, 0.170, 0.009),
+        "part_dimensions": (0.187, 0.170, 0.009),           #only z should change (via vision if possible)
     }
 
     # Create and start BoxingMachine
