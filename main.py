@@ -111,8 +111,6 @@ def display_frames(camera_position):
         with camera_position.frame_lock:  # Access the frame safely
             if camera_position.last_frame is not None:
                 frame = camera_position.last_frame.copy()
-            #logging.info(f"frame: {frame}")
-            #logging.info(frame)
         if frame is not None:
             cv2.imshow("RealSense Camera Stream", frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):  # Press 'q' to quit
@@ -122,7 +120,7 @@ def display_frames(camera_position):
     cv2.destroyAllWindows()
 
 
- 
+  
 
 if __name__ == '__main__':
     logging.info("START")
