@@ -84,9 +84,9 @@ class CameraPosition:
             results = None
             results = self.detector.detect_objects(frame.copy())
             
-            logging.info(f"Detection results 1: {results}")
+            #logging.info(f"Detection results 1: {results}")
             if results is not None:
-                logging.info(f"Detection results 2: {results}")
+                #logging.info(f"Detection results 2: {results}")
                 for result in results:
                     for box in result.boxes:
                         if box.conf > 0.8:
@@ -118,7 +118,7 @@ class CameraPosition:
                                 print(f"Detected (x, y, z): ({x_left}, {y_middle}, {depth}) -> Calculated TCP Position: {target_position}  conf: {box.conf}")
 
                                 not_found = False
-
+                            
                                 with self.frame_lock:  # Update last_frame safely
                                     self.last_frame = frame
                                 return (xd, yd)

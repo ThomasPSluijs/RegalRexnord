@@ -88,15 +88,15 @@ class BoxingMachine:
                     keyboard.wait('space')
                     x, y = self.camera.detect_object_without_start()  # Get actual coordinates from vision
 
-                    #logging.info(self.camera.last_frame)
+                    logging.info(self.camera.last_frame)
     
-                    logging.info("Pickup part")
+                    logging.info("    part")
                     self.wait_if_paused()  # Pause-safe
-                    # self.pick_part.pick_parts(x, y)  # Uncomment when ready
+                    self.pick_part.pick_parts(x, y)  # Uncomment when ready
                     
                     logging.info("Place part")
                     self.wait_if_paused()  # Pause-safe
-                    # self.pack_box.place_part(part, part_type='wide')  # Uncomment when ready
+                    self.pack_box.place_part(part, part_type='wide')  # Uncomment when ready
 
                     count += 1
             box_index += 1

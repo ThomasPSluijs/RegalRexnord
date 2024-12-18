@@ -103,6 +103,10 @@ def main():
             # Process the frame
             frame = detector.process_frame(frame)
             
+            # Upscale the frame
+            upscale_factor = 2  # Define your upscale factor
+            frame = cv2.resize(frame, None, fx=upscale_factor, fy=upscale_factor, interpolation=cv2.INTER_LINEAR)
+            
             # Display the frame
             cv2.imshow('RealSense Camera Stream', frame)
             

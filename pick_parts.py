@@ -31,7 +31,7 @@ class Pick_parts():
         rotate_x = [0,0,0,math.radians(-23),math.radians(0),math.radians(0)]   #rotation about x axis of tool  
         
         part_pos_x_offset = 0.03                                #x offset so gripper starts before parts and does not crash down when going down
-        part_pos_x_offset_2 = -0.06                                #x offset so gripper does not go into wall #should be 0.017
+        part_pos_x_offset_2 = 0.025                                #x offset so gripper does not go into wall #should be 0.017
         part_length = 0.185
 
         #total x movement when tool is rotated and aligned to pick up the parts. moves partlength + offset
@@ -44,7 +44,7 @@ class Pick_parts():
 
         speed_slow = 0.15
         acc_slow = 0.5
-
+ 
         pickup_tcp = [-47.5/1000,-140/1000,135/1000,0,0,0]  #edge of part (x=centerpart, y=edge)
 
         rotate_tcp = [-47.5/1000, 40/1000, 135/1000, 0, 0, 0]
