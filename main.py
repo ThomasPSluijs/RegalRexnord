@@ -3,12 +3,14 @@ from UR5E_control import URControl
 from camera_position import CameraPosition         #used for scanning the belt for detected parts
 from pick_parts import *                           #used for picking parts from belt. needs x and y coordinates
 from place_parts import *                          #used for getting place locations and placing parts in boxes
+import keyboard
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
+   
 
 
 
@@ -27,14 +29,15 @@ def main_loop():
         for part in box:
             if count < tot_parts:
                 logging.info(f"part: {part}")
-                logging.info("do vision")  # -> result x and y for part
+                keyboard.wait('space')
+                logging.info("do vision, first wait for space")  # -> result x and y for part
                 x, y = camera.detect_object_without_start()  # get actual coordinates from vision
-                
+                 
                 logging.info("pickup part")
-                pick_part.pick_parts(x, y)  # pick part at given location
+                #pick_part.pick_parts(x, y)  # pick part at given location
                 
                 logging.info("place part")
-                pack_box.place_part(part, part_type='wide')  # place part at correct box and place. part contains location data in box. box_index is box 0 or 1 etc
+                #pack_box.place_part(part, part_type='wide')  # place part at correct box and place. part contains location data in box. box_index is box 0 or 1 etc
                 count += 1
         box_index += 1
  
