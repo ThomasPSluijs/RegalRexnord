@@ -7,6 +7,7 @@ import torch
 import numpy as np
 from UR5E_control import *
 from ultralytics import YOLO
+import threading
 
 # Suppress logging for this example
 logging.basicConfig(
@@ -36,6 +37,10 @@ class CameraPosition:
         self.pipeline.start(self.config)
         self.align = rs.align(rs.stream.color)
 
+        self.last_frame = None
+        self.frame_lock = threading.Lock()
+        self.display_thread_running = True
+
     # moves robot to capture position
     def capture_position(self):
         tool_frame = [-47.5/1000,-140/1000,135/1000,math.radians(0),math.radians(0),math.radians(0)]
@@ -60,7 +65,9 @@ class CameraPosition:
         self.capture_position()
 
         not_found = True
+        logging.info("start capturing frames")
         while not_found:
+            logging.info("not found parts yet")
             frames = self.pipeline.wait_for_frames()
             aligned_frames = self.align.process(frames)
             color_frame = aligned_frames.get_color_frame()
@@ -69,10 +76,16 @@ class CameraPosition:
             if not color_frame or not depth_frame:
                 continue
 
-            frame = np.asanyarray(color_frame.get_data())
 
-            results = self.detector.detect_objects(frame)
+            logging.info("Processing frames...")
+            frame = np.asanyarray(color_frame.get_data())
+            logging.info(f"frame: {frame}")
+            results = None
+            results = self.detector.detect_objects(frame.copy())
+            
+            logging.info(f"Detection results 1: {results}")
             if results is not None:
+                logging.info(f"Detection results 2: {results}")
                 for result in results:
                     for box in result.boxes:
                         if box.conf > 0.8:
@@ -93,9 +106,11 @@ class CameraPosition:
 
                             text = f'X: {x_left}, Y: {y_middle}, Z: {depth:.2f}m'
                             cv2.putText(frame, text, (x_left, y_middle - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-                            cv2.imshow('RealSense Camera Stream', frame)
-                            if cv2.waitKey(1) & 0xFF == ord('q'):
-                                break
+                            
+                            
+                            #cv2.imshow('RealSense Camera Stream', frame)
+                            #if cv2.waitKey(1) & 0xFF == ord('q'):
+                            #    break
 
                             length = max(width, height)
 
@@ -107,9 +122,16 @@ class CameraPosition:
                                 print(f"Detected (x, y, z): ({x_left}, {y_middle}, {depth}) -> Calculated TCP Position: {target_position}  conf: {box.conf}")
 
                                 not_found = False
+
+                                with self.frame_lock:  # Update last_frame safely
+                                    self.last_frame = frame
                                 return (xd, yd)
 
         return (0, 0, 0)
+    
+    def stop_display_thread(self):
+        self.display_thread_running = False
+
 
 # runs yolo model and detects objects
 class ObjectDetector:
