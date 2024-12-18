@@ -1,6 +1,7 @@
 from UR5E_control import URControl
 import math
 import logging
+import time
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -30,7 +31,7 @@ class Pick_parts():
         rotate_x = [0,0,0,math.radians(-23),math.radians(0),math.radians(0)]   #rotation about x axis of tool  
         
         part_pos_x_offset = 0.03                                #x offset so gripper starts before parts and does not crash down when going down
-        part_pos_x_offset_2 = 0.017                                #x offset so gripper does not go into wall
+        part_pos_x_offset_2 = -0.06                                #x offset so gripper does not go into wall #should be 0.017
         part_length = 0.185
 
         #total x movement when tool is rotated and aligned to pick up the parts. moves partlength + offset
