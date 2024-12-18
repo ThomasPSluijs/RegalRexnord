@@ -79,7 +79,8 @@ class CameraPosition:
 
             logging.info("Processing frames...")
             frame = np.asanyarray(color_frame.get_data())
-            logging.info(f"frame: {frame}")
+            with self.frame_lock:  # Update last_frame safely
+                self.last_frame = frame
             results = None
             results = self.detector.detect_objects(frame.copy())
             
@@ -108,13 +109,8 @@ class CameraPosition:
                             cv2.putText(frame, text, (x_left, y_middle - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
                             
                             
-                            #cv2.imshow('RealSense Camera Stream', frame)
-                            #if cv2.waitKey(1) & 0xFF == ord('q'):
-                            #    break
-
+                            #length check and area check 
                             length = max(width, height)
-
-
                             if length >= min_length and width * height < 75000:
                                 xd, yd = self.transform_coordinates(x_left, y_middle, depth)
                                 target_position = [xd, yd, -0.0705907482294739, 2.222, 2.248, 0.004]
