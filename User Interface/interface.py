@@ -9,18 +9,44 @@ class UserInterface:
         if self.start_button == True:
             print('packing')
             self.hoisting_mode.configure(state="disabled")
+            self.running_mode.configure(state="disabled")
+            self.partselection.configure(state="disabled")
+            self.start_but.configure(text=self.start_button_msg, fg_color=self.start_button_color, hover_color=self.start_button_color)
+            
             self.start_button_msg = "stop"
             self.start_button_color = "red"
+
             self.start_button = False
-            self.start_but.configure(text=self.start_button_msg, fg_color=self.start_button_color, hover_color=self.start_button_color)
+
         else:
             print("stopped")
             self.hoisting_mode.configure(state="enabled")
-            self.start_button_msg = "start"
-            self.start_button_color = '#106A43'
-            self.start_button = True
+            self.running_mode.configure(state="enabled")
+            self.partselection.configure(state="enabled")
             self.start_but.configure(text=self.start_button_msg, fg_color=self.start_button_color, hover_color=self.start_button_color)
 
+            self.start_button_msg = "start"
+            self.start_button_color = '#106A43'
+
+            self.start_button = True
+
+    def update_placements(self, placements):
+        # Reset alle labels eerst, zodat ze niet over elkaar heen staan
+        self.p1nw.grid_remove()
+        self.p1sw.grid_remove()
+        self.p1se.grid_remove()
+        self.p1ne.grid_remove()
+        print('removed')
+        if placements <= 56:
+            if placements % 4 == 1:
+                self.p1ne.grid(row=0, column=1, padx=5, pady=5, sticky="ne")
+                print('placed')
+            elif placements % 4 == 2:
+                self.p1nw.grid(row=0, column=0, padx=5, pady=5, sticky="nw")
+            elif placements % 4 == 3:
+                self.p1sw.grid(row=1, column=0, padx=5, pady=5, sticky="sw")
+            elif placements % 4 == 0:
+                self.p1se.grid(row=1, column=1, padx=5, pady=5, sticky="se")
 
     def __init__(self, root, on_close_callback=None):
         # Initialiseer de GUI-elementen
@@ -175,7 +201,8 @@ class UserInterface:
         self.camview = customtkinter.CTkFrame(master=self.root, corner_radius=0, fg_color=self.background_color)
         self.camview.grid(row=0, column=1, padx=0, pady=0, sticky="")
 
-        # Load the image
+#save the image on what you base the coordinates from in the same file as the interface and put the name below here
+#if you save it in another file do Image.open(r'full path to picture')
         self.light_image = Image.open('picture.jpeg')  
         self.my_image = customtkinter.CTkImage(light_image=self.light_image, size=(640/self.camscale, 420/self.camscale))
 
@@ -187,44 +214,37 @@ class UserInterface:
         self.placement.grid(row=0, column=2, padx=20, pady=(10,0))
         self.placement.grid_propagate(False)
 
-        self.box = customtkinter.CTkLabel(master=self.placement, corner_radius=10, text="", width=400, height=400, fg_color='orange')
-        self.box.grid(row=0, column=0, padx=(10,0), pady=(10,0), sticky="n")
-
-        self.box2 = customtkinter.CTkLabel(master=self.placement, corner_radius=10, text="", width=400, height=400, fg_color='orange')
+        self.box = customtkinter.CTkFrame(master=self.placement, corner_radius=10, width=400, height=400, fg_color='orange')
+        self.box.grid(row=0, column=0, padx=(10,0), pady=(10,0), sticky="")
+        self.box.grid_propagate(False)
+        self.box2 = customtkinter.CTkFrame(master=self.placement, corner_radius=10, width=400, height=400, fg_color='orange')
         self.box2.grid(row=1, column=0, padx=(10,0), pady=(10,0), sticky="n")
+        self.box2.grid_propagate(False)
 
         #-----placemets------
         self.p1nw = customtkinter.CTkLabel(master=self.box, corner_radius=10, text="", width=190, height=190, fg_color=self.button_color)
         self.p1nw.grid(row=0, column=0, padx=5, pady=5, sticky="nw")
-        self.p1nw.grid_remove()
 
         self.p1sw = customtkinter.CTkLabel(master=self.box, corner_radius=10, text="", width=190, height=190, fg_color=self.button_color)
-        self.p1sw.grid(row=0, column=0, padx=5, pady=5, sticky="sw")
-        self.p1sw.grid_remove()
+        self.p1sw.grid(row=1, column=0, padx=5, pady=5, sticky="sw")
 
         self.p1se = customtkinter.CTkLabel(master=self.box, corner_radius=10, text="", width=190, height=190, fg_color=self.button_color)
-        self.p1se.grid(row=0, column=0, padx=5, pady=5, sticky="se")
-        self.p1se.grid_remove()
+        self.p1se.grid(row=1, column=1, padx=5, pady=5, sticky="se")
 
         self.p1ne = customtkinter.CTkLabel(master=self.box, corner_radius=10, text="", width=190, height=190, fg_color=self.button_color)
-        self.p1ne.grid(row=0, column=0, padx=5, pady=5, sticky="ne")
-        self.p1ne.grid_remove()
+        self.p1ne.grid(row=0, column=1, padx=5, pady=5, sticky="ne")
 
         self.p2nw = customtkinter.CTkLabel(master=self.box2, corner_radius=10, text="", width=190, height=190, fg_color=self.button_color)
         self.p2nw.grid(row=0, column=0, padx=5, pady=5, sticky="nw")
-        self.p2nw.grid_remove()
 
         self.p2sw = customtkinter.CTkLabel(master=self.box2, corner_radius=10, text="", width=190, height=190, fg_color=self.button_color)
-        self.p2sw.grid(row=0, column=0, padx=5, pady=5, sticky="sw")
-        self.p2sw.grid_remove()
+        self.p2sw.grid(row=1, column=0, padx=5, pady=5, sticky="sw")
 
         self.p2se = customtkinter.CTkLabel(master=self.box2, corner_radius=10, text="", width=190, height=190, fg_color=self.button_color)
-        self.p2se.grid(row=0, column=0, padx=5, pady=5, sticky="se")
-        self.p2se.grid_remove()
+        self.p2se.grid(row=1, column=1, padx=5, pady=5, sticky="se")
 
         self.p2ne = customtkinter.CTkLabel(master=self.box2, corner_radius=10, text="", width=190, height=190, fg_color=self.button_color)
-        self.p2ne.grid(row=0, column=0, padx=5, pady=5, sticky="ne")
-        self.p2ne.grid_remove()
+        self.p2ne.grid(row=0, column=1, padx=5, pady=5, sticky="ne")
 
         # Progress Section
         self.progress = customtkinter.CTkFrame(master=self.root, fg_color=self.frame_color)
@@ -262,7 +282,11 @@ def dropdown(variable, values):
         if variable != None:
                 if variable == "select a value":
                         print("select a value")
+#below this you can set the variables for every part, at selected value put everything on zero or something.
+#also search for "partlist" and add the names of the new parts there :)
                 if variable == "big blue":
                         print("big blue")
+                        #width = 6
+                        #thickness = 3
                 if variable == "small blue":
                         print("small blue")
