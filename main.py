@@ -28,11 +28,11 @@ def main_loop():
     for box in filled_boxes:
         for part in box:
             if count < tot_parts:
-                logging.info(f"part: {part}")
-                keyboard.wait('space')
+                logging.info(f"part: {part}")  
                 logging.info("do vision, first wait for space")  # -> result x and y for part
-                x, y = camera.detect_object_without_start()  # get actual coordinates from vision
-                 
+                keyboard.wait('space')
+                x, y, = camera.detect_object_without_start()  # get actual coordinates from vision
+                   
                 logging.info("pickup part")
                 #pick_part.pick_parts(x, y)  # pick part at given location
                 

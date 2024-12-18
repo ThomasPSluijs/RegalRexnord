@@ -46,15 +46,14 @@ class CameraPosition:
 
     # transform camera coordinates to real world (robot) coordinates
     def transform_coordinates(self, xp, yp, zp):
-        a, b, c = -0.0959043379 / 100, -0.0040884899 / 100, -13.2387630728 / 100
-        d, e, f = 0.0015836117 / 100, 0.1064093728 / 100, -26.4297290624 / 100
-        g, h, i, j = 0.1, 0.2, 0.3, 0.4  # Example values, these need to be calibrated
+        a, b, c = -0.0010677615453140213, 3.094561948991097e-05, -0.17959680557618776
+        d, e, f = 2.482562688915765e-05, 0.0010493343791252749, -0.2507558317896495
+
 
         xd = a * xp + b * yp + c
         yd = d * xp + e * yp + f
-        zd = g * xp + h * yp + i * zp + j
 
-        return xd, yd, zd
+        return xd, yd
 
     # main function that detects objects and returns the object locations
     def detect_object_without_start(self, min_length=170):
@@ -76,7 +75,7 @@ class CameraPosition:
             if results is not None:
                 for result in results:
                     for box in result.boxes:
-                        if box.conf > 0.65:
+                        if box.conf > 0.8:
                             bbox = box.xyxy[0].cpu().numpy()
                             bbox = [int(coord) for coord in bbox[:4]]
                             x_left = bbox[0]
@@ -87,28 +86,28 @@ class CameraPosition:
                             depth = depth_frame.get_distance(x_left, y_middle)
 
                             logging.info(f" width * height: {width * height}, depth: {depth}")
+
+
                             cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 0, 0), 2)
+                            cv2.circle(frame, (x_left, y_middle), 5, (0, 0, 255), -1)
+
+                            text = f'X: {x_left}, Y: {y_middle}, Z: {depth:.2f}m'
+                            cv2.putText(frame, text, (x_left, y_middle - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+                            cv2.imshow('RealSense Camera Stream', frame)
+                            if cv2.waitKey(1) & 0xFF == ord('q'):
+                                break
 
                             length = max(width, height)
 
 
-                            if length >= min_length:
-                                xd, yd, zd = self.transform_coordinates(x_left, y_middle, depth)
-                                target_position = [xd, yd, zd, 2.222, 2.248, 0.004]
+                            if length >= min_length and width * height < 75000:
+                                xd, yd = self.transform_coordinates(x_left, y_middle, depth)
+                                target_position = [xd, yd, -0.0705907482294739, 2.222, 2.248, 0.004]
 
                                 print(f"Detected (x, y, z): ({x_left}, {y_middle}, {depth}) -> Calculated TCP Position: {target_position}  conf: {box.conf}")
-## often crashes
-                                cv2.circle(frame, (x_left, y_middle), 5, (0, 0, 255), -1)
- 
-                                text = f'X: {x_left}, Y: {y_middle}, Z: {depth:.2f}m'
-                                cv2.putText(frame, text, (x_left, y_middle - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-## often crashes
-                                cv2.imshow('RealSense Camera Stream', frame)
-                                if cv2.waitKey(1) & 0xFF == ord('q'):
-                                    break
 
                                 not_found = False
-                                return (xd, yd, zd)
+                                return (xd, yd)
 
         return (0, 0, 0)
 
@@ -123,7 +122,7 @@ class ObjectDetector:
         self.labels = self.model.names
 
     def detect_objects(self, frame):
-        results = self.model.predict(source=frame, show=False)
+        results = self.model.predict(source=frame, verbose=False, show=False)
         return results
 
 # for testing only
