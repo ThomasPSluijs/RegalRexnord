@@ -10,6 +10,30 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
+
+
+
+
+
+class BoxingMachine():
+    def __init__(self):
+        pass
+
+
+    def start(self):
+        pass
+
+    def stop(self):
+        pass
+
+    def pause(self):
+        pass
+
+    def packing_mode(self):
+        pass
+
+    def normal_mode(self):
+        pass
    
 
 
