@@ -1,9 +1,27 @@
 import customtkinter
 import tkinter as tk
 from PIL import Image
-import interface_functions
+from functools import partial
 
 class UserInterface:
+    def start(self):
+        #start packing
+        if self.start_button == True:
+            print('packing')
+            self.hoisting_mode.configure(state="disabled")
+            self.start_button_msg = "stop"
+            self.start_button_color = "red"
+            self.start_button = False
+            self.start_but.configure(text=self.start_button_msg, fg_color=self.start_button_color, hover_color=self.start_button_color)
+        else:
+            print("stopped")
+            self.hoisting_mode.configure(state="enabled")
+            self.start_button_msg = "start"
+            self.start_button_color = '#106A43'
+            self.start_button = True
+            self.start_but.configure(text=self.start_button_msg, fg_color=self.start_button_color, hover_color=self.start_button_color)
+
+
     def __init__(self, root, on_close_callback=None):
         # Initialiseer de GUI-elementen
         self.root = root
@@ -11,6 +29,8 @@ class UserInterface:
 
         self.activity_msg = "activity message"
         self.percentage_msg = 0.3
+        self.start_button_msg = "start"
+        self.start_button = True
 
         self.font = "Century Regular"
         self.fontsize = 20
@@ -19,6 +39,7 @@ class UserInterface:
         self.button_color = ['#0C955A', '#106A43']
         self.frame_color = ['gray86', 'gray17']
         self.state_color = "red"
+        self.start_button_color = self.button_color 
 
         self.leftbar_button_width = 250
         self.camscale = 1
@@ -57,18 +78,18 @@ class UserInterface:
         self.leftbar.grid_rowconfigure(6, weight=0)
 
         # Buttons in Left Bar
-        self.packing_mode = customtkinter.CTkButton(
+        self.hoisting_mode = customtkinter.CTkButton(
             master=self.leftbar,
             corner_radius=0,
-            text="packing mode",
+            text="hoisting mode",
             font=(self.font, self.fontsize),
             width=self.leftbar_button_width,
             height=60,
             fg_color=self.button_color,
             anchor="w",
-            command=interface_functions.packing_mode_func  # Add functionality here
+            command=packing_mode_func  # Add functionality here
         )
-        self.packing_mode.grid(row=0, column=0, pady=(20, 0), padx=0, sticky="w")
+        self.hoisting_mode.grid(row=0, column=0, pady=(20, 0), padx=0, sticky="w")
 
         self.running_mode = customtkinter.CTkButton(
             master=self.leftbar,
@@ -79,24 +100,28 @@ class UserInterface:
             height=60,
             fg_color=self.button_color,
             anchor="w",
-            command=interface_functions.running_mode_func  # Add functionality here
+            command=running_mode_func  # Add functionality here
         )
         self.running_mode.grid(row=1, column=0, pady=(20, 0), padx=0, sticky="w")
 
         self.start_but = customtkinter.CTkButton(
             master=self.leftbar,
             corner_radius=0,
-            text="start",
+            text=self.start_button_msg,
             font=(self.font, self.fontsize),
             width=self.leftbar_button_width,
             height=60,
-            fg_color=self.button_color,
+            fg_color=self.start_button_color,
             anchor="w",
-            command=interface_functions.start  # Add functionality here
+            command=self.start  # Add functionality here
         )
         self.start_but.grid(row=2, column=0, pady=(20, 0), padx=0, sticky="w")
 
-        parts = ["big blue", "small blue"]
+        def dropdown_callback(selected_value):
+            dropdown(selected_value, parts)
+
+        parts = ["select a value", "big blue", "small blue"]
+
         self.partselection = customtkinter.CTkOptionMenu(
             master=self.leftbar,
             corner_radius=0,
@@ -109,10 +134,11 @@ class UserInterface:
             anchor="w",
             button_color=self.button_color,
             button_hover_color=self.button_color,
-            dropdown_hover_color=self.button_color
+            dropdown_hover_color=self.button_color,
+            command=dropdown_callback,
         )
         self.partselection.grid(row=3, column=0, pady=(20, 0), padx=0, sticky="w")
-
+        
         self.activity = customtkinter.CTkLabel(
             master=self.leftbar,
             text=self.activity_msg,
@@ -214,10 +240,29 @@ class UserInterface:
         self.percentage = customtkinter.CTkLabel(master=self.progress, text=f"{percentage_value}%", font=(self.font, self.fontsize), fg_color=self.frame_color)
         self.percentage.grid(row=1, column=0, padx=0, pady=20, sticky="n")
 
+
+
     def on_closing(self):
         if self.on_close_callback:
             self.on_close_callback()
         self.root.quit()
 
     # Define functions for button actions
-    
+
+def packing_mode_func():
+        #go to packing place
+        print('moving to packing position')
+
+def running_mode_func():
+        #go to start position
+        print('moving to start position')
+
+
+def dropdown(variable, values):
+        if variable != None:
+                if variable == "select a value":
+                        print("select a value")
+                if variable == "big blue":
+                        print("big blue")
+                if variable == "small blue":
+                        print("small blue")
