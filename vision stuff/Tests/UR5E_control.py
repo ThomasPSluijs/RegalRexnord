@@ -29,15 +29,27 @@ class URControl:
 
 
 
-    #connect to robot
+    # Connect to robot with retry logic
     def connect(self):
-        try:
-            self.rtde_ctrl = rtde_control.RTDEControlInterface(self.robot_ip) 
-            self.rtde_rec = rtde_receive.RTDEReceiveInterface(self.robot_ip)
-            self.rtde_inout = rtde_io.RTDEIOInterface(self.robot_ip)
-            logging.info(f"Connected to robot: {self.robot_ip}")
-        except Exception as e:
-            logging.error(f"Error connecting to robot: {e}")
+        max_retries = 10
+        retry_delay = 0.5  # Delay in seconds between retries
+
+
+        for attempt in range(1, max_retries + 1):
+            try:
+                self.rtde_ctrl = rtde_control.RTDEControlInterface(self.robot_ip)
+                self.rtde_rec = rtde_receive.RTDEReceiveInterface(self.robot_ip)
+                self.rtde_inout = rtde_io.RTDEIOInterface(self.robot_ip)
+                logging.info(f"Connected to robot: {self.robot_ip} on attempt {attempt}")
+                return  # Exit the method upon successful connection
+            except Exception as e:
+                logging.error(f"Attempt {attempt} failed: {e}")
+                if attempt < max_retries:
+                    time.sleep(retry_delay)  # Wait before retrying
+                else:
+                    logging.error("Max retries reached. Unable to connect to the robot.")
+                    raise
+
 
     #stop connection to robot
     def stop_robot_control(self):
@@ -45,15 +57,17 @@ class URControl:
         logging.info("stopped connection with robot")
 
 
-
     #set tool frame (TCP frame)
     def set_tool_frame(self, tool_frame):
         try:
             self.rtde_ctrl.setTcp(tool_frame)
-            logging.info(self.rtde_ctrl.getTCPOffset())
-            logging.info(f"succesfully setted toolframe: {tool_frame}")
+            logging.info(f"succesfully setted toolframe: {self.rtde_ctrl.getTCPOffset()}")
         except Exception as e:
             logging.error(f"error setting toolframe: {e}")
+
+    def set_tcp(self, tool_frame):
+        self.set_tool_frame(tool_frame)
+
 
     #set payload (not tested). needs payload(kg), center of gravity (CoGx, CoGy, CoGz)
     def set_payload(self, payload, cog):
@@ -61,18 +75,16 @@ class URControl:
             self.rtde_ctrl.setPayLoad(payload, cog)
         except Exception as e:
             logging.error(f"can not set COG or/and payload: {e}")    
-            
-
+    
 
     #set digital output
     def set_digital_output(self, output_id, state):
-        if not self.rtde_ctrl:
-            logging.error("error: no connection with robot")
         try:
             self.rtde_inout.setStandardDigitalOut(output_id, state)
             logging.info(f"digital output {output_id} is {state}")
         except Exception as e:
             logging.error(f"Eror setting digital output {output_id}: {e}")
+        
 
     #pulse digital output. duration in seconds
     def pulse_digital_output(self, output_id, duration):
@@ -89,6 +101,7 @@ class URControl:
         except Exception as e:
             logging.error(f"can not move: {e}")
 
+
     #move L path
     def move_l_path(self, path):
         try:
@@ -96,12 +109,14 @@ class URControl:
         except Exception as e:
             logging.error(f"can not move: {e}")
 
+
     #move j (not tested yet)
     def move_j(self, pos, speed=0.5, acceleration=0.5):
         try:
             self.rtde_ctrl.moveJ(pos, speed, acceleration)
         except Exception as e:
             logging.error(f"can not move: {e}")
+
 
     #move add (relative movement based of current position
     def move_add_l(self, relative_move, speed=0.5, acceleration=0.5):
@@ -111,6 +126,7 @@ class URControl:
             self.move_l(new_linear_move, speed, acceleration)
         except Exception as e:
             logging.error(f"cannot do relative move: {e}")
+        
 
     #move add j (relative movement based of current position
     def move_add_j(self, relative_move, speed=0.5, acceleration=0.5):
@@ -120,6 +136,7 @@ class URControl:
             self.move_j(new_linear_move, speed, acceleration)
         except Exception as e:
             logging.error(f"cannot do relative move: {e}")
+
 
 
     #help functions for pose_trans
@@ -174,3 +191,36 @@ class URControl:
             return self.rtde_rec.getActualTCPPose()
         except Exception as e:
             logging.error(f"cannot return actual tcp pose: {e}")
+
+
+    #return actual joint pos
+    def get_joint_pos(self):
+        try:
+            return self.rtde_rec.getActualQ()
+        except Exception as e:
+            logging.error(f"cannot return actual joint pose: {e}")
+
+
+    def set_tcp_rotation(self,rx, ry, rz,speed=0.1,acc=0.1):
+        """
+        Sets the rotation of the tool center point (TCP).
+
+        Args:
+            rx (float): Rotation around the X-axis in degrees.
+            ry (float): Rotation around the Y-axis in degrees.
+            rz (float): Rotation around the Z-axis in degrees.
+
+        Returns:
+            None
+        """
+        # Get the current TCP pose
+        current_pose = self.get_tcp_pose()  # Assume this returns [x, y, z, rx, ry, rz]
+
+        # Update the rotation components
+        current_pose[3] = rx  # Set rotation around X-axis
+        current_pose[4] = ry  # Set rotation around Y-axis
+        current_pose[5] = rz  # Set rotation around Z-axis
+
+        # Move the robot to the new rotation
+        self.move_l(current_pose, speed, acc)  # Execute a linear move to the updated pose
+

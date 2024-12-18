@@ -9,3 +9,13 @@ def running_mode_func():
 def start():
         #start packing
         print('packing')
+
+def dropdown(variable, values):
+        if variable != None:
+                if variable == "select a value":
+                        print("select a value")
+                if variable == "big blue":
+                        print("big blue")
+                if variable == "small blue":
+                        print("small blue")
+
