@@ -104,7 +104,7 @@ class BoxingMachine:
 
         filled_boxes = self.pack_box.get_pack_pos()
 
-        tot_parts = 24  # For testing, limit part amount
+        tot_parts = 4 # For testing, limit part amount
         count = 0
     
         box_index = 0 
@@ -119,7 +119,7 @@ class BoxingMachine:
                     self.wait_if_paused()  # Pause-safe
 
                     logging.info("Do vision, first wait for space")
-                    keyboard.wait('space')    
+                    #keyboard.wait('space')    
                     item_type = 'Holed'
                     x, y, item_type = self.camera.detect_object_without_start()  # Get actual coordinates from vision
  
