@@ -48,7 +48,7 @@ class CameraPosition:
         self.robot.set_tcp(tool_frame)
 
         target_position = [-0.6639046352765678, -0.08494527187802497, 0.529720350746548, 2.222, 2.248, 0.004]
-        self.robot.move_l(target_position, 1, 1)
+        self.robot.move_l(target_position, 3, 3)
 
     # transform camera coordinates to real world (robot) coordinates
     def transform_coordinates(self, xp, yp, zp):
@@ -65,7 +65,7 @@ class CameraPosition:
     def detect_object_without_start(self, min_length=170):
         self.capture_position()
 
-        time.sleep(0.5)
+        time.sleep(0.3)
 
         not_found = True
         logging.info("start capturing frames")
