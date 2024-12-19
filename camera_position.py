@@ -36,6 +36,7 @@ class CameraPosition:
         self.config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
         self.pipeline.start(self.config)
         self.align = rs.align(rs.stream.color)
+        self.labels = self.detector.labels
 
         self.last_frame = None
         self.frame_lock = threading.Lock()
@@ -102,12 +103,23 @@ class CameraPosition:
                             logging.info(f" width * height: {width * height}, depth: {depth}")
 
 
+                            #draw box around detected part and draw circle at pickup point
                             cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 0, 0), 2)
                             cv2.circle(frame, (x_left, y_middle), 5, (0, 0, 255), -1)
 
+                            #put text with coordiantes at the circle
                             text = f'X: {x_left}, Y: {y_middle}, Z: {depth:.2f}m'
                             cv2.putText(frame, text, (x_left, y_middle - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-                            
+
+                            #put label (item_type) on screen
+                            label = self.labels[int(box.cls[0])]
+                            confidence = box.conf.item()
+                            text = f'{label} ({confidence:.2f})'
+                            cv2.putText(frame, text, (bbox[0], bbox[1] - 40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+                            logging.info(f"item type: {label}")
+
+                            with self.frame_lock:  # Update last_frame safely
+                                self.last_frame = frame
                             
                             #length check and area check 
                             length = max(width, height)
@@ -121,7 +133,7 @@ class CameraPosition:
                             
                                 with self.frame_lock:  # Update last_frame safely
                                     self.last_frame = frame
-                                return (xd, yd)
+                                return (xd, yd, label)
 
         return (0, 0, 0)
     
