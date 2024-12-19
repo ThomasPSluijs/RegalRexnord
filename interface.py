@@ -47,6 +47,9 @@ class UserInterface:
         self.setup_ui()
 
 
+        self.started_before = False
+
+
         '''start display thread to start showing images'''
         #start display thread
         self.display_thread = threading.Thread(target=self.update_live_feed, args=(self.machine.camera,), daemon=True) 
@@ -59,9 +62,11 @@ class UserInterface:
 
 
     '''function that gets called when stop/start button gets pressed. stops or starts the machine'''
-    def start(self):
+    def start_button_pressed(self):
         #start packing
         if self.start_button == True:
+            if not self.started_before: self.started_before=True
+
             print('packing')
             self.hoisting_mode.configure(state="disabled")
             self.running_mode.configure(state="disabled")
@@ -73,15 +78,16 @@ class UserInterface:
             self.start_but.configure(text=self.start_button_msg, fg_color=self.start_button_color, hover_color=self.start_button_color)
 
 
-            #calls a thread to start running the machine
-            threading.Thread(target=self.machine.start, daemon=True).start()
+            #calls a thread to start running the machine. if started before, just resume
+            if not self.started_before: threading.Thread(target=self.machine.start, daemon=True).start()
+            else: self.machine.resume()
 
             self.start_button = False
 
         else:
             print("stopped")
 
-            #pause boxing machine.
+            #pause boxing machine. pausing for now instead of stopping
             self.machine.pause()
 
             self.hoisting_mode.configure(state="enabled")
@@ -101,10 +107,19 @@ class UserInterface:
     def update_placements(self):
         while True:
         # Reset alle labels eerst, zodat ze niet over elkaar heen staan
-            with self.machine.current_part_number_lock:
+            placements,box_no,boxes_full = 0,0,0
+            with self.machine.thread_lock:
                 placements = self.machine.current_part_number 
                 box_no = self.machine.current_box
+                boxes_full = self.machine.boxes_are_full
                 logging.info(f"new placeent received: {placements}")
+            
+            if boxes_full:
+                 self.started_before = False
+                 logging.info("boxes are full")
+                 self.start_button_msg = "start"
+                 self.start_button_color = '#106A43'
+                 self.start_but.configure(text=self.start_button_msg, fg_color=self.start_button_color, hover_color=self.start_button_color)
             
             self.p1nw.grid_remove()
             self.p1sw.grid_remove()
@@ -212,7 +227,7 @@ class UserInterface:
             height=60,
             fg_color=self.button_color,
             anchor="w",
-            command=packing_mode_func  # Add functionality here
+            command=self.packing_mode_func  # Add functionality here
         )
         self.hoisting_mode.grid(row=0, column=0, pady=(20, 0), padx=0, sticky="w")
 
@@ -225,7 +240,7 @@ class UserInterface:
             height=60,
             fg_color=self.button_color,
             anchor="w",
-            command=running_mode_func  # Add functionality here
+            command=self.running_mode_func  # Add functionality here
         )
         self.running_mode.grid(row=1, column=0, pady=(20, 0), padx=0, sticky="w")
 
@@ -238,7 +253,7 @@ class UserInterface:
             height=60,
             fg_color=self.start_button_color,
             anchor="w",
-            command=self.start  # Add functionality here
+            command=self.start_button_pressed  # Add functionality here
         )
         self.start_but.grid(row=2, column=0, pady=(20, 0), padx=0, sticky="w")
 
@@ -369,32 +384,42 @@ class UserInterface:
 
 
 
+    #gets called when windows is closed. this function will kill all connections with camera's, robots and stop threads
     def on_closing(self):
         if self.on_close_callback:
             self.on_close_callback()
 
+        #stop threads, stop robot control, stop camera stream etc
         self.machine.camera.stop_display_thread()
         self.machine.stop()
         self.display_thread.join()
         self.root.quit()
 
+
+    #gets called when running_mode button is pressed. puts the robot in correct starting position
+    def running_mode_func(self):
+            #go to start position
+            print('moving to start position')
+            move_to_start_pos_t = threading.Thread(target=self.machine.normal_mode, daemon=True) 
+            move_to_start_pos_t.start() 
+
+    #gets called when packing mode is called. puts robot in packing mode
+    def packing_mode_func(self):
+            #go to packing place
+            print('moving to packing position')
+            move_to_pack_pos_t = threading.Thread(target=self.machine.packing_mode, daemon=True) 
+            move_to_pack_pos_t.start() 
+
+        
+
+
     # Define functions for button actions
-
-def packing_mode_func():
-        #go to packing place
-        print('moving to packing position')
-
-def running_mode_func():
-        #go to start position
-        print('moving to start position')
-
-
 def dropdown(variable, values):
         if variable != None:
                 if variable == "select a value":
                         print("select a value")
-#below this you can set the variables for every part, at selected value put everything on zero or something.
-#also search for "partlist" and add the names of the new parts there :)
+                #below this you can set the variables for every part, at selected value put everything on zero or something.
+                #also search for "partlist" and add the names of the new parts there :)
                 if variable == "big blue":
                         print("big blue")
                         #thickness = 3
