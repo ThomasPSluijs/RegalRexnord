@@ -44,8 +44,8 @@ class CameraPosition:
 
     # moves robot to capture position
     def capture_position(self):
-        tool_frame = [-47.5/1000,-140/1000,135/1000,math.radians(0),math.radians(0),math.radians(0)]
-        self.robot.set_tcp(tool_frame)
+        pickup_tcp = [-47.5/1000,-140/1000,135/1000,math.radians(0),math.radians(0),math.radians(0)]
+        self.robot.set_tcp(pickup_tcp)
 
         target_position = [-0.6639046352765678, -0.08494527187802497, 0.529720350746548, 2.222, 2.248, 0.004]
         self.robot.move_l(target_position, 3, 3)
@@ -123,19 +123,20 @@ class CameraPosition:
                             with self.frame_lock:  # Update last_frame safely
                                 self.last_frame = frame
                             
-                            #length check and area check 
+                            #length check and area check and label
                             length = max(width, height)
-                            if length >= min_length and width * height < 75000:
-                                xd, yd = self.transform_coordinates(x_left, y_middle, depth)
-                                target_position = [xd, yd, -0.0705907482294739, 2.222, 2.248, 0.004]
+                            if label == 'Big-Blue' or label == 'Green' or label == 'Holed' or label == 'Rubber' or label == 'Small-Blue':
+                                if length >= min_length and width * height < 75000:
+                                    xd, yd = self.transform_coordinates(x_left, y_middle, depth)
+                                    target_position = [xd, yd, -0.0705907482294739, 2.222, 2.248, 0.004]
 
-                                print(f"Detected (x, y, z): ({x_left}, {y_middle}, {depth}) -> Calculated TCP Position: {target_position}  conf: {box.conf}")
+                                    print(f"Detected (x, y, z): ({x_left}, {y_middle}, {depth}) -> Calculated TCP Position: {target_position}  conf: {box.conf}")
 
-                                not_found = False
-                            
-                                with self.frame_lock:  # Update last_frame safely
-                                    self.last_frame = frame
-                                return (xd, yd, label)
+                                    not_found = False
+                                
+                                    with self.frame_lock:  # Update last_frame safely
+                                        self.last_frame = frame
+                                    return (xd, yd, label)
 
         return (0, 0, 0)
     
