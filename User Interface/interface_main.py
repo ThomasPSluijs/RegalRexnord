@@ -1,9 +1,10 @@
 import tkinter as tk
 import interface
 
-placements = 1
+placements = 6
 root = tk.Tk()
 ui = interface.UserInterface(root)
+ui.update_placements(placements)
+
 root.mainloop()
 
-ui.update_placements(placements)
