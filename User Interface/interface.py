@@ -11,10 +11,12 @@ class UserInterface:
             self.hoisting_mode.configure(state="disabled")
             self.running_mode.configure(state="disabled")
             self.partselection.configure(state="disabled")
-            self.start_but.configure(text=self.start_button_msg, fg_color=self.start_button_color, hover_color=self.start_button_color)
             
             self.start_button_msg = "stop"
             self.start_button_color = "red"
+
+            self.start_but.configure(text=self.start_button_msg, fg_color=self.start_button_color, hover_color=self.start_button_color)
+
 
             self.start_button = False
 
@@ -23,10 +25,11 @@ class UserInterface:
             self.hoisting_mode.configure(state="enabled")
             self.running_mode.configure(state="enabled")
             self.partselection.configure(state="enabled")
-            self.start_but.configure(text=self.start_button_msg, fg_color=self.start_button_color, hover_color=self.start_button_color)
 
             self.start_button_msg = "start"
             self.start_button_color = '#106A43'
+
+            self.start_but.configure(text=self.start_button_msg, fg_color=self.start_button_color, hover_color=self.start_button_color)
 
             self.start_button = True
 
@@ -41,8 +44,7 @@ class UserInterface:
         self.p2sw.grid_remove()
         self.p2se.grid_remove()
         self.p2ne.grid_remove()
-        self.p2se.grid()
-        """
+        
         if placements <= 56:
             if placements % 4 == 1:
                 self.p1ne.grid()
@@ -61,14 +63,23 @@ class UserInterface:
                 self.p2sw.grid()
             elif placements % 4 == 0:
                 self.p2se.grid()
-        """
+
+    def update_activity(self, activity_msg):
+         self.activity.configure(text=activity_msg)
+        
+    def update_progressbar(self, progress, totalplacements):
+            progress = progress / totalplacements
+            self.progressbar.set(progress)
+            self.percentage_value = int(progress*100)
+            self.percentage.configure(text=f"{self.percentage_value}%")
+
+        
 
     def __init__(self, root, on_close_callback=None):
         # Initialiseer de GUI-elementen
         self.root = root
         self.on_close_callback = on_close_callback
 
-        self.activity_msg = "activity message"
         self.percentage_msg = 0.3
         self.start_button_msg = "start"
         self.start_button = True
@@ -182,7 +193,7 @@ class UserInterface:
         
         self.activity = customtkinter.CTkLabel(
             master=self.leftbar,
-            text=self.activity_msg,
+            text="power off",
             font=(self.font, self.fontsize),
             width=self.leftbar_button_width,
             height=60,
@@ -233,6 +244,16 @@ class UserInterface:
         self.box2 = customtkinter.CTkFrame(master=self.placement, corner_radius=10, width=400, height=400, fg_color='orange')
         self.box2.grid(row=1, column=0, padx=(10,0), pady=(10,0), sticky="n")
         self.box2.grid_propagate(False)
+
+        self.box.grid_rowconfigure(0, weight=1)  
+        self.box.grid_rowconfigure(1, weight=1)  
+        self.box.grid_columnconfigure(0, weight=1)  
+        self.box.grid_columnconfigure(1, weight=1)  
+
+        self.box2.grid_rowconfigure(0, weight=1)  
+        self.box2.grid_rowconfigure(1, weight=1)  
+        self.box2.grid_columnconfigure(0, weight=1)  
+        self.box2.grid_columnconfigure(1, weight=1)
 
         #-----placemets------
         self.p1nw = customtkinter.CTkLabel(master=self.box, corner_radius=10, text="", width=190, height=190, fg_color=self.button_color)
@@ -299,7 +320,6 @@ def dropdown(variable, values):
 #also search for "partlist" and add the names of the new parts there :)
                 if variable == "big blue":
                         print("big blue")
-                        #width = 6
                         #thickness = 3
                 if variable == "small blue":
                         print("small blue")
