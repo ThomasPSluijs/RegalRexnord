@@ -92,7 +92,7 @@ class Pack_Box:
                         rotation = 0
                     elif i == 1:
                         # Second part (top right)
-                        x_pos = box_center[0] + self.box_length / 2 - self.part_width / 2 - 0.005  # x negative for further away from box edge
+                        x_pos = box_center[0] + self.box_length / 2 - self.part_width / 2 - 0.003  # x negative for further away from box edge
                         y_pos = box_center[1] - self.box_width / 2 + self.part_length / 2 + 0.011  # y positive for further away from place side
                         rotation = -90
                     elif i == 2:
@@ -131,7 +131,9 @@ class Pack_Box:
 
 
     #place parts
-    def place_part(self, part, part_type='wide'):
+    def place_part(self, part, part_type='Big-Blue'):
+        logging.info(f"given part type to place part: {part_type}")
+
         box_index = part['box_number']
         part_position = part['position']
 
@@ -153,7 +155,7 @@ class Pack_Box:
         start_rotation = [2.213, 2.215, -0.013]
 
 
-
+        self.robot.set_tcp(placement_tcp)
         speed_acc_blend = [1,1,0.45]
         start_pos = self.robot.get_tcp_pos()
         for y in speed_acc_blend:
@@ -184,7 +186,7 @@ class Pack_Box:
 
         x = 6
         path_step_2 = cur_pos.copy()
-        speed_acc_blend = [speed_fast, acc_fast, 0.2]
+        speed_acc_blend = [speed_fast, acc_fast, 0.1]       #WAS 0.0
         for y in speed_acc_blend:
             path_step_2[x]=y
             x+=1
@@ -200,7 +202,7 @@ class Pack_Box:
 
         x = 6
         path_step_3 = cur_pos.copy()
-        speed_acc_blend = [speed_fast, acc_fast, 0.4]
+        speed_acc_blend = [speed_fast, acc_fast, 0.0]       #was 0.4
         for y in speed_acc_blend:
             path_step_3[x]=y
             x+=1
@@ -214,6 +216,7 @@ class Pack_Box:
         if rotation_angle == 180: 
             rotation_angle = 10
             rotations = 2
+            logging.info(f"rotations: {rotations}  rotationangel: {rotation_angle}")
         for rotation in range(rotations):
             rotate = [0,0,0,math.radians(0),math.radians(0),math.radians(rotation_angle)]
             pose1 = path_step_3.copy()
@@ -225,8 +228,10 @@ class Pack_Box:
             speed_acc_blend = [speed_fast, acc_fast, 0.0]
             for y in speed_acc_blend:
                 path_step_4 = np.append(path_step_4, y)
+                path_step_3 = path_step_4.copy()
             if rotations == 2:
                 rotation_angle = 170
+
         if rotations == 2: rotation_angle = 180
 
 
@@ -247,7 +252,7 @@ class Pack_Box:
 
         '''end placement tcp'''
 
-        self.robot.set_tool_frame(placement_tcp)
+        #self.robot.set_tool_frame(placement_tcp)
         path = [
             # Positie 1: [X, Y, Z, RX, RY, RZ, snelheid, versnelling, blend]
             path_step_1,  # step 1: move up
@@ -271,8 +276,8 @@ class Pack_Box:
         '''start pickup tcp'''
         #step 5.1: rotate a bit about x of tcp
         start_pos = cur_pos.copy()
-        if part_type == 'wide': rotate_x = -5
-        elif part_type == 'narrow': rotate_x = -2
+        if part_type == 'Big-Blue' or part_type == 'Holed': rotate_x = -5
+        elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': rotate_x = -2
         rotate_x = [0,0,0,math.radians(-2),math.radians(0),math.radians(0)]     #shouold be -5
         
         pose1 = start_pos
@@ -289,8 +294,9 @@ class Pack_Box:
         # Step 6: Move to the desired Z height for placement
         cur_pos = path_step_5.copy()
         z_offset = 0
-        if part['layer_number'] == 0 and part_type == 'narrow': z_offset = -4    #layer 0: negative z offset for pressing down the box a bit
-        elif part['layer_number'] > 0 and part_type == 'narrow': z_offset = 0   #rest of the layers: normal height
+        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue':
+            if part['layer_number'] == 0: z_offset = -4    #layer 0: negative z offset for pressing down the box a bit
+            elif part['layer_number'] > 0: z_offset = 0   #rest of the layers: normal height
         cur_pos[2] = part_position[2] + z_offset   # Set Z height to target position within the box
 
         x = 6
@@ -302,8 +308,8 @@ class Pack_Box:
 
 
 
-        if part_type == 'wide': rotate_x = -20
-        elif part_type == 'narrow': rotate_x = -26
+        if part_type == 'Big-Blue' or part_type == 'Holed': rotate_x = -20
+        elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': rotate_x = -26
         # Step 7: Slide part into place (rotates about x axis)     
         rotate_x = [0,0,0,math.radians(rotate_x),math.radians(0),math.radians(0)]
         pose1 = path_step_6.copy()
@@ -318,10 +324,10 @@ class Pack_Box:
 
 
            
-        #step 8: depending on rotation, move x or y
+        #step 8: depending on rotation, move x or y or a bit of z
         offset=157    #should be 175
-        if part_type == 'wide': z_offset = 7
-        elif part_type == 'narrow': z_offset = 2
+        if part_type == 'Big-Blue' or part_type == 'Holed': z_offset = 4
+        elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': z_offset = 2
         if rotation_angle == 0:
             #move x positive
             offset= [offset/1000,0,z_offset/1000,0,0,0]
@@ -374,7 +380,7 @@ class Pack_Box:
 
 
 
-        self.robot.set_tool_frame(pickup_tcp)  
+        self.robot.set_tcp(pickup_tcp)  
         path = [
             # Positie 1: [X, Y, Z, RX, RY, RZ, snelheid, versnelling, blend]
             path_step_6,  # step 1: move up
@@ -402,8 +408,10 @@ class Pack_Box:
         cur_pos = cur_pos[:-3]
         cur_pos[2] = z_above_box  # Return to a safe Z height above the box
         
+        blend = 0.2
+        if rotation_angle == 180: blend = 0.0
         path_step_11 = cur_pos.copy()
-        speed_acc_blend = [speed_fast, acc_fast, 0.2]
+        speed_acc_blend = [speed_fast, acc_fast, blend]   #was 0.2
         for y in speed_acc_blend:
             path_step_11 = np.append(path_step_11, y)
 
@@ -411,7 +419,7 @@ class Pack_Box:
         #step 12 rotate a bit back if rotationangle=180
         path_step_12 = path_step_11.copy()
         if rotation_angle == 180:
-            rotation_angle = -25
+            rotation_angle = -45
             rotate = [0,0,0,math.radians(0),math.radians(0),math.radians(rotation_angle)]
             pose1 = path_step_11.copy()
             pose1 = pose1[:-3]
@@ -425,7 +433,6 @@ class Pack_Box:
 
 
         #step 13: move to safe x and y position
-        self.robot.set_tool_frame(placement_tcp)
         cur_pos = path_step_12.copy()
         cur_pos = cur_pos[:-3]
         cur_pos[0] = -0.35
@@ -436,10 +443,8 @@ class Pack_Box:
         for y in speed_acc_blend:
             path_step_13 = np.append(path_step_13, y)
 
-    
 
-
-        self.robot.set_tool_frame(placement_tcp)  
+        #placement tcp 
         path = [
             # Positie 1: [X, Y, Z, RX, RY, RZ, snelheid, versnelling, blend]
             path_step_11,  # step 1: move up
@@ -458,6 +463,10 @@ class Pack_Box:
          
     #goes throug boxes and parts, then calls 'pickup part', 'place part'
     
+
+
+
+
 
 
 
