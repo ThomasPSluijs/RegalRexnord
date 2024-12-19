@@ -245,7 +245,7 @@ class Pack_Box:
 
         x = 6
         path_step_5 = cur_pos.copy()
-        speed_acc_blend = [speed_fast, acc_fast, 0]
+        speed_acc_blend = [1, 0.5, 0]
         for y in speed_acc_blend:
             path_step_5[x]=y
             x+=1
