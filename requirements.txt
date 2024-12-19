@@ -3,3 +3,8 @@ ultralytics
 pyrealsense2
 numpy
 opencv-python
+customtkinter
+tkinter
+keyboard
+time
+os
