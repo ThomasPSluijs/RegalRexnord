@@ -12,26 +12,26 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
+ 
 
-
-
+  
 #main class for the boxingmachine. this class will be controlled via the user interface
 class BoxingMachine:
     def __init__(self, robot_ip):
         self.robot = URControl(robot_ip)
         self.robot.connect()
 
-
-        '''SETUP PLACE BOX, PACK BOX AND PART DEFINITIONS'''
-        base_z = -12/1000
-        #neeeds: total boxes, box pos (x and y center, z bottom), box dimensions: (x, y, z)
-        box = Box(total_boxes=2, box_pos=[(-230/1000, -575/1000, base_z), [237/1000,-588/1000, base_z]], box_size=(0.365, 0.365, 0.180 ))
-        #needs: part width, part length, part height
-        part = Part((0.187, 0.170, 0.009))
-
  
+        '''SETUP PLACE BOX, PACK BOX AND PART DEFINITIONS'''
+        base_z = -13.5/1000
+        #neeeds: total boxes, box pos (x and y center, z bottom), box dimensions: (x, y, z)
+        self.box = Box(total_boxes=2, box_pos=[(-230/1000, -575/1000, base_z), [237/1000,-588/1000, base_z]], box_size=(0.365, 0.365, 0.180 ))
+        #needs: part  width, part length, part height
+        self.part = Part((0.187, 0.170, 0.01260))
+ 
+   
         # Initialize pack box and pick parts classes
-        self.pack_box = Pack_Box(box=box, part=part, robot=self.robot)
+        self.pack_box = Pack_Box(box=self.box, part=self.part, robot=self.robot)
         self.pick_part = Pick_parts(robot=self.robot)
 
         # Initialize vision camera class
@@ -67,16 +67,37 @@ class BoxingMachine:
         logging.info("Stopping robot control and camera pipeline...")
         self.robot.stop_robot_control()
         self.camera.pipeline.stop()
+ 
+ 
+    #checks parttype and adjusts part size y 
+    def check_part_type(self, part_type):
+        if part_type == 'Big-Blue':
+            self.part.part_size_z = 0.01260
+            self.pack_box.part_height = self.part.part_size_z
+        elif part_type == 'Green':
+            self.part.part_size_z = 0.009
+            self.pack_box.part_height = self.part.part_size_z
+        elif part_type == 'Holed':
+            self.part.part_size_z = 0.0085 
+            self.pack_box.part_height = self.part.part_size_z
+        elif part_type == 'Rubber':
+            self.part.part_size_z = 0.01
+            self.pack_box.part_height = self.part.part_size_z
+        elif part_type == 'Small-Blue':
+            self.part.part_size_z = 0.009
+            self.pack_box.part_height = self.part.part_size_z
 
+  
+    #main loop that fills all available boxes
     def main_loop(self):
         logging.info("In main loop")
         logging.info("Get all packing positions")
         filled_boxes = self.pack_box.get_pack_pos()
 
-        tot_parts = 3  # For testing, limit part amount
+        tot_parts = 24  # For testing, limit part amount
         count = 0
-
-        box_index = 0
+    
+        box_index = 0 
         for box in filled_boxes:
             for part in box:
                 if count < tot_parts:
@@ -85,25 +106,29 @@ class BoxingMachine:
                     self.wait_if_paused()  # Pause-safe
 
                     logging.info("Do vision, first wait for space")
-                    keyboard.wait('space')
-                    x, y = self.camera.detect_object_without_start()  # Get actual coordinates from vision
-
-                    logging.info(self.camera.last_frame)
+                    keyboard.wait('space')    
+                    item_type = 'Holed'
+                    x, y, item_type = self.camera.detect_object_without_start()  # Get actual coordinates from vision
+                    self.check_part_type(item_type)
+ 
+                    logging.info(f"x: {x}   y: {y}   item_type: {item_type}")
     
-                    logging.info("    part")
+                    logging.info("pickup part")
                     self.wait_if_paused()  # Pause-safe
                     self.pick_part.pick_parts(x, y)  # Uncomment when ready
                     
                     logging.info("Place part")
-                    self.wait_if_paused()  # Pause-safe
-                    self.pack_box.place_part(part, part_type='wide')  # Uncomment when ready
+                    # self.wait_if_paused()  # Pause-safe
+                    self.pack_box.place_part(part, part_type=item_type)  # Uncomment when ready
 
                     count += 1
             box_index += 1
 
         self.stop()  # End operations
-  
- 
+
+         
+         
+   
 def display_frames(camera_position):
     logging.info("Starting display thread...")
     frame = None
