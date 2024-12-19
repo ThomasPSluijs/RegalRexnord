@@ -393,10 +393,17 @@ class Pack_Box:
         self.robot.move_l_path(path=path)
         '''end pickup tcp'''
 
+        
+        #step 12 rotate a bit back if rotationangle=180
+        if rotation_angle == 180:
+            #logging.info(f"joint pos: {}")
+            cur_joint_pos = self.robot.get_joint_pos()
+            cur_joint_pos[5] = -math.radians(80)
+            self.robot.move_j(cur_joint_pos, 5, 3)
 
 
-
-        self.robot.set_tcp(placement_tcp)
+        '''start pickup tcp'''
+        self.robot.set_tcp(pickup_tcp)
         cur_pos = self.robot.get_tcp_pos()
         speed_acc_blend = [speed_slow, acc_slow, 0]
         for y in speed_acc_blend:
@@ -409,70 +416,49 @@ class Pack_Box:
         cur_pos[2] = z_above_box  # Return to a safe Z height above the box
         
         blend = 0.2
-        if rotation_angle == 180: blend = 0.0
         path_step_11 = cur_pos.copy()
         speed_acc_blend = [speed_fast, acc_fast, blend]   #was 0.2
         for y in speed_acc_blend:
             path_step_11 = np.append(path_step_11, y)
 
 
-        #step 13: move to safe x and y position
+
+        #step 12: move to safe x and y position
         cur_pos = path_step_11.copy()
         cur_pos = cur_pos[:-3]
         cur_pos[0] = -0.35
         cur_pos[1] = -0.30
 
         path_step_12 = cur_pos.copy()
-        speed_acc_blend = [speed_fast, acc_fast, 0]
+        speed_acc_blend = [speed_fast, acc_fast, 0.3]
         for y in speed_acc_blend:
             path_step_12 = np.append(path_step_12, y)
 
 
-        #step 12 rotate a bit back if rotationangle=180
-        ''' path_step_13 = path_step_12.copy()
-        if rotation_angle == 180:
-            rotation_angle = -45
-            rotate = [0,0,0,math.radians(0),math.radians(0),math.radians(rotation_angle)]
-            pose1 = path_step_12.copy()
-            pose1 = pose1[:-3]
-            pose2 = rotate
-            result_pose = self.robot.pose_trans(pose1, pose2)
+        #move to take pic pos
+        target_position = [-0.6639046352765678, -0.08494527187802497, 0.529720350746548, 2.222, 2.248, 0.004]
+        path_step_13 = target_position.copy()
+        speed_acc_blend = [speed_fast, acc_fast, 0.0]
+        for y in speed_acc_blend:
+            path_step_13 = np.append(path_step_13, y)
 
-            path_step_13 = result_pose.copy()
-            speed_acc_blend = [speed_fast, acc_fast, 0]
-            for y in speed_acc_blend:
-                path_step_13 = np.append(path_step_13, y) '''
-
-
+        
         #placement tcp 
         path = [
             # Positie 1: [X, Y, Z, RX, RY, RZ, snelheid, versnelling, blend]
             path_step_11,  # step 1: move up
             path_step_12,  # step 2: move to center box
-            #path_step_13,  # step 3: move down
-            # Voeg meer posities toe zoals nodig
+            path_step_13,
         ]
         self.robot.move_l_path(path=path)
-
-        if rotation_angle == 180:
-            #logging.info(f"joint pos: {}")
-            cur_joint_pos = self.robot.get_joint_pos()
-            cur_joint_pos[5] = 0
-            self.robot.move_j(cur_joint_pos, 3, 3)
-
-
-
         '''end placement tcp'''
 
-    
-    #put it in main loop
-         
-    #goes throug boxes and parts, then calls 'pickup part', 'place part'
-    
 
 
 
 
+
+        
 
 
 
