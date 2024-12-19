@@ -39,10 +39,10 @@ class Pick_parts():
 
 
         #fast and slow speeds and accelerations. fast for general movements, slow for special movements. 
-        speed_fast = 1
-        acc_fast = 1
+        speed_fast = 3
+        acc_fast = 3
 
-        speed_slow = 0.15
+        speed_slow = 0.4
         acc_slow = 0.5
  
         pickup_tcp = [-47.5/1000,-140/1000,135/1000,0,0,0]  #edge of part (x=centerpart, y=edge)
