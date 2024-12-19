@@ -2,6 +2,7 @@ import customtkinter
 import tkinter as tk
 from PIL import Image
 from functools import partial
+import time
 
 class UserInterface:
     def start(self):
@@ -62,6 +63,28 @@ class UserInterface:
             elif placements % 4 == 0:
                 self.p2se.grid()
         """
+
+    def update_live_feed(self):
+        try:
+            # Voeg een timestamp toe aan het pad om caching te voorkomen
+            file_path = f"User Interface/Pictures/picture.jpeg?{int(time.time())}"
+
+            # Herlaad de afbeelding
+            new_image = Image.open(file_path.split('?')[0])  # Alleen het pad gebruiken zonder de query
+            self.my_image = customtkinter.CTkImage(light_image=new_image, size=(640/self.camscale, 420/self.camscale))
+
+            # Update het label met de nieuwe afbeelding
+            self.image_label.configure(image=self.my_image)
+            self.image_label.image = self.my_image  # Houd een referentie vast
+            print("Afbeelding succesvol geüpdatet")
+        except FileNotFoundError:
+            print("Fout: De afbeelding is niet gevonden.")
+        except Exception as e:
+            print(f"Er is een fout opgetreden: {e}")
+        
+        # Roep deze functie opnieuw aan na 2000 ms (2 seconden)
+        self.camview.after(2000, self.update_live_feed)
+
 
     def __init__(self, root, on_close_callback=None):
         # Initialiseer de GUI-elementen
@@ -216,11 +239,11 @@ class UserInterface:
         self.camview = customtkinter.CTkFrame(master=self.root, corner_radius=0, fg_color=self.background_color)
         self.camview.grid(row=0, column=1, padx=0, pady=0, sticky="")
 
-        self.light_image = Image.open('picture.jpeg')  
+        self.light_image = Image.open("User Interface\Pictures\Foto.jpeg")  
         self.my_image = customtkinter.CTkImage(light_image=self.light_image, size=(640/self.camscale, 420/self.camscale))
 
         self.image_label = customtkinter.CTkLabel(self.camview, image=self.my_image, text="")
-        self.image_label.image = self.my_image
+        #self.image_label.image = self.my_image
         self.image_label.grid(row=0, column=0, padx=(20, 0), sticky="")
 
         self.placement = customtkinter.CTkFrame(master=self.root, width=420, height=830, fg_color="#5E3E2C")
