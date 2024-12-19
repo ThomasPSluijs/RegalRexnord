@@ -186,7 +186,7 @@ class Pack_Box:
 
         x = 6
         path_step_2 = cur_pos.copy()
-        speed_acc_blend = [speed_fast, acc_fast, 0.1]       #WAS 0.0
+        speed_acc_blend = [speed_fast, acc_fast, 0.2]       #WAS 0.0
         for y in speed_acc_blend:
             path_step_2[x]=y
             x+=1
@@ -214,7 +214,7 @@ class Pack_Box:
         logging.info(f"Step 4: Set rotation around Z-axis to: {rotation_angle}")
         rotations = 1
         if rotation_angle == 180: 
-            rotation_angle = 10
+            rotation_angle = 20
             rotations = 2
             logging.info(f"rotations: {rotations}  rotationangel: {rotation_angle}")
         for rotation in range(rotations):
@@ -230,7 +230,7 @@ class Pack_Box:
                 path_step_4 = np.append(path_step_4, y)
                 path_step_3 = path_step_4.copy()
             if rotations == 2:
-                rotation_angle = 170
+                rotation_angle = 160
 
         if rotations == 2: rotation_angle = 180
 
@@ -276,9 +276,9 @@ class Pack_Box:
         '''start pickup tcp'''
         #step 5.1: rotate a bit about x of tcp
         start_pos = cur_pos.copy()
-        if part_type == 'Big-Blue' or part_type == 'Holed': rotate_x = -5
+        if part_type == 'Big-Blue' or part_type == 'Holed': rotate_x = -10
         elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': rotate_x = -2
-        rotate_x = [0,0,0,math.radians(-2),math.radians(0),math.radians(0)]     #shouold be -5
+        rotate_x = [0,0,0,math.radians(rotate_x),math.radians(0),math.radians(0)]     #shouold be -5
         
         pose1 = start_pos
         pose1 = pose1[:-3]
@@ -308,7 +308,7 @@ class Pack_Box:
 
 
 
-        if part_type == 'Big-Blue' or part_type == 'Holed': rotate_x = -20
+        if part_type == 'Big-Blue' or part_type == 'Holed': rotate_x = -15
         elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': rotate_x = -26
         # Step 7: Slide part into place (rotates about x axis)     
         rotate_x = [0,0,0,math.radians(rotate_x),math.radians(0),math.radians(0)]
@@ -416,32 +416,32 @@ class Pack_Box:
             path_step_11 = np.append(path_step_11, y)
 
 
-        #step 12 rotate a bit back if rotationangle=180
-        path_step_12 = path_step_11.copy()
-        if rotation_angle == 180:
-            rotation_angle = -45
-            rotate = [0,0,0,math.radians(0),math.radians(0),math.radians(rotation_angle)]
-            pose1 = path_step_11.copy()
-            pose1 = pose1[:-3]
-            pose2 = rotate
-            result_pose = self.robot.pose_trans(pose1, pose2)
-
-            path_step_12 = result_pose.copy()
-            speed_acc_blend = [speed_fast, acc_fast, 0]
-            for y in speed_acc_blend:
-                path_step_12 = np.append(path_step_12, y)
-
-
         #step 13: move to safe x and y position
-        cur_pos = path_step_12.copy()
+        cur_pos = path_step_11.copy()
         cur_pos = cur_pos[:-3]
         cur_pos[0] = -0.35
         cur_pos[1] = -0.30
 
-        path_step_13 = cur_pos.copy()
+        path_step_12 = cur_pos.copy()
         speed_acc_blend = [speed_fast, acc_fast, 0]
         for y in speed_acc_blend:
-            path_step_13 = np.append(path_step_13, y)
+            path_step_12 = np.append(path_step_12, y)
+
+
+        #step 12 rotate a bit back if rotationangle=180
+        ''' path_step_13 = path_step_12.copy()
+        if rotation_angle == 180:
+            rotation_angle = -45
+            rotate = [0,0,0,math.radians(0),math.radians(0),math.radians(rotation_angle)]
+            pose1 = path_step_12.copy()
+            pose1 = pose1[:-3]
+            pose2 = rotate
+            result_pose = self.robot.pose_trans(pose1, pose2)
+
+            path_step_13 = result_pose.copy()
+            speed_acc_blend = [speed_fast, acc_fast, 0]
+            for y in speed_acc_blend:
+                path_step_13 = np.append(path_step_13, y) '''
 
 
         #placement tcp 
@@ -449,10 +449,16 @@ class Pack_Box:
             # Positie 1: [X, Y, Z, RX, RY, RZ, snelheid, versnelling, blend]
             path_step_11,  # step 1: move up
             path_step_12,  # step 2: move to center box
-            path_step_13,  # step 3: move down
+            #path_step_13,  # step 3: move down
             # Voeg meer posities toe zoals nodig
         ]
         self.robot.move_l_path(path=path)
+
+        if rotation_angle == 180:
+            #logging.info(f"joint pos: {}")
+            cur_joint_pos = self.robot.get_joint_pos()
+            cur_joint_pos[5] = 0
+            self.robot.move_j(cur_joint_pos, 3, 3)
 
 
 
