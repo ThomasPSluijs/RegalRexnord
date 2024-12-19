@@ -78,8 +78,6 @@ class UserInterface:
 
             self.start_button = False
 
-
-
         else:
             print("stopped")
 
@@ -105,6 +103,7 @@ class UserInterface:
         # Reset alle labels eerst, zodat ze niet over elkaar heen staan
             with self.machine.current_part_number_lock:
                 placements = self.machine.current_part_number 
+                box_no = self.machine.current_box
                 logging.info(f"new placeent received: {placements}")
             
             self.p1nw.grid_remove()
@@ -116,7 +115,7 @@ class UserInterface:
             self.p2se.grid_remove()
             self.p2ne.grid_remove()
             
-            if placements <= 56:
+            if box_no == 0:
                 if placements % 4 == 1:
                     self.p1ne.grid()
                 elif placements % 4 == 2:
@@ -125,7 +124,7 @@ class UserInterface:
                     self.p1sw.grid()
                 elif placements % 4 == 0:
                     self.p1se.grid()
-            if placements > 56:
+            elif box_no == 1:
                 if placements % 4 == 1:
                     self.p2ne.grid()
                 elif placements % 4 == 2:
@@ -135,19 +134,24 @@ class UserInterface:
                 elif placements % 4 == 0:
                     self.p2se.grid()
 
-            #self.update_progressbar()
+            self.update_progressbar(placements)
             time.sleep(0.5)
 
+    #idk man
     def update_activity(self, activity_msg):
          self.activity.configure(text=activity_msg)
         
-    def update_progressbar(self, progress, totalplacements):
+    #function that updates progressbar: it gets the current progress from self.update_placements. the totalplacementes is set in the machine main loop
+    def update_progressbar(self, progress):
+            totalplacements = self.machine.total_parts
             progress = progress / totalplacements
+
             self.progressbar.set(progress)
             self.percentage_value = int(progress*100)
             self.percentage.configure(text=f"{self.percentage_value}%")
 
         
+
     #updates images on the interface that have been taking by the camera 
     def update_live_feed(self, camera_position):
         logging.info("Starting display thread...")
@@ -159,7 +163,6 @@ class UserInterface:
             if numpy_image is not None:
                 pil_image = Image.fromarray(numpy_image)
                 self.my_image = customtkinter.CTkImage(light_image=pil_image, size=(640/self.camscale, 420/self.camscale))
-                # Update het label met de nieuwe afbeelding
                 self.image_label.configure(image=self.my_image)
                 self.image_label.image = self.my_image  # Houd een referentie vast
             time.sleep(0.05)  # Limit display thread to ~30 FPS
@@ -167,6 +170,7 @@ class UserInterface:
 
 
 
+    #setup user interface with all the buttons and widgets etc
     def setup_ui(self):
         # Set appearance mode and theme
         customtkinter.set_appearance_mode("dark")
