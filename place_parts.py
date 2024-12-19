@@ -138,10 +138,10 @@ class Pack_Box:
         part_position = part['position']
 
         #fast and slow speeds and accelerations. fast for general movements, slow for special movements. 
-        speed_fast = 1
-        acc_fast = 1
+        speed_fast = 3
+        acc_fast = 3
                                                      
-        speed_slow = 0.1   
+        speed_slow = 0.4
         acc_slow = 0.5
 
         box_center = self.box.box_centers[box_index]
@@ -245,7 +245,7 @@ class Pack_Box:
 
         x = 6
         path_step_5 = cur_pos.copy()
-        speed_acc_blend = [speed_slow, acc_slow, 0]
+        speed_acc_blend = [speed_fast, acc_fast, 0]
         for y in speed_acc_blend:
             path_step_5[x]=y
             x+=1
