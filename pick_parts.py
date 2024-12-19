@@ -27,13 +27,13 @@ class Pick_parts():
     #9: rotate parts into gripper
     #done
     def pick_parts(self, part_x, part_y):
-        belt_z = [0,0,-116/1000,0,0,0]                                            #belt z location (should be )
+        belt_z = [0,0,-118/1000,0,0,0]                                            #belt z location (should be )
         rotate_x = [0,0,0,math.radians(-23),math.radians(0),math.radians(0)]   #rotation about x axis of tool  
         
         part_pos_x_offset = 0.025                                #x offset so gripper starts before parts and does not crash down when going down
-        part_pos_x_offset_2 = 0.027                                #x offset so gripper does not go into wall 
+        part_pos_x_offset_2 = 0.0245                                #x offset so gripper does not go into wall 
         part_length = 0.185
-
+  
         #total x movement when tool is rotated and aligned to pick up the parts. moves partlength + offset
         move_x = [-part_length-part_pos_x_offset+part_pos_x_offset_2,0,0,0,0,0]  
 
@@ -97,7 +97,7 @@ class Pick_parts():
         pose2 = rotate_x
         rotate_x[3] *= -1
         result_pose = self.robot.pose_trans(pose1, pose2)
-        result_pose[0] += 5/1000                               #should be 10
+        result_pose[0] += 3/1000                               #should be 10
         result_pose[2] += 5/1000
         self.robot.move_l(result_pose, speed_slow, acc_slow)
 
@@ -125,8 +125,15 @@ class Pick_parts():
         self.robot.set_tcp(pickup_tcp)
         relative_move=[0,0,0.15,0,0,0]
         logging.info(f"move up relative to current position: {relative_move}")
-        self.robot.move_add_l(relative_move, speed_fast, acc_fast)
+        self.robot.move_add_l(relative_move, speed_fast, acc_slow)
 
+        #step 8.1
+        #move to safe y
+        self.robot.set_tcp(pickup_tcp)
+        cur_pos = self.robot.get_tcp_pos()
+        #cur_pos[0] = -0.7318620917412302
+        cur_pos[1] = -0.01964148815131326
+        self.robot.move_l(cur_pos, speed_fast, acc_fast)
 
         #step 9
         #rotate around x axis and y so parts will stay in place
