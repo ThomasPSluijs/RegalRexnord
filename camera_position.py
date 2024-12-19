@@ -65,6 +65,8 @@ class CameraPosition:
     def detect_object_without_start(self, min_length=170):
         self.capture_position()
 
+        time.sleep(1)
+
         not_found = True
         logging.info("start capturing frames")
         while not_found:
