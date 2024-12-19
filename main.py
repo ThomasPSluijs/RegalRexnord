@@ -12,18 +12,20 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
+          
  
-
-  
+   
 #main class for the boxingmachine. this class will be controlled via the user interface
 class BoxingMachine:
     def __init__(self, robot_ip):
         self.robot = URControl(robot_ip)
         self.robot.connect()
 
+        logging.info(f"tcp pos: {self.robot.get_tcp_pos()}")
  
+   
         '''SETUP PLACE BOX, PACK BOX AND PART DEFINITIONS'''
-        base_z = -13.5/1000
+        base_z = -13.5 /1000
         #neeeds: total boxes, box pos (x and y center, z bottom), box dimensions: (x, y, z)
         self.box = Box(total_boxes=2, box_pos=[(-230/1000, -575/1000, base_z), [237/1000,-588/1000, base_z]], box_size=(0.365, 0.365, 0.180 ))
         #needs: part  width, part length, part height
@@ -92,6 +94,11 @@ class BoxingMachine:
     def main_loop(self):
         logging.info("In main loop")
         logging.info("Get all packing positions")
+
+        x, y, item_type = self.camera.detect_object_without_start()  # Get actual coordinates from vision
+        self.check_part_type(item_type)
+
+
         filled_boxes = self.pack_box.get_pack_pos()
 
         tot_parts = 24  # For testing, limit part amount
@@ -109,7 +116,6 @@ class BoxingMachine:
                     keyboard.wait('space')    
                     item_type = 'Holed'
                     x, y, item_type = self.camera.detect_object_without_start()  # Get actual coordinates from vision
-                    self.check_part_type(item_type)
  
                     logging.info(f"x: {x}   y: {y}   item_type: {item_type}")
     
@@ -144,9 +150,9 @@ def display_frames(camera_position):
     logging.info("Stopping display thread...")
     cv2.destroyAllWindows()
 
-
   
-
+  
+  
 if __name__ == '__main__':
     logging.info("START")
     
@@ -155,12 +161,12 @@ if __name__ == '__main__':
 
     # Create and start BoxingMachine
     machine = BoxingMachine(robot_ip)
-
+ 
     # Start in a separate thread to allow pause/resume control
     threading.Thread(target=machine.start, daemon=True).start()
 
     # Start display thread
-    display_thread = threading.Thread(target=display_frames, args=(machine.camera,), daemon=True)
+    display_thread = threading.Thread(target=display_frames, args=(machine.camera,), daemon=True) 
     display_thread.start() 
 
     # Listen for pause and resume commands
