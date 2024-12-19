@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import os
-from ultralytics import YOLO
+#from ultralytics import YOLO
 import logging
 
 class YoloLogFilter(logging.Filter):
