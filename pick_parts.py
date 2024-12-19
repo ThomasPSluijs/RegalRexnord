@@ -30,8 +30,8 @@ class Pick_parts():
         belt_z = [0,0,-116/1000,0,0,0]                                            #belt z location (should be )
         rotate_x = [0,0,0,math.radians(-23),math.radians(0),math.radians(0)]   #rotation about x axis of tool  
         
-        part_pos_x_offset = 0.03                                #x offset so gripper starts before parts and does not crash down when going down
-        part_pos_x_offset_2 = 0.025                                #x offset so gripper does not go into wall #should be 0.017
+        part_pos_x_offset = 0.025                                #x offset so gripper starts before parts and does not crash down when going down
+        part_pos_x_offset_2 = 0.027                                #x offset so gripper does not go into wall 
         part_length = 0.185
 
         #total x movement when tool is rotated and aligned to pick up the parts. moves partlength + offset
@@ -97,7 +97,7 @@ class Pick_parts():
         pose2 = rotate_x
         rotate_x[3] *= -1
         result_pose = self.robot.pose_trans(pose1, pose2)
-        result_pose[0] += 10/1000                               #should be 10
+        result_pose[0] += 5/1000                               #should be 10
         result_pose[2] += 5/1000
         self.robot.move_l(result_pose, speed_slow, acc_slow)
 
