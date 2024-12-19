@@ -3,108 +3,18 @@ import tkinter as tk
 from PIL import Image
 from functools import partial
 import time
-from main import *
+from main import BoxingMachine
+import threading
+import logging
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
 
 class UserInterface:
-    def start(self):
-        #start packing
-        if self.start_button == True:
-            print('packing')
-            self.hoisting_mode.configure(state="disabled")
-            self.running_mode.configure(state="disabled")
-            self.partselection.configure(state="disabled")
-            
-            self.start_button_msg = "stop"
-            self.start_button_color = "red"
-
-            self.start_but.configure(text=self.start_button_msg, fg_color=self.start_button_color, hover_color=self.start_button_color)
-
-
-            self.start_button = False
-
-            # Define configurations
-            robot_ip = "192.168.0.1"
-
-            # Create and start BoxingMachine
-            machine = BoxingMachine(robot_ip)
-
-        else:
-            print("stopped")
-            self.hoisting_mode.configure(state="enabled")
-            self.running_mode.configure(state="enabled")
-            self.partselection.configure(state="enabled")
-
-            self.start_button_msg = "start"
-            self.start_button_color = '#106A43'
-
-            self.start_but.configure(text=self.start_button_msg, fg_color=self.start_button_color, hover_color=self.start_button_color)
-
-            self.start_button = True
-
-    def update_placements(self, placements):
-        # Reset alle labels eerst, zodat ze niet over elkaar heen staan
-        print(placements)
-        self.p1nw.grid_remove()
-        self.p1sw.grid_remove()
-        self.p1se.grid_remove()
-        self.p1ne.grid_remove()
-        self.p2nw.grid_remove()
-        self.p2sw.grid_remove()
-        self.p2se.grid_remove()
-        self.p2ne.grid_remove()
-        
-        if placements <= 56:
-            if placements % 4 == 1:
-                self.p1ne.grid()
-            elif placements % 4 == 2:
-                self.p1nw.grid()
-            elif placements % 4 == 3:
-                self.p1sw.grid()
-            elif placements % 4 == 0:
-                self.p1se.grid()
-        if placements > 56:
-            if placements % 4 == 1:
-                self.p2ne.grid()
-            elif placements % 4 == 2:
-                self.p2nw.grid()
-            elif placements % 4 == 3:
-                self.p2sw.grid()
-            elif placements % 4 == 0:
-                self.p2se.grid()
-
-    def update_activity(self, activity_msg):
-         self.activity.configure(text=activity_msg)
-        
-    def update_progressbar(self, progress, totalplacements):
-            progress = progress / totalplacements
-            self.progressbar.set(progress)
-            self.percentage_value = int(progress*100)
-            self.percentage.configure(text=f"{self.percentage_value}%")
-
-        
-
-    def update_live_feed(self):
-        try:
-            # Voeg een timestamp toe aan het pad om caching te voorkomen
-            file_path = f"User Interface/Pictures/picture.jpeg?{int(time.time())}"
-
-            # Herlaad de afbeelding
-            new_image = Image.open(file_path.split('?')[0])  # Alleen het pad gebruiken zonder de query
-            self.my_image = customtkinter.CTkImage(light_image=new_image, size=(640/self.camscale, 420/self.camscale))
-
-            # Update het label met de nieuwe afbeelding
-            self.image_label.configure(image=self.my_image)
-            self.image_label.image = self.my_image  # Houd een referentie vast
-            print("Afbeelding succesvol geüpdatet")
-        except FileNotFoundError:
-            print("Fout: De afbeelding is niet gevonden.")
-        except Exception as e:
-            print(f"Er is een fout opgetreden: {e}")
-        
-        # Roep deze functie opnieuw aan na 2000 ms (2 seconden)
-        self.camview.after(2000, self.update_live_feed)
-
-
     def __init__(self, root, on_close_callback=None):
         # Initialiseer de GUI-elementen
         self.root = root
@@ -126,7 +36,136 @@ class UserInterface:
         self.leftbar_button_width = 250
         self.camscale = 1
 
+
+        '''setup robot and machine class'''
+        # Define configurations
+        robot_ip = "192.168.0.1"
+        # Create and start BoxingMachine
+        self.machine = BoxingMachine(robot_ip)
+
+
         self.setup_ui()
+
+
+        '''start display thread to start showing images'''
+        #start display thread
+        self.display_thread = threading.Thread(target=self.update_live_feed, args=(self.machine.camera,), daemon=True) 
+        self.display_thread.start() 
+
+        #start update placementes thread. looks for updates regarding the placing of parts
+        self.update_placements_thread = threading.Thread(target=self.update_placements, daemon=True)
+        self.update_placements_thread.start()
+
+
+
+    '''function that gets called when stop/start button gets pressed. stops or starts the machine'''
+    def start(self):
+        #start packing
+        if self.start_button == True:
+            print('packing')
+            self.hoisting_mode.configure(state="disabled")
+            self.running_mode.configure(state="disabled")
+            self.partselection.configure(state="disabled")
+            
+            self.start_button_msg = "stop"
+            self.start_button_color = "red"
+
+            self.start_but.configure(text=self.start_button_msg, fg_color=self.start_button_color, hover_color=self.start_button_color)
+
+
+            #calls a thread to start running the machine
+            threading.Thread(target=self.machine.start, daemon=True).start()
+
+            self.start_button = False
+
+
+
+        else:
+            print("stopped")
+
+            #pause boxing machine.
+            self.machine.pause()
+
+            self.hoisting_mode.configure(state="enabled")
+            self.running_mode.configure(state="enabled")
+            self.partselection.configure(state="enabled")
+
+            self.start_button_msg = "start"
+            self.start_button_color = '#106A43'
+
+            self.start_but.configure(text=self.start_button_msg, fg_color=self.start_button_color, hover_color=self.start_button_color)
+
+            self.start_button = True
+
+
+
+    '''update placementes of parts on the display'''
+    def update_placements(self):
+        while True:
+        # Reset alle labels eerst, zodat ze niet over elkaar heen staan
+            with self.machine.current_part_number_lock:
+                placements = self.machine.current_part_number 
+                logging.info(f"new placeent received: {placements}")
+            
+            self.p1nw.grid_remove()
+            self.p1sw.grid_remove()
+            self.p1se.grid_remove()
+            self.p1ne.grid_remove()
+            self.p2nw.grid_remove()
+            self.p2sw.grid_remove()
+            self.p2se.grid_remove()
+            self.p2ne.grid_remove()
+            
+            if placements <= 56:
+                if placements % 4 == 1:
+                    self.p1ne.grid()
+                elif placements % 4 == 2:
+                    self.p1nw.grid()
+                elif placements % 4 == 3:
+                    self.p1sw.grid()
+                elif placements % 4 == 0:
+                    self.p1se.grid()
+            if placements > 56:
+                if placements % 4 == 1:
+                    self.p2ne.grid()
+                elif placements % 4 == 2:
+                    self.p2nw.grid()
+                elif placements % 4 == 3:
+                    self.p2sw.grid()
+                elif placements % 4 == 0:
+                    self.p2se.grid()
+
+            #self.update_progressbar()
+            time.sleep(0.5)
+
+    def update_activity(self, activity_msg):
+         self.activity.configure(text=activity_msg)
+        
+    def update_progressbar(self, progress, totalplacements):
+            progress = progress / totalplacements
+            self.progressbar.set(progress)
+            self.percentage_value = int(progress*100)
+            self.percentage.configure(text=f"{self.percentage_value}%")
+
+        
+
+    def update_live_feed(self, camera_position):
+        logging.info("Starting display thread...")
+        numpy_image = None
+        while camera_position.display_thread_running:
+            with camera_position.frame_lock:  # Access the frame safely
+                if camera_position.last_frame is not None:
+                    numpy_image = camera_position.last_frame.copy()
+            if numpy_image is not None:
+                pil_image = Image.fromarray(numpy_image)
+                self.my_image = customtkinter.CTkImage(light_image=pil_image, size=(640/self.camscale, 420/self.camscale))
+                # Update het label met de nieuwe afbeelding
+                self.image_label.configure(image=self.my_image)
+                self.image_label.image = self.my_image  # Houd een referentie vast
+            time.sleep(0.05)  # Limit display thread to ~30 FPS
+        logging.info("Stopping display thread...")
+
+
 
     def setup_ui(self):
         # Set appearance mode and theme
@@ -257,7 +296,7 @@ class UserInterface:
         self.camview = customtkinter.CTkFrame(master=self.root, corner_radius=0, fg_color=self.background_color)
         self.camview.grid(row=0, column=1, padx=0, pady=0, sticky="")
 
-        self.light_image = Image.open("User Interface\Pictures\Foto.jpeg")  
+        self.light_image = Image.open("Pictures\Foto.jpeg")  
         self.my_image = customtkinter.CTkImage(light_image=self.light_image, size=(640/self.camscale, 420/self.camscale))
 
         self.image_label = customtkinter.CTkLabel(self.camview, image=self.my_image, text="")
@@ -329,6 +368,10 @@ class UserInterface:
     def on_closing(self):
         if self.on_close_callback:
             self.on_close_callback()
+
+        self.machine.camera.stop_display_thread()
+        self.machine.stop()
+        self.display_thread.join()
         self.root.quit()
 
     # Define functions for button actions
