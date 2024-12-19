@@ -8,7 +8,8 @@ def running_mode_func():
 
 def start():
         #start packing
-        print('packing')
+        #print('packing')
+        pass
 
 def dropdown(variable, values):
         if variable != None:
