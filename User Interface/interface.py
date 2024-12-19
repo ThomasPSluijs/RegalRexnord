@@ -3,6 +3,7 @@ import tkinter as tk
 from PIL import Image
 from functools import partial
 import time
+from main import *
 
 class UserInterface:
     def start(self):
@@ -20,6 +21,12 @@ class UserInterface:
 
 
             self.start_button = False
+
+            # Define configurations
+            robot_ip = "192.168.0.1"
+
+            # Create and start BoxingMachine
+            machine = BoxingMachine(robot_ip)
 
         else:
             print("stopped")
@@ -127,7 +134,7 @@ class UserInterface:
         customtkinter.set_default_color_theme("green")
 
         # Configure window
-        self.root.attributes("-fullscreen", True)
+        self.root.attributes("-fullscreen", False)       #should be true
         self.root.configure(bg='gray14')
 
         # Setup close event
