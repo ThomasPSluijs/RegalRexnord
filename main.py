@@ -43,6 +43,9 @@ class BoxingMachine:
         self.pause_event = threading.Event()
         self.pause_event.set()  # Initially not paused
 
+        self.current_part_number = 1
+        self.current_part_number_lock = threading.Lock()
+
     def pause(self):
         logging.info("Pausing operations...")
         self.pause_event.clear()
@@ -110,6 +113,9 @@ class BoxingMachine:
                 if count < tot_parts:
                     logging.info(f"Processing part: {part}")
 
+                    with self.current_part_number_lock:
+                        self.current_part_number = part['part_number']
+
                     self.wait_if_paused()  # Pause-safe
 
                     logging.info("Do vision, first wait for space")
@@ -134,7 +140,7 @@ class BoxingMachine:
 
          
          
-   
+'''
 def display_frames(camera_position):
     logging.info("Starting display thread...")
     frame = None
@@ -148,7 +154,7 @@ def display_frames(camera_position):
                 break
         time.sleep(0.03)  # Limit display thread to ~30 FPS
     logging.info("Stopping display thread...")
-    cv2.destroyAllWindows()
+    cv2.destroyAllWindows()'''
 
   
   
@@ -166,8 +172,8 @@ if __name__ == '__main__':
     threading.Thread(target=machine.start, daemon=True).start()
 
     # Start display thread
-    display_thread = threading.Thread(target=display_frames, args=(machine.camera,), daemon=True) 
-    display_thread.start() 
+    #display_thread = threading.Thread(target=display_frames, args=(machine.camera,), daemon=True) 
+    #display_thread.start() 
 
     # Listen for pause and resume commands
     while True:
@@ -180,5 +186,5 @@ if __name__ == '__main__':
             logging.info("Quitting...")
             break
 
-machine.camera.stop_display_thread()
-display_thread.join()
+#machine.camera.stop_display_thread()
+#display_thread.join()
