@@ -65,7 +65,7 @@ class UserInterface:
     def start_button_pressed(self):
         #start packing
         if self.start_button == True:
-            if not self.started_before: self.started_before=True
+    
 
             print('packing')
             self.hoisting_mode.configure(state="disabled")
@@ -81,6 +81,8 @@ class UserInterface:
             #calls a thread to start running the machine. if started before, just resume
             if not self.started_before: threading.Thread(target=self.machine.start, daemon=True).start()
             else: self.machine.resume()
+
+            if not self.started_before: self.started_before=True
 
             self.start_button = False
 
@@ -112,7 +114,6 @@ class UserInterface:
                 placements = self.machine.current_part_number 
                 box_no = self.machine.current_box
                 boxes_full = self.machine.boxes_are_full
-                logging.info(f"new placeent received: {placements}")
             
             if boxes_full:
                  self.started_before = False
