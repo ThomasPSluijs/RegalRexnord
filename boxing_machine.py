@@ -46,7 +46,8 @@ class BoxingMachine:
         self.current_part_number = 1
         self.total_parts = 0
         self.current_box = 0
-        self.current_part_number_lock = threading.Lock()
+        self.boxes_are_full = False
+        self.thread_lock = threading.Lock()
 
     def pause(self):
         logging.info("Pausing operations...")
@@ -111,13 +112,13 @@ class BoxingMachine:
     
         box_index = 0 
         for box in filled_boxes:
-            with self.current_part_number_lock:
+            with self.thread_lock:
                 self.current_box = box_index
             for part in box:
                 if count < tot_parts:
                     logging.info(f"Processing part: {part}")
 
-                    with self.current_part_number_lock:
+                    with self.thread_lock:
                         self.current_part_number = part['part_number']
                         self.total_parts = len(box)
 
@@ -141,7 +142,10 @@ class BoxingMachine:
                     count += 1
             box_index += 1
 
-        self.stop()  # End operations
+        with self.thread_lock:
+            self.boxes_are_full = True
+
+        #self.stop()  # End operations
 
          
          
