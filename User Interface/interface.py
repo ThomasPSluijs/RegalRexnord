@@ -32,21 +32,36 @@ class UserInterface:
 
     def update_placements(self, placements):
         # Reset alle labels eerst, zodat ze niet over elkaar heen staan
+        print(placements)
         self.p1nw.grid_remove()
         self.p1sw.grid_remove()
         self.p1se.grid_remove()
         self.p1ne.grid_remove()
-        print('removed')
+        self.p2nw.grid_remove()
+        self.p2sw.grid_remove()
+        self.p2se.grid_remove()
+        self.p2ne.grid_remove()
+        self.p2se.grid()
+        """
         if placements <= 56:
             if placements % 4 == 1:
-                self.p1ne.grid(row=0, column=1, padx=5, pady=5, sticky="ne")
-                print('placed')
+                self.p1ne.grid()
             elif placements % 4 == 2:
-                self.p1nw.grid(row=0, column=0, padx=5, pady=5, sticky="nw")
+                self.p1nw.grid()
             elif placements % 4 == 3:
-                self.p1sw.grid(row=1, column=0, padx=5, pady=5, sticky="sw")
+                self.p1sw.grid()
             elif placements % 4 == 0:
-                self.p1se.grid(row=1, column=1, padx=5, pady=5, sticky="se")
+                self.p1se.grid()
+        if placements > 56:
+            if placements % 4 == 1:
+                self.p2ne.grid()
+            elif placements % 4 == 2:
+                self.p2nw.grid()
+            elif placements % 4 == 3:
+                self.p2sw.grid()
+            elif placements % 4 == 0:
+                self.p2se.grid()
+        """
 
     def __init__(self, root, on_close_callback=None):
         # Initialiseer de GUI-elementen
@@ -201,8 +216,6 @@ class UserInterface:
         self.camview = customtkinter.CTkFrame(master=self.root, corner_radius=0, fg_color=self.background_color)
         self.camview.grid(row=0, column=1, padx=0, pady=0, sticky="")
 
-#save the image on what you base the coordinates from in the same file as the interface and put the name below here
-#if you save it in another file do Image.open(r'full path to picture')
         self.light_image = Image.open('picture.jpeg')  
         self.my_image = customtkinter.CTkImage(light_image=self.light_image, size=(640/self.camscale, 420/self.camscale))
 
