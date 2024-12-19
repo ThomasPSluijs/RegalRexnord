@@ -3,7 +3,7 @@ import tkinter as tk
 from PIL import Image
 from functools import partial
 import time
-from main import BoxingMachine
+from boxing_machine import BoxingMachine
 import threading
 import logging
 
@@ -148,7 +148,7 @@ class UserInterface:
             self.percentage.configure(text=f"{self.percentage_value}%")
 
         
-
+    #updates images on the interface that have been taking by the camera 
     def update_live_feed(self, camera_position):
         logging.info("Starting display thread...")
         numpy_image = None
@@ -296,11 +296,11 @@ class UserInterface:
         self.camview = customtkinter.CTkFrame(master=self.root, corner_radius=0, fg_color=self.background_color)
         self.camview.grid(row=0, column=1, padx=0, pady=0, sticky="")
 
-        self.light_image = Image.open("Pictures\Foto.jpeg")  
+        self.light_image = Image.open("Pictures\picture - Copy.jpeg")  
         self.my_image = customtkinter.CTkImage(light_image=self.light_image, size=(640/self.camscale, 420/self.camscale))
 
         self.image_label = customtkinter.CTkLabel(self.camview, image=self.my_image, text="")
-        #self.image_label.image = self.my_image
+        self.image_label.image = self.my_image
         self.image_label.grid(row=0, column=0, padx=(20, 0), sticky="")
 
         self.placement = customtkinter.CTkFrame(master=self.root, width=420, height=830, fg_color="#5E3E2C")
