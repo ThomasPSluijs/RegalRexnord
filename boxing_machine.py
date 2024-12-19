@@ -44,7 +44,7 @@ class BoxingMachine:
         self.pause_event.set()  # Initially not paused
 
         self.current_part_number = 1
-        self.total_parts = 0
+        self.total_parts = 392
         self.current_box = 0
         self.boxes_are_full = False
         self.thread_lock = threading.Lock()
@@ -116,28 +116,29 @@ class BoxingMachine:
                 self.current_box = box_index
             for part in box:
                 if count < tot_parts:
-                    logging.info(f"Processing part: {part}")
+                    if count == 3:
+                        logging.info(f"Processing part: {part}")
 
-                    with self.thread_lock:
-                        self.current_part_number = part['part_number']
-                        self.total_parts = len(box)
+                        with self.thread_lock:
+                            self.current_part_number = part['part_number']
+                            self.total_parts = len(box)
 
-                    self.wait_if_paused()  # Pause-safe
+                        self.wait_if_paused()  # Pause-safe
 
-                    logging.info("Do vision, first wait for space")
-                    #keyboard.wait('space')    
-                    item_type = 'Holed'
-                    x, y, item_type = self.camera.detect_object_without_start()  # Get actual coordinates from vision
- 
-                    logging.info(f"x: {x}   y: {y}   item_type: {item_type}")
+                        logging.info("Do vision, first wait for space")
+                        #keyboard.wait('space')    
+                        item_type = 'Holed'
+                        x, y, item_type = self.camera.detect_object_without_start()  # Get actual coordinates from vision
     
-                    logging.info("pickup part")
-                    self.wait_if_paused()  # Pause-safe
-                    self.pick_part.pick_parts(x, y)  # Uncomment when ready
-                    
-                    logging.info("Place part")
-                    # self.wait_if_paused()  # Pause-safe
-                    self.pack_box.place_part(part, part_type=item_type)  # Uncomment when ready
+                        logging.info(f"x: {x}   y: {y}   item_type: {item_type}")
+        
+                        logging.info("pickup part")
+                        self.wait_if_paused()  # Pause-safe
+                        self.pick_part.pick_parts(x, y)  # Uncomment when ready
+                        
+                        logging.info("Place part")
+                        # self.wait_if_paused()  # Pause-safe
+                        self.pack_box.place_part(part, part_type=item_type)  # Uncomment when ready
 
                     count += 1
             box_index += 1
