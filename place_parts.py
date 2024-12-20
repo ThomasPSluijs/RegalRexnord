@@ -159,8 +159,8 @@ class Pack_Box:
         part_position = part['position']
 
         #fast and slow speeds and accelerations. fast for general movements, slow for special movements. 
-        speed_fast = 1
-        acc_fast = 1
+        speed_fast = 3
+        acc_fast = 3
                                                      
         speed_slow = 0.4
         acc_slow = 0.5
@@ -195,6 +195,17 @@ class Pack_Box:
         for y in speed_acc_blend:
             path_step_1[x]=y
             x+=1
+
+        #step 12: move to safe x and y position
+        #cur_pos = path_step_1.copy()
+        #cur_pos = cur_pos[:-3]
+        #cur_pos[0] = -0.357
+        #cur_pos[1] = 0.490
+
+        #path_step_1_1 = cur_pos.copy()
+        #speed_acc_blend = [speed_fast, acc_fast, 0.0]
+        #for y in speed_acc_blend:
+        #    path_step_1_1 = np.append(path_step_1_1, y)
 
 
 
@@ -277,6 +288,7 @@ class Pack_Box:
         path = [
             # Positie 1: [X, Y, Z, RX, RY, RZ, snelheid, versnelling, blend]
             path_step_1,  # step 1: move up
+            #path_step_1_1,
             path_step_2,  # step 2: move to center box
             path_step_3,  # step 3: move down
             path_step_4,  # step 4: rotate around z
@@ -420,7 +432,7 @@ class Pack_Box:
             #logging.info(f"joint pos: {}")
             cur_joint_pos = self.robot.get_joint_pos()
             cur_joint_pos[5] = -math.radians(80)
-            self.robot.move_j(cur_joint_pos, 5, 3)
+            self.robot.move_j(cur_joint_pos, 5, 5)
 
 
         '''start pickup tcp'''
@@ -445,15 +457,15 @@ class Pack_Box:
 
 
         #step 12: move to safe x and y position
-        cur_pos = path_step_11.copy()
-        cur_pos = cur_pos[:-3]
-        cur_pos[0] = -0.357
-        cur_pos[1] = 0.490
+        #cur_pos = path_step_11.copy()
+        #cur_pos = cur_pos[:-3]
+        #cur_pos[0] = -0.357
+        #cur_pos[1] = 0.490
 
-        path_step_12 = cur_pos.copy()
-        speed_acc_blend = [speed_fast, acc_fast, 0.3]
-        for y in speed_acc_blend:
-            path_step_12 = np.append(path_step_12, y)
+        ##path_step_12 = cur_pos.copy()
+        #speed_acc_blend = [speed_fast, acc_fast, 0.3]
+        #for y in speed_acc_blend:
+        #    path_step_12 = np.append(path_step_12, y)
 
 
         #move to take pic pos
@@ -468,7 +480,7 @@ class Pack_Box:
         path = [
             # Positie 1: [X, Y, Z, RX, RY, RZ, snelheid, versnelling, blend]
             path_step_11,  # step 1: move up
-            path_step_12,  # step 2: move to center box
+            #path_step_12,  # step 2: move to center box
             path_step_13,
         ]
         self.robot.move_l_path(path=path)
