@@ -9,5 +9,5 @@ ui = interface.UserInterface(root)
 
 #ui.update_progressbar(placements, total_placements)
 #ui.update_activity("here you can type activitys")
-
+          
 root.mainloop()
