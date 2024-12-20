@@ -121,6 +121,7 @@ class UserInterface:
                  self.start_button_msg = "start"
                  self.start_button_color = '#106A43'
                  self.start_but.configure(text=self.start_button_msg, fg_color=self.start_button_color, hover_color=self.start_button_color)
+                 self.machine.boxes_are_full = False
             
             self.p1nw.grid_remove()
             self.p1sw.grid_remove()
@@ -159,7 +160,7 @@ class UserInterface:
         
     #function that updates progressbar: it gets the current progress from self.update_placements. the totalplacementes is set in the machine main loop
     def update_progressbar(self, progress):
-            totalplacements = self.machine.total_parts
+            totalplacements = self.machine.total_parts * 2
             progress = progress / totalplacements
 
             self.progressbar.set(progress)
