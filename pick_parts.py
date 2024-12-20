@@ -74,7 +74,6 @@ class Pick_parts():
         speed_acc_blend = [speed_fast, acc_fast, 0.00]
         for y in speed_acc_blend:
             path_step_1 = np.append(path_step_1, y)
-        #self.robot.move_l(cur_pos, speed_fast, acc_fast)
 
         
         #step 2
