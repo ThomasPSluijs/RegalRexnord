@@ -87,24 +87,45 @@ class Pack_Box:
                 for i in range(4):  # Only 4 parts per layer
                     if i == 0:
                         # First part (top left)
-                        x_pos = box_center[0] - self.box_length / 2 + self.part_length / 2 + 0.012  # x positive for further away from place side
-                        y_pos = box_center[1] - self.box_width / 2 + self.part_width / 2 + 0.000  # y positive for further away from box edge
-                        rotation = 0
+                        if box_index == 0:
+                            x_pos = box_center[0] - self.box_length / 2 + self.part_length / 2 + 0.00  # x positive for further away from place side
+                            y_pos = box_center[1] - self.box_width / 2 + self.part_width / 2 + 0.000  # y positive for further away from box edge
+                            rotation = 0
+                        elif box_index == 1:
+                            x_pos = box_center[0] - self.box_length / 2 + self.part_length / 2 + 0.00  # x positive for further away from place side
+                            y_pos = box_center[1] - self.box_width / 2 + self.part_width / 2 + 0.000  # y positive for further away from box edge
+                            rotation = 0
                     elif i == 1:
                         # Second part (top right)
-                        x_pos = box_center[0] + self.box_length / 2 - self.part_width / 2 - 0.003  # x negative for further away from box edge
-                        y_pos = box_center[1] - self.box_width / 2 + self.part_length / 2 + 0.011  # y positive for further away from place side
-                        rotation = -90
+                        if box_index == 0:
+                            x_pos = box_center[0] + self.box_length / 2 - self.part_width / 2 - 0.000  # x negative for further away from box edge
+                            y_pos = box_center[1] - self.box_width / 2 + self.part_length / 2 + 0.000  # y positive for further away from place side
+                            rotation = -90
+                        elif box_index == 1:
+                            x_pos = box_center[0] + self.box_length / 2 - self.part_width / 2 - 0.000  # x negative for further away from box edge
+                            y_pos = box_center[1] - self.box_width / 2 + self.part_length / 2 + 0.000  # y positive for further away from place side
+                            rotation = -90
                     elif i == 2:
                         # Third part (bottom left)
-                        x_pos = box_center[0] - self.box_length / 2 + self.part_width / 2 + 0.005  # x positive for further away from box edge
-                        y_pos = box_center[1] + self.box_width / 2 - self.part_length / 2 - 0.015  # y negative for further away from place side
-                        rotation = 90
+                        if box_index == 0:
+                            x_pos = box_center[0] - self.box_length / 2 + self.part_width / 2 + 0.000  # x positive for further away from box edge
+                            y_pos = box_center[1] + self.box_width / 2 - self.part_length / 2 - 0.000  # y negative for further away from place side
+                            rotation = 90
+                        elif box_index == 1:
+                            x_pos = box_center[0] - self.box_length / 2 + self.part_width / 2 + 0.000  # x positive for further away from box edge
+                            y_pos = box_center[1] + self.box_width / 2 - self.part_length / 2 - 0.000  # y negative for further away from place side
+                            rotation = 90
                     elif i == 3:
                         # Fourth part (bottom right)
-                        x_pos = box_center[0] + self.box_length / 2 - self.part_length / 2 - 0.006  # x negative for further away from place side
-                        y_pos = box_center[1] + self.box_width / 2 - self.part_width / 2 - 0.015  # y negative for further away from box edge
-                        rotation = 180
+                        if box_index == 0:
+                            x_pos = box_center[0] + self.box_length / 2 - self.part_length / 2 - 0.000  # x negative for further away from place side
+                            y_pos = box_center[1] + self.box_width / 2 - self.part_width / 2 - 0.000  # y negative for further away from box edge
+                            rotation = 180
+                        elif box_index == 1:
+                            x_pos = box_center[0] + self.box_length / 2 - self.part_length / 2 - 0.000  # x negative for further away from place side
+                            y_pos = box_center[1] + self.box_width / 2 - self.part_width / 2 - 0.000  # y negative for further away from box edge
+                            rotation = 180
+
 
                     # Store the positions with box number, part number, layer number
                     part_positions_box.append({
@@ -138,8 +159,8 @@ class Pack_Box:
         part_position = part['position']
 
         #fast and slow speeds and accelerations. fast for general movements, slow for special movements. 
-        speed_fast = 3
-        acc_fast = 3
+        speed_fast = 1
+        acc_fast = 1
                                                      
         speed_slow = 0.4
         acc_slow = 0.5
@@ -152,7 +173,7 @@ class Pack_Box:
         placement_tcp = [-47.5/1000,-52.5/1000,135/1000,math.radians(0),math.radians(0),math.radians(0)]  #center of part (x=center,y=center)
 
         #start rotation, this makes x,y,z aligned to the boxes
-        start_rotation = [2.213, 2.215, -0.013]
+        start_rotation = [2.219, 2.227, -0.010]
 
 
         self.robot.set_tcp(placement_tcp)
@@ -164,7 +185,7 @@ class Pack_Box:
 
         '''start placement tcp'''
         #step 1: move to proper z height (currently pos: just picked up parts)
-        z_above_box = 0.3        
+        z_above_box = 0.4       
         cur_pos = start_pos.copy()
         cur_pos[2] = z_above_box
 
@@ -426,8 +447,8 @@ class Pack_Box:
         #step 12: move to safe x and y position
         cur_pos = path_step_11.copy()
         cur_pos = cur_pos[:-3]
-        cur_pos[0] = -0.35
-        cur_pos[1] = -0.30
+        cur_pos[0] = -0.357
+        cur_pos[1] = 0.490
 
         path_step_12 = cur_pos.copy()
         speed_acc_blend = [speed_fast, acc_fast, 0.3]
