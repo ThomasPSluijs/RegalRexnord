@@ -25,9 +25,9 @@ class BoxingMachine:
  
    
         '''SETUP PLACE BOX, PACK BOX AND PART DEFINITIONS'''
-        base_z = -13.5 /1000
+        base_z = 0 /1000
         #neeeds: total boxes, box pos (x and y center, z bottom), box dimensions: (x, y, z)
-        self.box = Box(total_boxes=2, box_pos=[(-230/1000, -575/1000, base_z), [237/1000,-588/1000, base_z]], box_size=(0.365, 0.365, 0.180 ))
+        self.box = Box(total_boxes=2, box_pos=[(-215/1000, 525.8/1000, base_z), [220/1000,525.8/1000, base_z]], box_size=(0.365, 0.365, 0.180 ))
         #needs: part  width, part length, part height
         self.part = Part((0.187, 0.170, 0.01260))
  
@@ -111,12 +111,12 @@ class BoxingMachine:
         logging.info("In main loop")
         logging.info("Get all packing positions")
 
-        x, y, item_type = self.camera.detect_object_without_start()  # Get actual coordinates from vision
-        self.check_part_type(item_type)
+        #x, y, item_type = self.camera.detect_object_without_start()  # Get actual coordinates from vision
+        #self.check_part_type(item_type)
 
         filled_boxes = self.pack_box.get_pack_pos()
 
-        tot_parts = 4  # For testing, limit part amount
+        tot_parts = 1000  # For testing, limit part amount
         count = 0
     
         box_index = 0 
@@ -125,29 +125,28 @@ class BoxingMachine:
                 self.current_box = box_index
             for part in box:
                 if count < tot_parts:
-                    if count == 3:
-                        logging.info(f"Processing part: {part}")
+                    logging.info(f"Processing part: {part}")
 
-                        with self.thread_lock:
-                            self.current_part_number = part['part_number']
-                            self.total_parts = len(box)
+                    with self.thread_lock:
+                        self.current_part_number = part['part_number']
+                        self.total_parts = len(box)
 
-                        self.wait_if_paused()  # Pause-safe
+                    self.wait_if_paused()  # Pause-safe
 
-                        logging.info("Do vision, first wait for space")
-                        #keyboard.wait('space')    
-                        item_type = 'Holed'
-                        x, y, item_type = self.camera.detect_object_without_start()  # Get actual coordinates from vision
+                    logging.info("Do vision, first wait for space")
+                    #keyboard.wait('space')    
+                    item_type = 'Holed'
+                    #x, y, item_type = self.camera.detect_object_without_start()  # Get actual coordinates from vision
+
+                    #logging.info(f"x: {x}   y: {y}   item_type: {item_type}")
     
-                        logging.info(f"x: {x}   y: {y}   item_type: {item_type}")
-        
-                        logging.info("pickup part")
-                        self.wait_if_paused()  # Pause-safe
-                        self.pick_part.pick_parts(x, y)  # Uncomment when ready
-                        
-                        logging.info("Place part")
-                        # self.wait_if_paused()  # Pause-safe
-                        self.pack_box.place_part(part, part_type=item_type)  # Uncomment when ready
+                    logging.info("pickup part")
+                    self.wait_if_paused()  # Pause-safe
+                    #self.pick_part.pick_parts(x, y)  # Uncomment when ready
+                    
+                    logging.info("Place part")
+                    # self.wait_if_paused()  # Pause-safe
+                    self.pack_box.place_part(part, part_type=item_type)  # Uncomment when ready
 
                     count += 1
             box_index += 1
