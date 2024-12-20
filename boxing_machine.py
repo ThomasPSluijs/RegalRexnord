@@ -27,7 +27,7 @@ class BoxingMachine:
         '''SETUP PLACE BOX, PACK BOX AND PART DEFINITIONS'''
         base_z = 0 /1000
         #neeeds: total boxes, box pos (x and y center, z bottom), box dimensions: (x, y, z)
-        self.box = Box(total_boxes=2, box_pos=[(-215/1000, 525.8/1000, base_z), [220/1000,525.8/1000, base_z]], box_size=(0.365, 0.365, 0.180 ))
+        self.box = Box(total_boxes=2, box_pos=[(-215/1000, 525.8/1000, base_z), [220/1000,525.8/1000, base_z]], box_size=(0.365, 0.365, 0.02 )) #should be 0.180
         #needs: part  width, part length, part height
         self.part = Part((0.187, 0.170, 0.01260))
  
@@ -118,6 +118,8 @@ class BoxingMachine:
 
         tot_parts = 1000  # For testing, limit part amount
         count = 0
+
+        self.boxes_are_full = False
     
         box_index = 0 
         for box in filled_boxes:
