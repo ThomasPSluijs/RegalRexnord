@@ -59,9 +59,19 @@ class BoxingMachine:
 
     def packing_mode(self):
         logging.info("move to packing mode")
+        pickup_tcp = [-47.5/1000,-140/1000,135/1000,0,0,0]  #edge of part (x=centerpart, y=edge)
+        self.robot.set_tcp(pickup_tcp)
+        logging.info(self.robot.get_tcp_pos())
+        target_position = [-0.3315005050673199, 0.08452186932980371, -0.07197736577529477, 2.166779782637334, 1.8998528338341554, 0.5314223354981934]
+        self.robot.move_l(target_position, 0.3, 3)
 
     def normal_mode(self):
         logging.info("move to normal working mode")
+        #move to take pic pos
+        pickup_tcp = [-47.5/1000,-140/1000,135/1000,0,0,0]  #edge of part (x=centerpart, y=edge)
+        self.robot.set_tcp(pickup_tcp)
+        target_position = [-0.6639046352765678, -0.08494527187802497, 0.529720350746548, 2.222, 2.248, 0.004]
+        self.robot.move_l(target_position, 0.3, 3)
 
     def wait_if_paused(self):
         logging.info("Waiting if paused...")
@@ -104,10 +114,9 @@ class BoxingMachine:
         x, y, item_type = self.camera.detect_object_without_start()  # Get actual coordinates from vision
         self.check_part_type(item_type)
 
-
         filled_boxes = self.pack_box.get_pack_pos()
 
-        tot_parts = 4 # For testing, limit part amount
+        tot_parts = 4  # For testing, limit part amount
         count = 0
     
         box_index = 0 
@@ -149,25 +158,7 @@ class BoxingMachine:
         #self.stop()  # End operations
 
          
-         
-'''
-def display_frames(camera_position):
-    logging.info("Starting display thread...")
-    frame = None
-    while camera_position.display_thread_running:
-        with camera_position.frame_lock:  # Access the frame safely
-            if camera_position.last_frame is not None:
-                frame = camera_position.last_frame.copy()
-        if frame is not None:
-            cv2.imshow("RealSense Camera Stream", frame)
-            if cv2.waitKey(1) & 0xFF == ord('q'):  # Press 'q' to quit
-                break
-        time.sleep(0.03)  # Limit display thread to ~30 FPS
-    logging.info("Stopping display thread...")
-    cv2.destroyAllWindows()'''
-
-  
-  
+           
 
 #for testing only  
 if __name__ == '__main__':
