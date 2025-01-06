@@ -88,7 +88,7 @@ class Pack_Box:
                     if i == 0:
                         # First part (top left)
                         if box_index == 0:
-                            x_pos = box_center[0] - self.box_length / 2 + self.part_length / 2 + 0.00  # x positive for further away from place side
+                            x_pos = box_center[0] - self.box_length / 2 + self.part_length / 2 + 0.009  # x positive for further away from place side was 
                             y_pos = box_center[1] - self.box_width / 2 + self.part_width / 2 + 0.000  # y positive for further away from box edge
                             rotation = 0
                         elif box_index == 1:
@@ -98,8 +98,8 @@ class Pack_Box:
                     elif i == 1:
                         # Second part (top right)
                         if box_index == 0:
-                            x_pos = box_center[0] + self.box_length / 2 - self.part_width / 2 - 0.000  # x negative for further away from box edge
-                            y_pos = box_center[1] - self.box_width / 2 + self.part_length / 2 + 0.000  # y positive for further away from place side
+                            x_pos = box_center[0] + self.box_length / 2 - self.part_width / 2 - 0.006   # x negative for further away from box edge
+                            y_pos = box_center[1] - self.box_width / 2 + self.part_length / 2 + 0.007  # y positive for further away from place side
                             rotation = -90
                         elif box_index == 1:
                             x_pos = box_center[0] + self.box_length / 2 - self.part_width / 2 - 0.000  # x negative for further away from box edge
@@ -108,8 +108,8 @@ class Pack_Box:
                     elif i == 2:
                         # Third part (bottom left)
                         if box_index == 0:
-                            x_pos = box_center[0] - self.box_length / 2 + self.part_width / 2 + 0.000  # x positive for further away from box edge
-                            y_pos = box_center[1] + self.box_width / 2 - self.part_length / 2 - 0.000  # y negative for further away from place side
+                            x_pos = box_center[0] - self.box_length / 2 + self.part_width / 2 + 0.005  # x positive for further away from box edge
+                            y_pos = box_center[1] + self.box_width / 2 - self.part_length / 2 - 0.012  # y negative for further away from place side
                             rotation = 90
                         elif box_index == 1:
                             x_pos = box_center[0] - self.box_length / 2 + self.part_width / 2 + 0.000  # x positive for further away from box edge
@@ -118,8 +118,8 @@ class Pack_Box:
                     elif i == 3:
                         # Fourth part (bottom right)
                         if box_index == 0:
-                            x_pos = box_center[0] + self.box_length / 2 - self.part_length / 2 - 0.000  # x negative for further away from place side
-                            y_pos = box_center[1] + self.box_width / 2 - self.part_width / 2 - 0.000  # y negative for further away from box edge
+                            x_pos = box_center[0] + self.box_length / 2 - self.part_length / 2 - 0.010  # x negative for further away from place side
+                            y_pos = box_center[1] + self.box_width / 2 - self.part_width / 2 - 0.007  # y negative for further away from box edge
                             rotation = 180
                         elif box_index == 1:
                             x_pos = box_center[0] + self.box_length / 2 - self.part_length / 2 - 0.000  # x negative for further away from place side
@@ -417,6 +417,20 @@ class Pack_Box:
         path = [
             # Positie 1: [X, Y, Z, RX, RY, RZ, snelheid, versnelling, blend]
             path_step_6,  # step 1: move up
+            #path_step_7,  # step 2: move to center box
+            #path_step_8,  # step 3: move down
+            #path_step_9,  # step 4: rotate around z
+            #path_step_10,  #step 5: move to target x and y
+            # Voeg meer posities toe zoals nodig
+        ]
+        self.robot.move_l_path(path=path)
+
+        keyboard.wait('space')    
+
+        self.robot.set_tcp(pickup_tcp)  
+        path = [
+            # Positie 1: [X, Y, Z, RX, RY, RZ, snelheid, versnelling, blend]
+            #path_step_6,  # step 1: move up
             path_step_7,  # step 2: move to center box
             path_step_8,  # step 3: move down
             path_step_9,  # step 4: rotate around z
