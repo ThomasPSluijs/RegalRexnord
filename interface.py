@@ -33,14 +33,14 @@ class UserInterface:
         self.state_color = "red"
         self.start_button_color = self.button_color 
 
-        self.leftbar_button_width = 250
+        self.leftbar_button_width = 160
         self.camscale = 1
 
 
         '''setup robot and machine class'''
-        # Define configurations
+        #Define configurations
         robot_ip = "192.168.0.1"
-        # Create and start BoxingMachine
+        #Create and start BoxingMachine
         self.machine = BoxingMachine(robot_ip)
 
 
@@ -123,33 +123,6 @@ class UserInterface:
                  self.start_but.configure(text=self.start_button_msg, fg_color=self.start_button_color, hover_color=self.start_button_color)
                  self.machine.boxes_are_full = False
             
-            self.p1nw.grid_remove()
-            self.p1sw.grid_remove()
-            self.p1se.grid_remove()
-            self.p1ne.grid_remove()
-            self.p2nw.grid_remove()
-            self.p2sw.grid_remove()
-            self.p2se.grid_remove()
-            self.p2ne.grid_remove()
-            
-            if box_no == 0:
-                if placements % 4 == 1:
-                    self.p1ne.grid()
-                elif placements % 4 == 2:
-                    self.p1nw.grid()
-                elif placements % 4 == 3:
-                    self.p1sw.grid()
-                elif placements % 4 == 0:
-                    self.p1se.grid()
-            elif box_no == 1:
-                if placements % 4 == 1:
-                    self.p2ne.grid()
-                elif placements % 4 == 2:
-                    self.p2nw.grid()
-                elif placements % 4 == 3:
-                    self.p2sw.grid()
-                elif placements % 4 == 0:
-                    self.p2se.grid()
 
             self.update_progressbar(placements)
             time.sleep(0.5)
@@ -160,7 +133,7 @@ class UserInterface:
         
     #function that updates progressbar: it gets the current progress from self.update_placements. the totalplacementes is set in the machine main loop
     def update_progressbar(self, progress):
-            totalplacements = self.machine.total_parts * 2
+            totalplacements = 3#self.machine.total_parts * 2
             progress = progress / totalplacements
 
             self.progressbar.set(progress)
@@ -194,7 +167,8 @@ class UserInterface:
         customtkinter.set_default_color_theme("green")
 
         # Configure window
-        self.root.attributes("-fullscreen", False)       #should be true
+       # self.root.attributes("-fullscreen", False)       #should be true and uncommented
+        self.root.geometry('1024x600')                      #should be deleted
         self.root.configure(bg='gray14')
 
         # Setup close event
@@ -205,7 +179,6 @@ class UserInterface:
         self.root.grid_columnconfigure(0, weight=0)  # first column for leftbar
         self.root.grid_columnconfigure(1, weight=0)  # second column for camview
         self.root.grid_columnconfigure(2, weight=0)  # third column for next placement
-        self.root.grid_columnconfigure(3, weight=0)  # fourth column for progress
 
         # Left Bar (Sidebar)
         self.leftbar = customtkinter.CTkFrame(master=self.root, corner_radius=0)
@@ -259,39 +232,6 @@ class UserInterface:
         )
         self.start_but.grid(row=2, column=0, pady=(20, 0), padx=0, sticky="w")
 
-        def dropdown_callback(selected_value):
-            dropdown(selected_value, parts)
-
-        parts = ["select a value", "big blue", "small blue"]
-
-        self.partselection = customtkinter.CTkOptionMenu(
-            master=self.leftbar,
-            corner_radius=0,
-            values=parts,
-            font=(self.font, self.fontsize),
-            dropdown_font=(self.font, self.fontsize),
-            width=self.leftbar_button_width,
-            height=60,
-            fg_color=self.button_color,
-            anchor="w",
-            button_color=self.button_color,
-            button_hover_color=self.button_color,
-            dropdown_hover_color=self.button_color,
-            command=dropdown_callback,
-        )
-        self.partselection.grid(row=3, column=0, pady=(20, 0), padx=0, sticky="w")
-        
-        self.activity = customtkinter.CTkLabel(
-            master=self.leftbar,
-            text="power off",
-            font=(self.font, self.fontsize),
-            width=self.leftbar_button_width,
-            height=60,
-            fg_color=self.frame_color,
-            anchor="w"
-        )
-        self.activity.grid(row=5, column=0, pady=(0, 10), padx=(5, 0), sticky="w")
-
         self.status = customtkinter.CTkLabel(
             master=self.leftbar,
             text="status:",
@@ -311,7 +251,7 @@ class UserInterface:
             fg_color=self.state_color,
             text=None
         )
-        self.statuslight.grid(row=6, column=0, padx=(200, 0), pady=(0, 10), sticky="w")
+        self.statuslight.grid(row=6, column=0, padx=(80, 0), pady=(0, 10), sticky="w")
 
         # Camera View Section
         self.camview = customtkinter.CTkFrame(master=self.root, corner_radius=0, fg_color=self.background_color)
@@ -324,55 +264,9 @@ class UserInterface:
         self.image_label.image = self.my_image
         self.image_label.grid(row=0, column=0, padx=(20, 0), sticky="")
 
-        self.placement = customtkinter.CTkFrame(master=self.root, width=420, height=830, fg_color="#5E3E2C")
-        self.placement.grid(row=0, column=2, padx=20, pady=(10,0))
-        self.placement.grid_propagate(False)
-
-        self.box = customtkinter.CTkFrame(master=self.placement, corner_radius=10, width=400, height=400, fg_color='orange')
-        self.box.grid(row=0, column=0, padx=(10,0), pady=(10,0), sticky="")
-        self.box.grid_propagate(False)
-        self.box2 = customtkinter.CTkFrame(master=self.placement, corner_radius=10, width=400, height=400, fg_color='orange')
-        self.box2.grid(row=1, column=0, padx=(10,0), pady=(10,0), sticky="n")
-        self.box2.grid_propagate(False)
-
-        self.box.grid_rowconfigure(0, weight=1)  
-        self.box.grid_rowconfigure(1, weight=1)  
-        self.box.grid_columnconfigure(0, weight=1)  
-        self.box.grid_columnconfigure(1, weight=1)  
-
-        self.box2.grid_rowconfigure(0, weight=1)  
-        self.box2.grid_rowconfigure(1, weight=1)  
-        self.box2.grid_columnconfigure(0, weight=1)  
-        self.box2.grid_columnconfigure(1, weight=1)
-
-        #-----placemets------
-        self.p1nw = customtkinter.CTkLabel(master=self.box, corner_radius=10, text="", width=190, height=190, fg_color=self.button_color)
-        self.p1nw.grid(row=0, column=0, padx=5, pady=5, sticky="nw")
-
-        self.p1sw = customtkinter.CTkLabel(master=self.box, corner_radius=10, text="", width=190, height=190, fg_color=self.button_color)
-        self.p1sw.grid(row=1, column=0, padx=5, pady=5, sticky="sw")
-
-        self.p1se = customtkinter.CTkLabel(master=self.box, corner_radius=10, text="", width=190, height=190, fg_color=self.button_color)
-        self.p1se.grid(row=1, column=1, padx=5, pady=5, sticky="se")
-
-        self.p1ne = customtkinter.CTkLabel(master=self.box, corner_radius=10, text="", width=190, height=190, fg_color=self.button_color)
-        self.p1ne.grid(row=0, column=1, padx=5, pady=5, sticky="ne")
-
-        self.p2nw = customtkinter.CTkLabel(master=self.box2, corner_radius=10, text="", width=190, height=190, fg_color=self.button_color)
-        self.p2nw.grid(row=0, column=0, padx=5, pady=5, sticky="nw")
-
-        self.p2sw = customtkinter.CTkLabel(master=self.box2, corner_radius=10, text="", width=190, height=190, fg_color=self.button_color)
-        self.p2sw.grid(row=1, column=0, padx=5, pady=5, sticky="sw")
-
-        self.p2se = customtkinter.CTkLabel(master=self.box2, corner_radius=10, text="", width=190, height=190, fg_color=self.button_color)
-        self.p2se.grid(row=1, column=1, padx=5, pady=5, sticky="se")
-
-        self.p2ne = customtkinter.CTkLabel(master=self.box2, corner_radius=10, text="", width=190, height=190, fg_color=self.button_color)
-        self.p2ne.grid(row=0, column=1, padx=5, pady=5, sticky="ne")
-
         # Progress Section
         self.progress = customtkinter.CTkFrame(master=self.root, fg_color=self.frame_color)
-        self.progress.grid(row=0, column=3, padx=0, pady=0, sticky="nswe")
+        self.progress.grid(row=0, column=2, padx=(30,0), pady=0, sticky="nswe")
         self.progress.grid_rowconfigure(0, weight=20)
         self.progress.grid_rowconfigure(1, weight=1)
 
@@ -415,15 +309,4 @@ class UserInterface:
         
 
 
-    # Define functions for button actions
-def dropdown(variable, values):
-        if variable != None:
-                if variable == "select a value":
-                        print("select a value")
-                #below this you can set the variables for every part, at selected value put everything on zero or something.
-                #also search for "partlist" and add the names of the new parts there :)
-                if variable == "big blue":
-                        print("big blue")
-                        #thickness = 3
-                if variable == "small blue":
-                        print("small blue")
+
