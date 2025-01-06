@@ -27,9 +27,9 @@ class BoxingMachine:
         '''SETUP PLACE BOX, PACK BOX AND PART DEFINITIONS'''
         base_z = 0 /1000
         #neeeds: total boxes, box pos (x and y center, z bottom), box dimensions: (x, y, z)
-        self.box = Box(total_boxes=2, box_pos=[(-215/1000, 525.8/1000, base_z), [220/1000,525.8/1000, base_z]], box_size=(0.365, 0.365, 0.02 )) #should be 0.180
+        self.box = Box(total_boxes=1, box_pos=[(-215/1000, 533.8/1000, base_z), [220/1000,525.8/1000, base_z]], box_size=(0.365, 0.365, 0.180 )) #should be 0.180
         #needs: part  width, part length, part height
-        self.part = Part((0.187, 0.170, 0.01260))
+        self.part = Part((0.184, 0.170, 0.01260))
  
    
         # Initialize pack box and pick parts classes
@@ -62,6 +62,7 @@ class BoxingMachine:
         pickup_tcp = [-47.5/1000,-140/1000,135/1000,0,0,0]  #edge of part (x=centerpart, y=edge)
         self.robot.set_tcp(pickup_tcp)
         logging.info(self.robot.get_tcp_pos())
+        #first move to safe z pos
         target_position = [-0.3315005050673199, 0.08452186932980371, -0.07197736577529477, 2.166779782637334, 1.8998528338341554, 0.5314223354981934]
         self.robot.move_l(target_position, 0.3, 3)
 
@@ -70,6 +71,12 @@ class BoxingMachine:
         #move to take pic pos
         pickup_tcp = [-47.5/1000,-140/1000,135/1000,0,0,0]  #edge of part (x=centerpart, y=edge)
         self.robot.set_tcp(pickup_tcp)
+        cur_pos = self.robot.get_tcp_pos()
+        if cur_pos[2] > 0.4:
+            pass
+        else:
+            cur_pos[2] = 0.4
+            self.robot.move_l(cur_pos)
         target_position = [-0.6639046352765678, -0.08494527187802497, 0.529720350746548, 2.222, 2.248, 0.004]
         self.robot.move_l(target_position, 0.3, 3)
 
@@ -136,18 +143,18 @@ class BoxingMachine:
                     self.wait_if_paused()  # Pause-safe
 
                     logging.info("Do vision, first wait for space")
-                    #keyboard.wait('space')    
+                    keyboard.wait('space')    
                     item_type = 'Holed'
-                    #x, y, item_type = self.camera.detect_object_without_start()  # Get actual coordinates from vision
+                    x, y, item_type = self.camera.detect_object_without_start()  # Get actual coordinates from vision
 
-                    #logging.info(f"x: {x}   y: {y}   item_type: {item_type}")
+                    logging.info(f"x: {x}   y: {y}   item_type: {item_type}")
     
                     logging.info("pickup part")
                     self.wait_if_paused()  # Pause-safe
-                    #self.pick_part.pick_parts(x, y)  # Uncomment when ready
+                    self.pick_part.pick_parts(x, y)  # Uncomment when ready
                     
                     logging.info("Place part")
-                    # self.wait_if_paused()  # Pause-safe
+                    self.wait_if_paused()  # Pause-safe
                     self.pack_box.place_part(part, part_type=item_type)  # Uncomment when ready
 
                     count += 1
