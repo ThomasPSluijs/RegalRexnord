@@ -342,7 +342,7 @@ class Pack_Box:
 
 
         if part_type == 'Big-Blue' or part_type == 'Holed': rotate_x = -15
-        elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': rotate_x = -26
+        elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': rotate_x = -30
         # Step 7: Slide part into place (rotates about x axis)     
         rotate_x = [0,0,0,math.radians(rotate_x),math.radians(0),math.radians(0)]
         pose1 = path_step_6.copy()
@@ -386,7 +386,9 @@ class Pack_Box:
 
         #step 9
         #rotatate more at last part
-        rotate_x = [0,0,0,math.radians(-10),math.radians(0),math.radians(0)]
+        if part_type == 'Big-Blue' or part_type == 'Holed': rotation = -10
+        elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': rotation = -5
+        rotate_x = [0,0,0,math.radians(rotation),math.radians(0),math.radians(0)]
         pose1 = path_step_8.copy()
         pose1 = pose1[:-3]
         pose2 = rotate_x
@@ -417,14 +419,15 @@ class Pack_Box:
         path = [
             # Positie 1: [X, Y, Z, RX, RY, RZ, snelheid, versnelling, blend]
             path_step_6,  # step 1: move up
-            #path_step_7,  # step 2: move to center box
-            #path_step_8,  # step 3: move down
-            #path_step_9,  # step 4: rotate around z
-            #path_step_10,  #step 5: move to target x and y
+            path_step_7,  # step 2: move to center box
+            path_step_8,  # step 3: move down
+            path_step_9,  # step 4: rotate around z
+            path_step_10,  #step 5: move to target x and y
             # Voeg meer posities toe zoals nodig
         ]
         self.robot.move_l_path(path=path)
 
+        '''
         keyboard.wait('space')    
 
         self.robot.set_tcp(pickup_tcp)  
@@ -437,17 +440,8 @@ class Pack_Box:
             path_step_10,  #step 5: move to target x and y
             # Voeg meer posities toe zoals nodig
         ]
-        self.robot.move_l_path(path=path)
+        self.robot.move_l_path(path=path) '''
         '''end pickup tcp'''
-
-        
-        #step 12 rotate a bit back if rotationangle=180
-        if rotation_angle == 180:
-            #logging.info(f"joint pos: {}")
-            cur_joint_pos = self.robot.get_joint_pos()
-            cur_joint_pos[5] = -math.radians(80)
-            self.robot.move_j(cur_joint_pos, 5, 5)
-
 
         '''start pickup tcp'''
         self.robot.set_tcp(pickup_tcp)
@@ -462,24 +456,11 @@ class Pack_Box:
         cur_pos = cur_pos[:-3]
         cur_pos[2] = z_above_box  # Return to a safe Z height above the box
         
-        blend = 0.2
+        blend = 0.0
         path_step_11 = cur_pos.copy()
         speed_acc_blend = [speed_fast, acc_fast, blend]   #was 0.2
         for y in speed_acc_blend:
             path_step_11 = np.append(path_step_11, y)
-
-
-
-        #step 12: move to safe x and y position
-        #cur_pos = path_step_11.copy()
-        #cur_pos = cur_pos[:-3]
-        #cur_pos[0] = -0.357
-        #cur_pos[1] = 0.490
-
-        ##path_step_12 = cur_pos.copy()
-        #speed_acc_blend = [speed_fast, acc_fast, 0.3]
-        #for y in speed_acc_blend:
-        #    path_step_12 = np.append(path_step_12, y)
 
 
         #move to take pic pos
@@ -501,7 +482,12 @@ class Pack_Box:
         '''end placement tcp'''
 
 
-
+        #step 12 rotate a bit back if rotationangle=180
+        if rotation_angle == 180:
+            #logging.info(f"joint pos: {}")
+            cur_joint_pos = self.robot.get_joint_pos()
+            cur_joint_pos[5] = -math.radians(0)
+            self.robot.move_j(cur_joint_pos, 0.3, 0.3)
 
 
 
