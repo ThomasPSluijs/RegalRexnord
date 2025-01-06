@@ -25,7 +25,7 @@ class BoxingMachine:
  
    
         '''SETUP PLACE BOX, PACK BOX AND PART DEFINITIONS'''
-        base_z = 0 /1000
+        base_z = 0/1000
         #neeeds: total boxes, box pos (x and y center, z bottom), box dimensions: (x, y, z)
         self.box = Box(total_boxes=1, box_pos=[(-215/1000, 533.8/1000, base_z), [220/1000,525.8/1000, base_z]], box_size=(0.365, 0.365, 0.180 )) #should be 0.180
         #needs: part  width, part length, part height
@@ -151,7 +151,7 @@ class BoxingMachine:
     
                     logging.info("pickup part")
                     self.wait_if_paused()  # Pause-safe
-                    self.pick_part.pick_parts(x, y)  # Uncomment when ready
+                    self.pick_part.pick_parts(x, y,part_type=item_type)  # Uncomment when ready
                     
                     logging.info("Place part")
                     self.wait_if_paused()  # Pause-safe
