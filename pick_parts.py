@@ -2,6 +2,7 @@ from UR5E_control import URControl
 import math
 import logging
 import numpy as np
+import keyboard
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -16,13 +17,26 @@ class Pick_parts():
 
 
     #picks parts from given x and y coordinate. y = center of part along y axis. x = edge of part closest to the robot
-    def pick_parts(self, part_x, part_y):
-        belt_z = [0,0,-118/1000,0,0,0]                                            #belt z location (should be )
-        rotate_x = [0,0,0,math.radians(-23),math.radians(0),math.radians(0)]   #rotation about x axis of tool  
+    def pick_parts(self, part_x, part_y,part_type='Green'):
+        part_x += 11/1000
+
+        #belt z location (should be )
+        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': belt_z = [0,0,-116/1000,0,0,0]
+        else: belt_z = [0,0,-118/1000,0,0,0]
+                                                    
         
+        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': rotate = -30
+        else: rotate = -23
+        rotate_x = [0,0,0,math.radians(rotate),math.radians(0),math.radians(0)]   #rotation about x axis of tool  
+        
+
         part_pos_x_offset = 0.025                                #x offset so gripper starts before parts and does not crash down when going down
-        part_pos_x_offset_2 = 0.0245                                #x offset so gripper does not go into wall 
-        part_length = 0.185
+        part_pos_x_offset_2 = 0.0000                                #x offset so gripper does not go into wall #was 0.0245
+        
+        
+        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': part_length = 0.176
+        else: part_length = 0.185
+        
   
         #total x movement when tool is rotated and aligned to pick up the parts. moves partlength + offset
         move_x = [-part_length-part_pos_x_offset+part_pos_x_offset_2,0,0,0,0,0]  
@@ -32,8 +46,8 @@ class Pick_parts():
         speed_fast = 3
         acc_fast = 3
 
-        speed_slow = 0.7
-        acc_slow = 0.8
+        speed_slow = 0.06
+        acc_slow = 0.1
  
         pickup_tcp = [-47.5/1000,-140/1000,135/1000,0,0,0]  #edge of part (x=centerpart, y=edge)
 
@@ -63,7 +77,7 @@ class Pick_parts():
         #move to part x and part y, apply a offset on the x so the gripper is a bit before the part. also rotate to start rotation(level and aligned)
         cur_pos = start_pos.copy()
         cur_pos[0] = part_x + part_pos_x_offset
-        cur_pos[1] = part_y + 10/1000
+        cur_pos[1] = part_y + 10/1000 + 28/1000
         cur_pos[2] = belt_z[2] + 100/1000
         cur_pos[3] = start_rotation[0]
         cur_pos[4] = start_rotation[1]
@@ -107,7 +121,7 @@ class Pick_parts():
         new_linear_move = [cur_pos[i] +  move_x[i] for i in range(6)]
 
         path_step_4 = new_linear_move.copy()
-        speed_acc_blend = [0.45, 0.5, 0.0]
+        speed_acc_blend = [speed_slow, acc_slow, 0.0]
         for y in speed_acc_blend:
             path_step_4 = np.append(path_step_4, y)
 
@@ -145,6 +159,21 @@ class Pick_parts():
         path = [
             #path_step_0,
             path_step_1,
+            #path_step_2,
+            #path_step_3,
+            #path_step_4,
+            #path_step_5,
+            #path_step_6,
+        ]
+        self.robot.move_l_path(path=path)
+        '''end pickup tcp'''
+
+        keyboard.wait('space')    
+
+        #move path 1 till 6 with pickup tcp
+        path = [
+            #path_step_0,
+            #path_step_1,
             path_step_2,
             path_step_3,
             path_step_4,
@@ -154,7 +183,6 @@ class Pick_parts():
         self.robot.move_l_path(path=path)
         '''end pickup tcp'''
 
-
         '''rotate tcp'''
         #step 7
         #rotate back
@@ -163,7 +191,7 @@ class Pick_parts():
         pose1 = self.robot.get_tcp_pos()
         pose2 = rotate_x
         result_pose = self.robot.pose_trans(pose1, pose2)
-        self.robot.move_l(result_pose, speed_slow, acc_slow)
+        #self.robot.move_l(result_pose, speed_slow, acc_slow)
         '''end rotate tcp'''
 
 
