@@ -22,7 +22,7 @@ class Pick_parts():
 
         #belt z location (should be )
         if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': belt_z = [0,0,-122/1000,0,0,0]
-        elif part_type == 'Big-BLue': belt_z = [0,0,-116/1000,0,0,0]
+        elif part_type == 'Big-BLue': belt_z = [0,0,-118/1000,0,0,0]
         else: belt_z = [0,0,-119/1000,0,0,0]   
         logging.info(f"belt z: {belt_z} {part_type}")                  
         
@@ -262,16 +262,3 @@ class Pick_parts():
         '''end pickup tcp'''
 
   
-
-
-
-#for testing. only run if called directly
-if __name__ == "__main__":
-    #connect to robot
-    robot = URControl("192.168.0.1")
-    robot.connect()
-
-    pick_part = Pick_parts(robot=robot)
-    pick_part.pick_parts(0.1,0.2)
-
-    robot.stop_robot_control()  
