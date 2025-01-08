@@ -81,7 +81,7 @@ class Pack_Box:
             # Layer number tracker (increments for each z layer)
             layer_number = 1
 
-            if item_type == 'Big-Blue': place_extra_offset=5/1000
+            if item_type == 'Big-Blue': place_extra_offset=4/1000
             else: place_extra_offset = 0
 
             # For loop to go through total z parts to fill a box
@@ -91,8 +91,8 @@ class Pack_Box:
                     if i == 0:
                         # First part (top left)
                         if box_index == 0:
-                            x_pos = box_center[0] - self.box_length / 2 + self.part_length / 2 + 0.008 + place_extra_offset  # x positive for further away from place side was 
-                            y_pos = box_center[1] - self.box_width / 2 + self.part_width / 2 + 0.000  # y positive for further away from box edge
+                            x_pos = box_center[0] - self.box_length / 2 + self.part_length / 2 + 0.010 + place_extra_offset  # x positive for further away from place side was 
+                            y_pos = box_center[1] - self.box_width / 2 + self.part_width / 2 + 0.005  # y positive for further away from box edge
                             rotation = 0
                         elif box_index == 1:
                             x_pos = box_center[0] - self.box_length / 2 + self.part_length / 2 + 0.00 + place_extra_offset  # x positive for further away from place side
@@ -101,7 +101,7 @@ class Pack_Box:
                     elif i == 1:
                         # Second part (top right)
                         if box_index == 0:
-                            x_pos = box_center[0] + self.box_length / 2 - self.part_width / 2 - 0.006   # x negative for further away from box edge
+                            x_pos = box_center[0] + self.box_length / 2 - self.part_width / 2 - 0.010   # x negative for further away from box edge
                             y_pos = box_center[1] - self.box_width / 2 + self.part_length / 2 + 0.007 + place_extra_offset  # y positive for further away from place side
                             rotation = -90
                         elif box_index == 1:
@@ -111,7 +111,7 @@ class Pack_Box:
                     elif i == 2:
                         # Third part (bottom left)
                         if box_index == 0:
-                            x_pos = box_center[0] - self.box_length / 2 + self.part_width / 2 + 0.005  # x positive for further away from box edge
+                            x_pos = box_center[0] - self.box_length / 2 + self.part_width / 2 + 0.008  # x positive for further away from box edge
                             y_pos = box_center[1] + self.box_width / 2 - self.part_length / 2 - 0.012 - place_extra_offset  # y negative for further away from place side
                             rotation = 90
                         elif box_index == 1:
@@ -121,8 +121,8 @@ class Pack_Box:
                     elif i == 3:
                         # Fourth part (bottom right)
                         if box_index == 0:
-                            x_pos = box_center[0] + self.box_length / 2 - self.part_length / 2 - 0.010 - place_extra_offset  # x negative for further away from place side
-                            y_pos = box_center[1] + self.box_width / 2 - self.part_width / 2 - 0.007  # y negative for further away from box edge
+                            x_pos = box_center[0] + self.box_length / 2 - self.part_length / 2 - 0.013 - place_extra_offset  # x negative for further away from place side
+                            y_pos = box_center[1] + self.box_width / 2 - self.part_width / 2 - 0.014  # y negative for further away from box edge
                             rotation = 180
                         elif box_index == 1:
                             x_pos = box_center[0] + self.box_length / 2 - self.part_length / 2 - 0.000 - place_extra_offset # x negative for further away from place side
@@ -163,9 +163,9 @@ class Pack_Box:
 
         #fast and slow speeds and accelerations. fast for general movements, slow for special movements. 
         speed_fast = 3
-        acc_fast = 3
+        acc_fast = 1.5
                                                      
-        speed_slow = 0.4
+        speed_slow = 0.5
         acc_slow = 0.5
 
         box_center = self.box.box_centers[box_index]
@@ -321,7 +321,7 @@ class Pack_Box:
             if part['layer_number'] == 0: z_offset = -4/1000    #layer 0: negative z offset for pressing down the box a bit
             elif part['layer_number'] > 0: z_offset = 0   #rest of the layers: normal height
         else:
-            z_offset = 8/1000
+            z_offset = 6/1000
 
 
         cur_pos[2] = part_position[2] + z_offset   # Set Z height to target position within the box
@@ -353,7 +353,7 @@ class Pack_Box:
            
         #step 8: depending on rotation, move x or y or a bit of z
         offset=157    #should be 175
-        if part_type == 'Big-Blue' or part_type == 'Holed': z_offset = 6
+        if part_type == 'Big-Blue' or part_type == 'Holed': z_offset = 3
         elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': z_offset = 2
         if rotation_angle == 0:
             #move x positive
@@ -412,29 +412,29 @@ class Pack_Box:
         self.robot.set_tcp(pickup_tcp)  
         path = [
             # Positie 1: [X, Y, Z, RX, RY, RZ, snelheid, versnelling, blend]
-            path_step_6,  # step 1: move up
-            path_step_7,  # step 2: move to center box
-            path_step_8,  # step 3: move down
-            path_step_9,  # step 4: rotate around z
-            path_step_10,  #step 5: move to target x and y
+            path_step_6,  # step 6: move to correct z height (x and y are already correct)
+            path_step_7,  # step 7: rotate parts
+            #path_step_8,  # step 8: move so parts fall off
+            #path_step_9,  # step 9: rotate more at end
+            #path_step_10,  #step 10: move the rest
             # Voeg meer posities toe zoals nodig
         ]
         self.robot.move_l_path(path=path)
 
-        '''
-        keyboard.wait('space')    
+        
+        #keyboard.wait('space')    
 
         self.robot.set_tcp(pickup_tcp)  
         path = [
             # Positie 1: [X, Y, Z, RX, RY, RZ, snelheid, versnelling, blend]
             #path_step_6,  # step 1: move up
-            path_step_7,  # step 2: move to center box
+            #path_step_7,  # step 2: move to center box
             path_step_8,  # step 3: move down
             path_step_9,  # step 4: rotate around z
             path_step_10,  #step 5: move to target x and y
             # Voeg meer posities toe zoals nodig
         ]
-        self.robot.move_l_path(path=path) '''
+        self.robot.move_l_path(path=path) 
         '''end pickup tcp'''
 
         '''start pickup tcp'''
@@ -478,14 +478,14 @@ class Pack_Box:
         #step 12 rotate a bit back if rotationangle=180
         elif rotation_angle == 180:
             #move up first
-            cur_pos = self.robot.get_tcp_position()
+            cur_pos = self.robot.get_tcp_pos()
             cur_pos[2] = z_above_box
             self.robot.move_l(cur_pos, speed_slow, acc_slow)
 
             #rotate
             cur_joint_pos = self.robot.get_joint_pos()
-            cur_joint_pos[5] = -math.radians(0)
-            self.robot.move_j(cur_joint_pos, 0.3, 0.3)
+            cur_joint_pos[5] = math.radians(10)
+            self.robot.move_j(cur_joint_pos, 2, 2)
 
             #move to take pic pos
             target_position = [-0.6639046352765678, -0.08494527187802497, 0.529720350746548, 2.222, 2.248, 0.004]
