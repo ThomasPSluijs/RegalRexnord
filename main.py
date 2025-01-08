@@ -8,6 +8,6 @@ ui = interface.UserInterface(root)
      
 #ui.update_pr ogressbar(placements, total_placements)  
 #ui.update_activity("here you can type activitys")
-                
+                 
 root.mainloop()                 
                                                                                           
