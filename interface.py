@@ -70,7 +70,7 @@ class UserInterface:
             print('packing')
             self.hoisting_mode.configure(state="disabled")
             self.running_mode.configure(state="disabled")
-            self.partselection.configure(state="disabled")
+            #self.partselection.configure(state="disabled")
             
             self.start_button_msg = "stop"
             self.start_button_color = "red"
@@ -94,7 +94,7 @@ class UserInterface:
 
             self.hoisting_mode.configure(state="enabled")
             self.running_mode.configure(state="enabled")
-            self.partselection.configure(state="enabled")
+            #self.partselection.configure(state="enabled")
 
             self.start_button_msg = "start"
             self.start_button_color = '#106A43'
@@ -133,7 +133,7 @@ class UserInterface:
         
     #function that updates progressbar: it gets the current progress from self.update_placements. the totalplacementes is set in the machine main loop
     def update_progressbar(self, progress):
-            totalplacements = 3#self.machine.total_parts * 2
+            totalplacements = self.machine.total_parts * 2
             progress = progress / totalplacements
 
             self.progressbar.set(progress)
