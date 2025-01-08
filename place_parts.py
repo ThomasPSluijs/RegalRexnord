@@ -83,6 +83,7 @@ class Pack_Box:
 
             if item_type == 'Big-Blue': place_extra_offset=4/1000
             else: place_extra_offset = 0
+            z_pos_offset = 0 #for differen parts, differen offset because box is not level
 
             # For loop to go through total z parts to fill a box
             for z in range(total_z_parts):
@@ -109,6 +110,7 @@ class Pack_Box:
                             y_pos = box_center[1] - self.box_width / 2 + self.part_length / 2 + 0.000 + place_extra_offset  # y positive for further away from place side
                             rotation = -90
                     elif i == 2:
+                        z_pos_offset = -3/1000
                         # Third part (bottom left)
                         if box_index == 0:
                             x_pos = box_center[0] - self.box_length / 2 + self.part_width / 2 + 0.008  # x positive for further away from box edge
@@ -119,6 +121,7 @@ class Pack_Box:
                             y_pos = box_center[1] + self.box_width / 2 - self.part_length / 2 - 0.000 - place_extra_offset  # y negative for further away from place side
                             rotation = 90
                     elif i == 3:
+                        z_pos_offset = -3/1000
                         # Fourth part (bottom right)
                         if box_index == 0:
                             x_pos = box_center[0] + self.box_length / 2 - self.part_length / 2 - 0.013 - place_extra_offset  # x negative for further away from place side
@@ -129,13 +132,14 @@ class Pack_Box:
                             y_pos = box_center[1] + self.box_width / 2 - self.part_width / 2 - 0.000  # y negative for further away from box edge
                             rotation = 180
 
+                    _z_pos = z_pos + z_pos_offset
 
                     # Store the positions with box number, part number, layer number
                     part_positions_box.append({
                         "box_number": box_index,
                         "part_number": part_number,
                         "layer_number": layer_number,
-                        "position": (x_pos, y_pos, z_pos),
+                        "position": (x_pos, y_pos, _z_pos),
                         "rotation": rotation
                     })
 
