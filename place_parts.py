@@ -196,18 +196,6 @@ class Pack_Box:
             path_step_1[x]=y
             x+=1
 
-        #step 12: move to safe x and y position
-        #cur_pos = path_step_1.copy()
-        #cur_pos = cur_pos[:-3]
-        #cur_pos[0] = -0.357
-        #cur_pos[1] = 0.490
-
-        #path_step_1_1 = cur_pos.copy()
-        #speed_acc_blend = [speed_fast, acc_fast, 0.0]
-        #for y in speed_acc_blend:
-        #    path_step_1_1 = np.append(path_step_1_1, y)
-
-
 
         # Step 2: Move above the box center and set proper rotation
         cur_pos = path_step_1.copy()
@@ -497,36 +485,3 @@ class Pack_Box:
             target_position = [-0.6639046352765678, -0.08494527187802497, 0.529720350746548, 2.222, 2.248, 0.004]
             target_pos = target_position.copy()
             self.robot.move_l(target_position, speed_slow, acc_slow)
-
-        
-
-#only run if run from file
-if __name__ == '__main__':
-    robot = URControl("192.168.0.1")
-    robot.connect()
-
-
-
-    base_z_wide_parts = -12/1000
-    base_z_narrow_parts = -16/1000 
-    base_z = -12/1000
-        
-    # Create instances for box and part.
-    #neeeds: total boxes, box pos (x and y center, z bottom), box dimensions: (x, y, z)
-    box = Box(total_boxes=2, box_pos=[(-230/1000, -575/1000, base_z), [237/1000,-588/1000, base_z]], box_size=(0.365, 0.365, 0.180 ))
-
-    #needs: part width, part length, part height
-    part = Part((0.187, 0.170, 0.009))
-    
-
-    #gray parts: z= 0.0085                                              
-    #big blue parts: z=0.01260
-    #other parts: idk yet
-
-
-    # Initialize Pack_Box and get packing positions
-    pack_box = Pack_Box(box=box, part=part, robot=robot)
-    pack_box.pack_box(part_type='wide')
-
-
-    robot.stop_robot_control()  
