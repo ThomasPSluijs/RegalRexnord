@@ -18,14 +18,21 @@ class Pick_parts():
 
     #picks parts from given x and y coordinate. y = center of part along y axis. x = edge of part closest to the robot
     def pick_parts(self, part_x, part_y,part_type='Green'):
-        part_x += 20/1000
+        
+
+        if part_y > 0.05: part_x += 16/1000 
+        else: part_x += 20/1000
 
         #belt z location (should be )
         if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': belt_z = [0,0,-124/1000,0,0,0]
         elif part_type == 'Big-BLue': belt_z = [0,0,-119/1000,0,0,0]
         else: belt_z = [0,0,-122/1000,0,0,0]   
-        logging.info(f"belt z: {belt_z} {part_type}")                  
+        logging.info(f"belt z: {belt_z} {part_type}") 
+
+        if part_type == 'Big-Blue' and part_y > 0.05: belt_z = [0,0,-118/1000,0,0,0]                 
         
+
+
         if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': rotate = -30
         else: rotate = -23
         rotate_x = [0,0,0,math.radians(rotate),math.radians(0),math.radians(0)]   #rotation about x axis of tool  
@@ -122,6 +129,8 @@ class Pick_parts():
         speed_acc_blend = [speed_fast, acc_fast, 0.00]
         for y in speed_acc_blend:
             path_step_3 = np.append(path_step_3, y)
+
+        logging.info(f"pick pos: {cur_pos}")
 
     
         #step 4
