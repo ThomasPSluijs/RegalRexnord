@@ -72,11 +72,11 @@ class BoxingMachine:
         pickup_tcp = [-47.5/1000,-140/1000,135/1000,0,0,0]  #edge of part (x=centerpart, y=edge)
         self.robot.set_tcp(pickup_tcp)
         cur_pos = self.robot.get_tcp_pos()
-        if cur_pos[2] > 0.4:
-            pass
-        else:
-            cur_pos[2] = 0.4
-            self.robot.move_l(cur_pos)
+        #if cur_pos[2] > 0.4:
+        #    pass
+        #else:
+        #    cur_pos[2] = 0.4
+        #    self.robot.move_l(cur_pos)
         target_position = [-0.6639046352765678, -0.08494527187802497, 0.529720350746548, 2.222, 2.248, 0.004]
         self.robot.move_l(target_position, 0.3, 3)
 
@@ -118,10 +118,10 @@ class BoxingMachine:
         logging.info("In main loop")
         logging.info("Get all packing positions")
 
-        #x, y, item_type = self.camera.detect_object_without_start()  # Get actual coordinates from vision
-        #self.check_part_type(item_type)
+        x, y, item_type = self.camera.detect_object_without_start()  # Get actual coordinates from vision
+        self.check_part_type(item_type)
 
-        filled_boxes = self.pack_box.get_pack_pos()
+        filled_boxes = self.pack_box.get_pack_pos(item_type)
 
         tot_parts = 1000  # For testing, limit part amount
         count = 0
