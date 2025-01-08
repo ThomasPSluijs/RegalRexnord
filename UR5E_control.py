@@ -61,7 +61,7 @@ class URControl:
     def set_tool_frame(self, tool_frame):
         try:
             self.rtde_ctrl.setTcp(tool_frame)
-            logging.info(f"succesfully setted toolframe: {self.rtde_ctrl.getTCPOffset()}")
+            #logging.info(f"succesfully setted toolframe: {self.rtde_ctrl.getTCPOffset()}")
         except Exception as e:
             logging.error(f"error setting toolframe: {e}")
 
