@@ -43,12 +43,16 @@ class CameraPosition:
         self.display_thread_running = True
 
     # moves robot to capture position
-    def capture_position(self):
+    def capture_position(self,slow=False):
+        
         pickup_tcp = [-47.5/1000,-140/1000,135/1000,math.radians(0),math.radians(0),math.radians(0)]
         self.robot.set_tcp(pickup_tcp)
 
         target_position = [-0.6639046352765678, -0.08494527187802497, 0.529720350746548, 2.222, 2.248, 0.004]
-        self.robot.move_l(target_position, 3, 3)
+        if slow: 
+            logging.info("check part type, move to camera position")
+            self.robot.move_l(target_position, 0.3, 0.3)
+        else: self.robot.move_l(target_position, 3, 3)
 
     # transform camera coordinates to real world (robot) coordinates
     def transform_coordinates(self, xp, yp, zp):
@@ -62,8 +66,8 @@ class CameraPosition:
         return xd, yd
 
     # main function that detects objects and returns the object locations
-    def detect_object_without_start(self, min_length=170):
-        self.capture_position()
+    def detect_object_without_start(self, min_length=170,slow=False):
+        self.capture_position(slow)
 
         time.sleep(1)
 
