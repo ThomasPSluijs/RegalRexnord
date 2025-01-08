@@ -22,7 +22,7 @@ class Pick_parts():
 
         #belt z location (should be )
         if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': belt_z = [0,0,-124/1000,0,0,0]
-        elif part_type == 'Big-BLue': belt_z = [0,0,-121/1000,0,0,0]
+        elif part_type == 'Big-BLue': belt_z = [0,0,-119/1000,0,0,0]
         else: belt_z = [0,0,-122/1000,0,0,0]   
         logging.info(f"belt z: {belt_z} {part_type}")                  
         
@@ -51,15 +51,15 @@ class Pick_parts():
         speed_middle = 1
         acc_middle = 1
 
-        speed_slow = 0.15
-        acc_slow = 0.15
+        speed_slow = 0.25
+        acc_slow = 0.25
 
 
 
         #tcp section
         pickup_tcp = [-47.5/1000,-140/1000,135/1000,0,0,0]  #edge of part (x=centerpart, y=edge)
 
-        rotate_tcp = [-47.5/1000, 40/1000, 135/1000, 0, 0, 0]
+        rotate_tcp = [-47.5/1000, 42/1000, 135/1000, 0, 0, 0]
 
         self.robot.set_tool_frame(pickup_tcp)
 
@@ -143,7 +143,7 @@ class Pick_parts():
         pose2 = rotate_x
         rotate_x[3] *= -1
         result_pose = self.robot.pose_trans(pose1, pose2)
-        result_pose[0] += 5/1000                               
+        if part_type != 'Big-BLue': result_pose[0] += 5/1000                               
         result_pose[2] += 0/1000
 
         path_step_5 = result_pose.copy()
@@ -154,13 +154,14 @@ class Pick_parts():
 
         #step 6
         #move back relative
-        relative_move=[7/1000,0,0,0,0,0]
+        if part_type != 'Big-Blue': relative_move=[7/1000,0,0,0,0,0]
+        else: relative_move=[2/1000,0,0,0,0,0]
         cur_pos = path_step_5.copy()
         cur_pos = cur_pos[:-3]
         new_linear_move = [cur_pos[i] +  relative_move[i] for i in range(6)]
 
         path_step_6 = new_linear_move.copy()
-        speed_acc_blend = [speed_middle, acc_middle, 0.0]
+        speed_acc_blend = [speed_middle, 0.1, 0.0]
         for y in speed_acc_blend:
             path_step_6 = np.append(path_step_6, y)
 
@@ -178,7 +179,7 @@ class Pick_parts():
         self.robot.move_l_path(path=path)
         '''end pickup tcp'''
 
-        keyboard.wait('space')    
+        #keyboard.wait('space')    
 
         #move path 1 till 6 with pickup tcp
         path = [
@@ -193,6 +194,11 @@ class Pick_parts():
         self.robot.move_l_path(path=path)
         '''end pickup tcp'''
 
+
+        #move up a bit
+        relative_z = [0,0,10/1000,0,0,0]
+        self.robot.move_add_l(relative_z)
+
         '''rotate tcp'''
         #step 7
         #rotate back
@@ -201,7 +207,7 @@ class Pick_parts():
         pose1 = self.robot.get_tcp_pos()
         pose2 = rotate_x
         result_pose = self.robot.pose_trans(pose1, pose2)
-        #self.robot.move_l(result_pose, speed_slow, acc_slow)
+        if part_type == 'Big-Blue': self.robot.move_l(result_pose, speed_slow, acc_slow)
         '''end rotate tcp'''
 
 
