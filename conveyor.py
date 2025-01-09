@@ -20,7 +20,7 @@ class Conveyor():
 
             while True:
                 logging.info("Turning conveyor ON")
-                self.running = True
+                self.running = False
                 robot.set_digital_output(output_id, True)
                 time.sleep(15)  # Conveyor ON for 15 seconds
                 
