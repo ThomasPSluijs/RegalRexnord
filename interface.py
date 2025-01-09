@@ -35,12 +35,12 @@ class UserInterface:
         self.start_button_color = self.button_color 
 
         self.leftbar_button_width = 160
-        self.camscale = 1
+        self.camscale = 1.5
 
 
         '''setup robot and machine class'''
         robot_ip = "192.168.0.1"  #Define ip
-        self.machine = BoxingMachine(robot_ip) #Create and start BoxingMachine
+        self.machine = BoxingMachine(robot_ip, interface=self) #Create and start BoxingMachine
 
 
         self.setup_ui() #setup UI
