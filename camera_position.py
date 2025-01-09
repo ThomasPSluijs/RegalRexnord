@@ -119,7 +119,7 @@ class CameraPosition:
                                     logging.info("stable")
                                     xd, yd = self.transform_coordinates(x_left, y_middle, depth)
                                     logging.info(f"Detected (x, y, z): ({x_left}, {y_middle}, {depth}) conf: {box.conf}")
-                                    if xd > -0.750 and  xd < -0.395 and yd > -0.168 and yd < 0.131: #maximium x value for safety purposes
+                                    if xd > -0.750 and  xd < -0.41 and yd > -0.168 and yd < 0.131: #maximium x value for safety purposes
                                         # Draw box and label on the frame
                                         cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 0, 0), 2)
                                         cv2.circle(frame, (x_left, y_middle), 5, (0, 0, 255), -1)
