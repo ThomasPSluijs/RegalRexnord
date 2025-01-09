@@ -35,7 +35,7 @@ class UserInterface:
         self.start_button_color = self.button_color 
 
         self.leftbar_button_width = 160
-        self.camscale = 1.5
+        self.camscale = 1.3
 
 
         '''setup robot and machine class'''
