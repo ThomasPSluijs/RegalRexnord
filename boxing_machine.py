@@ -147,26 +147,14 @@ class BoxingMachine:
                     self.wait_if_paused()
 
                     logging.info("Do vision, first wait for space")
-                    item_type = 'Holed'
-                    log_info=True
-                    while self.interface.conveyor.running:
-                        if log_info:
-                            log_info = False
-                            logging.info("conveyr running")
-                        pass
+                    #item_type = 'Holed'
 
-                    x, y, item_type = self.camera.detect_object_without_start(conveyor=self.interface.conveyor)  # Get actual coordinates from vision
-
+                    x, y, item_type = self.camera.detect_object_without_start()  # Get actual coordinates from vision
                     logging.info(f"x: {x}   y: {y}   item_type: {item_type}")
-    
+                    
+                    
                     logging.info("pickup part")
                     self.wait_if_paused()  # Pause-safe
-                    log_info=True
-                    while self.interface.conveyor.running:
-                        if log_info:
-                            log_info = False
-                            logging.info("conveyr running")
-                        pass
                     self.pick_part.pick_parts(x, y,part_type=item_type)  # Uncomment when ready
                     
                     logging.info("Place part")
