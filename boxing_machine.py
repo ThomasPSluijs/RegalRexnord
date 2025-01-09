@@ -38,7 +38,7 @@ class BoxingMachine:
         self.pick_part = Pick_parts(robot=self.robot, boxing_machine=self)
 
         # Initialize vision camera class
-        self.camera = CameraPosition(robot=self.robot)
+        self.camera = CameraPosition(robot=self.robot, boxing_machine=self)
 
         # Pause control using threading Event
         self.pause_event = threading.Event()
