@@ -122,9 +122,6 @@ class UserInterface:
                  self.start_but.configure(text=self.start_button_msg, fg_color=self.start_button_color, hover_color=self.start_button_color)
                  self.machine.boxes_are_full = False
             
-
-            self.update_progressbar(placements)
-
             totalplacements = self.machine.total_parts * 2
             progress = placements / totalplacements
 
