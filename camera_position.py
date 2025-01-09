@@ -46,7 +46,7 @@ class CameraPosition:
         self.last_stable_time = 0
 
     # moves robot to capture position
-    def capture_position(self,slow=False,):
+    def capture_position(self,slow=False):
         pickup_tcp = [-47.5/1000,-140/1000,135/1000,math.radians(0),math.radians(0),math.radians(0)]
         self.robot.set_tcp(pickup_tcp)
 
@@ -67,7 +67,7 @@ class CameraPosition:
         return xd, yd
 
     # main function that detects objects and returns the object locations
-    def detect_object_without_start(self, min_length=170, slow=False, conveyor=None):
+    def detect_object_without_start(self, min_length=170, slow=False):
         self.capture_position(slow)
         time.sleep(1)
         logging.info("start capturing frames")
