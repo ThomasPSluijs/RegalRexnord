@@ -17,7 +17,8 @@ logging.basicConfig(
    
 #main class for the boxingmachine. this class will be controlled via the user interface
 class BoxingMachine:
-    def __init__(self, robot_ip):
+    def __init__(self, robot_ip,interface):
+        self.interface = interface
         self.robot = URControl(robot_ip)
         self.robot.connect()
 
@@ -140,7 +141,7 @@ class BoxingMachine:
                         self.current_part_number = part['part_number']
                         self.total_parts = len(box)
 
-                    self.wait_if_paused()  # Pause-safe
+                    self.interface.start_button_pressed()
 
                     logging.info("Do vision, first wait for space")
                     self.pause()
