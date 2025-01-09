@@ -6,6 +6,7 @@ import time
 from boxing_machine import BoxingMachine
 import threading
 import logging
+import numpy as np
 
 
 logging.basicConfig(
@@ -38,16 +39,14 @@ class UserInterface:
 
 
         '''setup robot and machine class'''
-        #Define configurations
-        robot_ip = "192.168.0.1"
-        #Create and start BoxingMachine
-        self.machine = BoxingMachine(robot_ip)
+        robot_ip = "192.168.0.1"  #Define ip
+        self.machine = BoxingMachine(robot_ip) #Create and start BoxingMachine
 
 
-        self.setup_ui()
+        self.setup_ui() #setup UI
 
 
-        self.started_before = False
+        self.started_before = False #if not started before, a start thread will be started to start the machine, otherwise, resume will be used
 
 
         '''start display thread to start showing images'''
@@ -125,21 +124,18 @@ class UserInterface:
             
 
             self.update_progressbar(placements)
+
+            totalplacements = self.machine.total_parts * 2
+            progress = placements / totalplacements
+
+            self.progressbar.set(progress)
+            self.percentage_value = int(progress*100)
+            self.percentage.configure(text=f"{self.percentage_value}%")
             time.sleep(0.5)
 
     #idk man
     def update_activity(self, activity_msg):
          self.activity.configure(text=activity_msg)
-        
-    #function that updates progressbar: it gets the current progress from self.update_placements. the totalplacementes is set in the machine main loop
-    def update_progressbar(self, progress):
-            totalplacements = self.machine.total_parts * 2
-            progress = progress / totalplacements
-
-            self.progressbar.set(progress)
-            self.percentage_value = int(progress*100)
-            self.percentage.configure(text=f"{self.percentage_value}%")
-
         
 
     #updates images on the interface that have been taking by the camera 
@@ -167,8 +163,8 @@ class UserInterface:
         customtkinter.set_default_color_theme("green")
 
         # Configure window
-       # self.root.attributes("-fullscreen", False)       #should be true and uncommented
-        self.root.geometry('1024x600')                      #should be deleted
+        self.root.attributes("-fullscreen", True)       #should be true and uncommented
+        #self.root.geometry('1024x600')                      #should be deleted
         self.root.configure(bg='gray14')
 
         # Setup close event
@@ -257,8 +253,14 @@ class UserInterface:
         self.camview = customtkinter.CTkFrame(master=self.root, corner_radius=0, fg_color=self.background_color)
         self.camview.grid(row=0, column=1, padx=0, pady=0, sticky="")
 
-        self.light_image = Image.open("Pictures\picture - Copy.jpeg")  
-        self.my_image = customtkinter.CTkImage(light_image=self.light_image, size=(640/self.camscale, 420/self.camscale))
+
+        height, width = 420, 640  # Define the size of the image
+        yellow_color = [255, 255, 0]  # RGB values for yellow
+        numpy_image = np.full((height, width, 3), yellow_color, dtype=np.uint8)
+
+        # Convert the NumPy array to a PIL image
+        pil_image = Image.fromarray(numpy_image)
+        self.my_image = customtkinter.CTkImage(light_image=pil_image, size=(640 / self.camscale, 420 / self.camscale))
 
         self.image_label = customtkinter.CTkLabel(self.camview, image=self.my_image, text="")
         self.image_label.image = self.my_image
