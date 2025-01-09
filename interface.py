@@ -7,6 +7,7 @@ from boxing_machine import BoxingMachine
 import threading
 import logging
 import numpy as np
+import conveyor
 
 
 logging.basicConfig(
@@ -41,6 +42,10 @@ class UserInterface:
         '''setup robot and machine class'''
         robot_ip = "192.168.0.1"  #Define ip
         self.machine = BoxingMachine(robot_ip, interface=self) #Create and start BoxingMachine
+
+        '''start conveyer'''
+        conveyer_t = threading.Thread(target=conveyor.main, args=(self.machine.robot,),daemon=True)
+        conveyer_t.start()
 
 
         self.setup_ui() #setup UI
