@@ -151,7 +151,7 @@ class BoxingMachine:
                     x, y, item_type = self.camera.detect_object_without_start()  # Get actual coordinates from vision
                     logging.info(f"x: {x}   y: {y}   item_type: {item_type}")
                     
-                    
+                    if x <  -0.4308310509573544: pass
                     logging.info("pickup part")
                     self.wait_if_paused()  # Pause-safe
                     self.pick_part.pick_parts(x, y,part_type=item_type)  # Uncomment when ready
