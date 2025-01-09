@@ -163,7 +163,7 @@ class Pick_parts():
         for y in speed_acc_blend:
             path_step_3 = np.append(path_step_3, y)
 
-        logging.info(f"pick pos step 3: {cur_pos}")
+        logging.info(f"pick pos step 3: {cur_pos[0]}  {cur_pos[1]}")
 
     
         #step 4
@@ -217,7 +217,7 @@ class Pick_parts():
         self.robot.move_l_path(path=path)
         '''end pickup tcp'''
   
-        #self.boxing_machine.self.interface.start_button_pressed()
+        self.boxing_machine.self.interface.start_button_pressed()
 
         '''
         #move path 1 till 6 with pickup tcp
