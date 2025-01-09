@@ -104,7 +104,7 @@ class Pick_parts():
 
 
         '''STEP 8 MOVE UP RELATIVE'''
-        step_8_relative_move_up=[0,0,0.15,0,0,0]
+        step_8_relative_move_up=[0,0,0.10,0,0,0]
 
 
         '''STEP 9 MOVE TO SAFE Y SO LIGHTS DONT GET HIT'''
