@@ -44,8 +44,8 @@ class UserInterface:
         self.machine = BoxingMachine(robot_ip, interface=self) #Create and start BoxingMachine
 
         '''start conveyer'''
-        self.conveyer = Conveyor()
-        conveyer_start = threading.Thread(target=self.conveyer.run, args=(self.machine.robot,),daemon=True)
+        self.conveyor = Conveyor()
+        conveyer_start = threading.Thread(target=self.conveyor.run, args=(self.machine.robot,),daemon=True)
         conveyer_start.start()
 
 
