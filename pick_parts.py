@@ -19,6 +19,14 @@ class Pick_parts():
 
     #picks parts from given x and y coordinate. y = center of part along y axis. x = edge of part closest to the robot
     def pick_parts(self, part_x, part_y,part_type='Green'):
+        #tcp section
+        pickup_tcp = [-47.5/1000,-140/1000,135/1000,0,0,0]  #edge of part (x=centerpart, y=edge)
+        rotate_tcp = [-47.5/1000, 42/1000, 135/1000, 0, 0, 0] 
+        self.robot.set_tool_frame(pickup_tcp)
+
+        #start rotation, this is aligned to the belt
+        start_rotation = [2.230, 2.209, 0.013]
+
         #fast and slow speeds and accelerations. fast for general movements, slow for special movements. 
         speed_fast = 3
         acc_fast = 3
@@ -44,7 +52,7 @@ class Pick_parts():
 
 
         '''STEP 1 MOVE TO PART X,Y AND Z A BIT ABOVE THE PART'''
-        part_y_offset = 10/1000 + 25/1000 #y offset so there is a bit of clearance.
+        part_y_offset = 10/1000 + 28/1000 #y offset so there is a bit of clearance.
         part_pos_x_offset = 0.010  #x offset so gripper starts before parts and does not crash down when going down. also used in step 4
         part_z_offset = 100/1000  #z offset so gripper starts a bit above the part
 
@@ -85,15 +93,23 @@ class Pick_parts():
 
 
 
-        #tcp section
-        pickup_tcp = [-47.5/1000,-140/1000,135/1000,0,0,0]  #edge of part (x=centerpart, y=edge)
-        rotate_tcp = [-47.5/1000, 42/1000, 135/1000, 0, 0, 0]
-        self.robot.set_tool_frame(pickup_tcp)
+        '''STEP 6.1 MOVE UP A BIT RELATIVE'''
+        step_6_1_relative_z = [0,0,10/1000,0,0,0]
+
+
+        '''STEP 7 ROTATE A BIT BACK SO PARTS DONT FALL OFF'''
+        step_7_rotate_x_back = [0,0,0,math.radians(5),0,0]
+
+
+        '''STEP 8 MOVE UP RELATIVE'''
+        step_8_relative_move_up=[0,0,0.15,0,0,0]
+
+
+        '''STEP 9 MOVE TO SAFE Y SO LIGHTS DONT GET HIT'''
+        safe_y = -0.01964
 
 
 
-        #start rotation, this is aligned to the belt
-        start_rotation = [2.230, 2.209, 0.013]
 
 
 
@@ -217,20 +233,22 @@ class Pick_parts():
         '''end pickup tcp'''
 
 
+        #step 6.1
         #move up a bit
-        relative_z = [0,0,10/1000,0,0,0]
-        self.robot.move_add_l(relative_z)
+        self.robot.move_add_l(step_6_1_relative_z)
+
+
 
         '''rotate tcp'''
         #step 7
         #rotate back
         self.robot.set_tcp(rotate_tcp)
-        rotate_x = [0,0,0,math.radians(5),0,0]
         pose1 = self.robot.get_tcp_pos()
-        pose2 = rotate_x
+        pose2 = step_7_rotate_x_back
         result_pose = self.robot.pose_trans(pose1, pose2)
         if part_type == 'Big-Blue': self.robot.move_l(result_pose, speed_slow, acc_slow)
         '''end rotate tcp'''
+
 
 
         '''start pickup tcp'''
@@ -240,12 +258,12 @@ class Pick_parts():
         for y in speed_acc_blend:
             start_pos.append(y)
         
+
         #step 8
         #move up relative.
-        relative_move=[0,0,0.15,0,0,0]
         cur_pos = start_pos.copy()
         cur_pos = cur_pos[:-3]
-        new_linear_move = [cur_pos[i] +  relative_move[i] for i in range(6)]
+        new_linear_move = [cur_pos[i] +  step_8_relative_move_up[i] for i in range(6)]
 
         path_step_8 = new_linear_move.copy()
         speed_acc_blend = [speed_slow, acc_slow, 0.05]
@@ -258,7 +276,7 @@ class Pick_parts():
         #move to safe y
         cur_pos = path_step_8.copy()
         cur_pos = cur_pos[:-3]
-        cur_pos[1] = -0.01964148815131326
+        cur_pos[1] =  safe_y 
 
         path_step_9 = cur_pos.copy()
         speed_acc_blend = [speed_slow, acc_slow, 0.0]
