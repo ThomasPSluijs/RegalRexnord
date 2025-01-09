@@ -40,13 +40,13 @@ class CameraPosition:
         self.labels = self.detector.labels
 
         self.last_frame = None
-        self.previous_coords = None
         self.frame_lock = threading.Lock()
         self.display_thread_running = True
+        self.previous_coordinates = None
+        self.last_stable_time = 0
 
     # moves robot to capture position
     def capture_position(self,slow=False):
-        
         pickup_tcp = [-47.5/1000,-140/1000,135/1000,math.radians(0),math.radians(0),math.radians(0)]
         self.robot.set_tcp(pickup_tcp)
 
@@ -66,27 +66,12 @@ class CameraPosition:
 
         return xd, yd
 
-    # Check if coordinates are moving
-    def is_moving(self, current_coords):
-        if self.previous_coords is None:
-            self.previous_coords = current_coords
-            return False
-
-        delta = np.linalg.norm(np.array(current_coords) - np.array(self.previous_coords))
-        self.previous_coords = current_coords
-
-        return delta > 5
-
     # main function that detects objects and returns the object locations
-    def detect_object_without_start(self, min_length=170,slow=False,conveyor=None):
+    def detect_object_without_start(self, min_length=170, slow=False):
         self.capture_position(slow)
-
         time.sleep(1)
-
-        not_found = True
         logging.info("start capturing frames")
-        while not_found:
-            logging.info("not found parts yet")
+        while True:
             frames = self.pipeline.wait_for_frames()
             aligned_frames = self.align.process(frames)
             color_frame = aligned_frames.get_color_frame()
@@ -95,12 +80,11 @@ class CameraPosition:
             if not color_frame or not depth_frame:
                 continue
 
-            logging.info("Processing frames...")
             frame = np.asanyarray(color_frame.get_data())
             with self.frame_lock:  # Update last_frame safely
                 self.last_frame = frame
             results = self.detector.detect_objects(frame.copy())
-
+            
             if results is not None:
                 for result in results:
                     for box in result.boxes:
@@ -111,46 +95,51 @@ class CameraPosition:
                             y_middle = int((bbox[1] + bbox[3]) / 2)
                             width = bbox[2] - bbox[0]
                             height = bbox[3] - bbox[1]
-
                             depth = depth_frame.get_distance(x_left, y_middle)
-
-                            # Draw box around detected part and draw circle at pickup point
-                            cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 0, 0), 2)
-                            cv2.circle(frame, (x_left, y_middle), 5, (0, 0, 255), -1)
-
-                            # Put text with coordinates at the circle
-                            text = f'X: {x_left}, Y: {y_middle}, Z: {depth:.2f}m'
-                            cv2.putText(frame, text, (x_left, y_middle - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-
-                            # Put label (item_type) on screen
                             label = self.labels[int(box.cls[0])]
-                            confidence = box.conf.item()
-                            text = f'{label} ({confidence:.2f})'
-                            cv2.putText(frame, text, (bbox[0], bbox[1] - 40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-                            logging.info(f"item type: {label}")
-
-                            current_coords = (x_left, y_middle, depth)
-                            if self.is_moving(current_coords):
-                                logging.info("Part is moving, skipping detection")
-                                time.sleep(0.3)
-                                continue
-
-                            # Length check, area check, and label
                             length = max(width, height)
-                            if label in ['Big-Blue', 'Green', 'Holed', 'Rubber', 'Small-Blue']:
-                                if length >= min_length and width * height < 75000:
+
+                            if label in ['Big-Blue', 'Green', 'Holed', 'Rubber', 'Small-Blue'] and length >= min_length and width * height < 75000:
+                                current_coordinates = (x_left, y_middle)
+                                if self.is_stable(current_coordinates):
                                     xd, yd = self.transform_coordinates(x_left, y_middle, depth)
                                     target_position = [xd, yd, -0.0705907482294739, 2.222, 2.248, 0.004]
-
-                                    print(f"Detected (x, y, z): ({x_left}, {y_middle}, {depth}) -> Calculated TCP Position: {target_position}  conf: {box.conf}")
-
-                                    not_found = False
-                                
+                                    logging.info(f"Detected (x, y, z): ({x_left}, {y_middle}, {depth}) -> Calculated TCP Position: {target_position}  conf: {box.conf}")
                                     with self.frame_lock:  # Update last_frame safely
                                         self.last_frame = frame
                                     return (xd, yd, label)
 
+                            # Draw box and label on the frame
+                            cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 0, 0), 2)
+                            cv2.circle(frame, (x_left, y_middle), 5, (0, 0, 255), -1)
+                            text = f'X: {x_left}, Y: {y_middle}, Z: {depth:.2f}m'
+                            cv2.putText(frame, text, (x_left, y_middle - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+                            text = f'{label} ({box.conf.item():.2f})'
+                            cv2.putText(frame, text, (bbox[0], bbox[1] - 40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+                            
+            # Show the frame
+            cv2.imshow('RealSense Camera Stream', frame)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+
         return (0, 0, 0)
+
+    def is_stable(self, current_coordinates):
+        if self.previous_coordinates is None:
+            self.previous_coordinates = current_coordinates
+            self.last_stable_time = time.time()
+            return False
+
+        distance = np.linalg.norm(np.array(current_coordinates) - np.array(self.previous_coordinates))
+        if distance > 5:
+            self.previous_coordinates = current_coordinates
+            self.last_stable_time = time.time()
+            return False
+
+        if time.time() - self.last_stable_time >= 0.3:
+            return True
+
+        return False
     
     def stop_display_thread(self):
         self.display_thread_running = False
