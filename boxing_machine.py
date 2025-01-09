@@ -141,10 +141,10 @@ class BoxingMachine:
                         self.current_part_number = part['part_number']
                         self.total_parts = len(box)
 
+
                     self.interface.start_button_pressed()
 
                     logging.info("Do vision, first wait for space")
-                    self.pause()
                     item_type = 'Holed'
                     x, y, item_type = self.camera.detect_object_without_start()  # Get actual coordinates from vision
 
