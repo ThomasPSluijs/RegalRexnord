@@ -45,10 +45,14 @@ class CameraPosition:
         self.previous_coordinates = None
         self.last_stable_time = 0
 
-        # Define row positions (adjust as necessary for your setup)
-        self.row1_y = 150  # Example y-coordinate for the first row
-        self.row2_y = 300  # Example y-coordinate for the second row
+        # Separate states for each row
+        self.previous_coordinates_row1 = None
+        self.previous_coordinates_row2 = None
+        self.last_stable_time_row1 = 0
+        self.last_stable_time_row2 = 0
+
         self.row_threshold = 6  # Stability threshold in pixels
+        self.row_gap_threshold = 50  # Distance to separate rows (adjust as necessary)
 
     # moves robot to capture position
     def capture_position(self, slow=False):
@@ -131,34 +135,46 @@ class CameraPosition:
 
         return (0, 0, 0)
 
+
+
     def is_stable(self, current_coordinates):
-        if self.previous_coordinates is None:
-            self.previous_coordinates = current_coordinates
-            self.last_stable_time = time.time()
-            return False
+        """Check stability separately for two rows."""
+        x, y = current_coordinates
 
-        x_left, y_middle = current_coordinates
-
-        # Determine the closest row
-        row1_distance = abs(y_middle - self.row1_y)
-        row2_distance = abs(y_middle - self.row2_y)
-
-        if row1_distance < row2_distance:
-            normalized_coordinates = (x_left, self.row1_y)
+        # Determine which row the point belongs to
+        if self.previous_coordinates_row1 is None or abs(y - self.previous_coordinates_row1[1]) < self.row_gap_threshold:
+            row = "row1"
+            prev_coords = self.previous_coordinates_row1
+            last_time = self.last_stable_time_row1
         else:
-            normalized_coordinates = (x_left, self.row2_y)
+            row = "row2"
+            prev_coords = self.previous_coordinates_row2
+            last_time = self.last_stable_time_row2
 
-        # Calculate distance from the last stable position
-        distance = np.linalg.norm(np.array(normalized_coordinates) - np.array(self.previous_coordinates))
-        if distance > self.row_threshold:
-            self.previous_coordinates = normalized_coordinates
-            self.last_stable_time = time.time()
+        # Stability check for the chosen row
+        if prev_coords is None:
+            self.update_row_state(row, current_coordinates)
             return False
 
-        if time.time() - self.last_stable_time >= 0.3:
+        distance = np.linalg.norm(np.array(current_coordinates) - np.array(prev_coords))
+        if distance > self.row_threshold:
+            self.update_row_state(row, current_coordinates)
+            return False
+
+        # Ensure it has been stable for 0.3 seconds
+        if time.time() - last_time >= 0.3:
             return True
 
         return False
+
+    def update_row_state(self, row, coordinates):
+        """Update the state for a specific row."""
+        if row == "row1":
+            self.previous_coordinates_row1 = coordinates
+            self.last_stable_time_row1 = time.time()
+        else:
+            self.previous_coordinates_row2 = coordinates
+            self.last_stable_time_row2 = time.time()
 
     def stop_display_thread(self):
         self.display_thread_running = False
