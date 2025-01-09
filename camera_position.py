@@ -46,7 +46,7 @@ class CameraPosition:
         self.last_stable_time = 0
 
     # moves robot to capture position
-    def capture_position(self,slow=False):
+    def capture_position(self,slow=False,conveyor=None):
         pickup_tcp = [-47.5/1000,-140/1000,135/1000,math.radians(0),math.radians(0),math.radians(0)]
         self.robot.set_tcp(pickup_tcp)
 
