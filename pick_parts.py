@@ -39,8 +39,8 @@ class Pick_parts():
 
 
         #part_x offset, one side needs a little bit more than the other side (or tune the camera calibration)
-        if part_y > 0.05: part_x += 15/1000 
-        else: part_x += 19/1000
+        if part_y > 0.05: part_x += 15/1000   #move bit further
+        else: part_x += 18/1000     #move bit less
 
 
 
@@ -163,7 +163,7 @@ class Pick_parts():
         for y in speed_acc_blend:
             path_step_3 = np.append(path_step_3, y)
 
-        logging.info(f"pick pos: {cur_pos}")
+        logging.info(f"pick pos step 3: {cur_pos}")
 
     
         #step 4
@@ -210,9 +210,9 @@ class Pick_parts():
             path_step_1,
             path_step_2,
             path_step_3,
-            path_step_4,
-            path_step_5,
-            path_step_6,
+            #path_step_4,
+            #path_step_5,
+            #path_step_6,
         ]
         self.robot.move_l_path(path=path)
         '''end pickup tcp'''
