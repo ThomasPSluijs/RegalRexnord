@@ -70,8 +70,9 @@ class CameraPosition:
     def detect_object_without_start(self, min_length=170, slow=False):
         self.capture_position(slow)
         time.sleep(1)
+        not_found = True
         logging.info("start capturing frames")
-        while True:
+        while not_found:
             frames = self.pipeline.wait_for_frames()
             aligned_frames = self.align.process(frames)
             color_frame = aligned_frames.get_color_frame()
@@ -102,6 +103,7 @@ class CameraPosition:
                             if label in ['Big-Blue', 'Green', 'Holed', 'Rubber', 'Small-Blue'] and length >= min_length and width * height < 75000:
                                 current_coordinates = (x_left, y_middle)
                                 if self.is_stable(current_coordinates):
+                                    logging.info("stable")
                                     xd, yd = self.transform_coordinates(x_left, y_middle, depth)
                                     target_position = [xd, yd, -0.0705907482294739, 2.222, 2.248, 0.004]
                                     logging.info(f"Detected (x, y, z): ({x_left}, {y_middle}, {depth}) -> Calculated TCP Position: {target_position}  conf: {box.conf}")
@@ -114,9 +116,14 @@ class CameraPosition:
                                     text = f'{label} ({box.conf.item():.2f})'
                                     cv2.putText(frame, text, (bbox[0], bbox[1] - 40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
                                     
+                                    not_found=False
+
                                     with self.frame_lock:  # Update last_frame safely
                                         self.last_frame = frame
                                     return (xd, yd, label)
+                                else:
+                                    logging.info("not stable")
+                                    #continue
 
         return (0, 0, 0)
 
