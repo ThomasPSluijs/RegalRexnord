@@ -34,7 +34,7 @@ class Pick_parts():
         speed_middle = 1
         acc_middle = 1
 
-        speed_slow = 0.3
+        speed_slow = 0.4
         acc_slow = 0.3
 
 
@@ -205,32 +205,19 @@ class Pick_parts():
             path_step_6 = np.append(path_step_6, y)
 
 
+        self.boxing_machine.wait_if_paused()
         #move path 1 till 6 with pickup tcp
         path = [
             path_step_1,
             path_step_2,
             path_step_3,
-            #path_step_4,
-            #path_step_5,
-            #path_step_6,
-        ]
-        self.robot.move_l_path(path=path)
-        '''end pickup tcp'''
-  
-        self.boxing_machine.self.interface.start_button_pressed()
-
-        '''
-        #move path 1 till 6 with pickup tcp
-        path = [
-            #path_step_1,
-            #path_step_2,
-            #path_step_3,
             path_step_4,
             path_step_5,
             path_step_6,
         ]
-        self.robot.move_l_path(path=path) '''
+        self.robot.move_l_path(path=path)
         '''end pickup tcp'''
+  
 
 
         #step 6.1
@@ -299,6 +286,8 @@ class Pick_parts():
             path_step_10 = np.append(path_step_10, y)
 
 
+
+        self.boxing_machine.wait_if_paused()
         path = [
             path_step_8,
             path_step_9,
@@ -306,5 +295,7 @@ class Pick_parts():
         ]
         self.robot.move_l_path(path=path)
         '''end pickup tcp'''
+
+        self.boxing_machine.wait_if_paused()
 
   
