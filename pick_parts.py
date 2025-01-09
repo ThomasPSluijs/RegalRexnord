@@ -40,7 +40,7 @@ class Pick_parts():
 
         #part_x offset, one side needs a little bit more than the other side (or tune the camera calibration)
         if part_y > 0.00: 
-            part_x += 13/1000   #move bit further
+            part_x += 14/1000   #move bit further
             logging.info("move bit more on x")
         else: part_x += 25/1000     #move bit less
 
