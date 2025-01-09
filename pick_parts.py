@@ -44,7 +44,7 @@ class Pick_parts():
 
 
         '''STEP 1 MOVE TO PART X,Y AND Z A BIT ABOVE THE PART'''
-        part_y_offset = 10/1000 + 19/1000 #y offset so there is a bit of clearance.
+        part_y_offset = 10/1000 + 25/1000 #y offset so there is a bit of clearance.
         part_pos_x_offset = 0.010  #x offset so gripper starts before parts and does not crash down when going down. also used in step 4
         part_z_offset = 100/1000  #z offset so gripper starts a bit above the part
 
