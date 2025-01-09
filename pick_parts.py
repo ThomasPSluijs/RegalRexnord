@@ -12,8 +12,9 @@ logging.basicConfig(
 
 
 class Pick_parts():
-    def __init__(self, robot):
+    def __init__(self, robot, boxing_machine):
         self.robot = robot  #robot class
+        self.boxing_machine = boxing_machine
 
 
     #picks parts from given x and y coordinate. y = center of part along y axis. x = edge of part closest to the robot
@@ -181,15 +182,16 @@ class Pick_parts():
             path_step_1,
             path_step_2,
             path_step_3,
-            #path_step_4,
-            #path_step_5,
-            #path_step_6,
+            path_step_4,
+            path_step_5,
+            path_step_6,
         ]
         self.robot.move_l_path(path=path)
         '''end pickup tcp'''
+  
+        #self.boxing_machine.pause()
 
-        #keyboard.wait('space')    
-
+        '''
         #move path 1 till 6 with pickup tcp
         path = [
             #path_step_0,
@@ -200,7 +202,7 @@ class Pick_parts():
             path_step_5,
             path_step_6,
         ]
-        self.robot.move_l_path(path=path)
+        self.robot.move_l_path(path=path) '''
         '''end pickup tcp'''
 
 
@@ -235,7 +237,7 @@ class Pick_parts():
         new_linear_move = [cur_pos[i] +  relative_move[i] for i in range(6)]
 
         path_step_8 = new_linear_move.copy()
-        speed_acc_blend = [speed_slow, acc_slow, 0.00]
+        speed_acc_blend = [speed_slow, acc_slow, 0.05]
         for y in speed_acc_blend:
             path_step_8 = np.append(path_step_8, y)
 
