@@ -45,16 +45,22 @@ class CameraPosition:
         self.previous_coordinates = None
         self.last_stable_time = 0
 
+        # Define row positions (adjust as necessary for your setup)
+        self.row1_y = 150  # Example y-coordinate for the first row
+        self.row2_y = 300  # Example y-coordinate for the second row
+        self.row_threshold = 6  # Stability threshold in pixels
+
     # moves robot to capture position
-    def capture_position(self,slow=False):
-        pickup_tcp = [-47.5/1000,-140/1000,135/1000,math.radians(0),math.radians(0),math.radians(0)]
+    def capture_position(self, slow=False):
+        pickup_tcp = [-47.5 / 1000, -140 / 1000, 135 / 1000, math.radians(0), math.radians(0), math.radians(0)]
         self.robot.set_tcp(pickup_tcp)
 
         target_position = [-0.6639046352765678, -0.08494527187802497, 0.529720350746548, 2.222, 2.248, 0.004]
-        if slow: 
+        if slow:
             logging.info("check part type, move to camera position")
             self.robot.move_l(target_position, 0.3, 0.3)
-        else: self.robot.move_l(target_position, 3, 3)
+        else:
+            self.robot.move_l(target_position, 3, 3)
 
     # transform camera coordinates to real world (robot) coordinates
     def transform_coordinates(self, xp, yp, zp):
@@ -85,7 +91,7 @@ class CameraPosition:
             with self.frame_lock:  # Update last_frame safely
                 self.last_frame = frame
             results = self.detector.detect_objects(frame.copy())
-            
+
             if results is not None:
                 for result in results:
                     for box in result.boxes:
@@ -105,8 +111,7 @@ class CameraPosition:
                                 if self.is_stable(current_coordinates):
                                     logging.info("stable")
                                     xd, yd = self.transform_coordinates(x_left, y_middle, depth)
-                                    target_position = [xd, yd, -0.0705907482294739, 2.222, 2.248, 0.004]
-                                    logging.info(f"Detected (x, y, z): ({x_left}, {y_middle}, {depth}) -> Calculated TCP Position: {target_position}  conf: {box.conf}")
+                                    logging.info(f"Detected (x, y, z): ({x_left}, {y_middle}, {depth}) conf: {box.conf}")
 
                                     # Draw box and label on the frame
                                     cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 0, 0), 2)
@@ -115,15 +120,14 @@ class CameraPosition:
                                     cv2.putText(frame, text, (x_left, y_middle - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
                                     text = f'{label} ({box.conf.item():.2f})'
                                     cv2.putText(frame, text, (bbox[0], bbox[1] - 40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-                                    
-                                    not_found=False
+
+                                    not_found = False
 
                                     with self.frame_lock:  # Update last_frame safely
                                         self.last_frame = frame
                                     return (xd, yd, label)
                                 else:
                                     logging.info("not stable")
-                                    #continue
 
         return (0, 0, 0)
 
@@ -133,9 +137,21 @@ class CameraPosition:
             self.last_stable_time = time.time()
             return False
 
-        distance = np.linalg.norm(np.array(current_coordinates) - np.array(self.previous_coordinates))
-        if distance > 6:
-            self.previous_coordinates = current_coordinates
+        x_left, y_middle = current_coordinates
+
+        # Determine the closest row
+        row1_distance = abs(y_middle - self.row1_y)
+        row2_distance = abs(y_middle - self.row2_y)
+
+        if row1_distance < row2_distance:
+            normalized_coordinates = (x_left, self.row1_y)
+        else:
+            normalized_coordinates = (x_left, self.row2_y)
+
+        # Calculate distance from the last stable position
+        distance = np.linalg.norm(np.array(normalized_coordinates) - np.array(self.previous_coordinates))
+        if distance > self.row_threshold:
+            self.previous_coordinates = normalized_coordinates
             self.last_stable_time = time.time()
             return False
 
@@ -143,7 +159,7 @@ class CameraPosition:
             return True
 
         return False
-    
+
     def stop_display_thread(self):
         self.display_thread_running = False
 
@@ -161,23 +177,4 @@ class ObjectDetector:
         results = self.model.predict(source=frame, verbose=False, show=False)
         return results
 
-# for testing only
-if __name__ == "__main__":
-    cv2.namedWindow("RealSense Camera Stream", cv2.WINDOW_AUTOSIZE) 
 
-    robot = URControl("192.168.0.1")
-    robot.connect()
-
-    camera = CameraPosition(robot)
-    camera.capture_position()
-
-    while True:
-        _ = camera.detect_object_without_start()
-
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-
-    camera.pipeline.stop()
-
-    robot.stop_robot_control()
-    cv2.destroyAllWindows()
