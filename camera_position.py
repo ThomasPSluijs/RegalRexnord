@@ -133,10 +133,10 @@ class CameraPosition:
                                         with self.frame_lock:  # Update last_frame safely
                                             self.last_frame = frame
                                         return (xd, yd, label)
+                                    else:
+                                        logging.error("part out of reach")
                                 else:
                                     logging.info("not stable")
-                            else:
-                                logging.error("part out of reach")
 
         return (0, 0, 0)
 
