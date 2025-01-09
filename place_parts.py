@@ -328,7 +328,7 @@ class Pack_Box:
             if part['layer_number'] == 0: z_offset = -4/1000    #layer 0: negative z offset for pressing down the box a bit
             elif part['layer_number'] > 0: z_offset = 0   #rest of the layers: normal height
         else:
-            z_offset = 6/1000
+            z_offset = 5/1000
 
 
         cur_pos[2] = part_position[2] + z_offset   # Set Z height to target position within the box
