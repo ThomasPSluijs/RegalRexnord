@@ -28,9 +28,10 @@ yolo_logger.addFilter(YoloLogFilter())
 
 # uses camera to run yolo model and get x, y, and z coordinates of the parts
 class CameraPosition:
-    def __init__(self, robot):
+    def __init__(self, robot, boxing_machine):
         self.detector = ObjectDetector()
         self.robot = robot
+        self.boxing_machine = boxing_machine
         self.pipeline = rs.pipeline()
         self.config = rs.config()
         self.config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
@@ -83,6 +84,7 @@ class CameraPosition:
         not_found = True
         logging.info("start capturing frames")
         while not_found:
+            self.boxing_machine.wait_if_paused()
             frames = self.pipeline.wait_for_frames()
             aligned_frames = self.align.process(frames)
             color_frame = aligned_frames.get_color_frame()
@@ -96,6 +98,7 @@ class CameraPosition:
                 self.last_frame = frame
             results = self.detector.detect_objects(frame.copy())
 
+        
             if results is not None:
                 for result in results:
                     for box in result.boxes:
