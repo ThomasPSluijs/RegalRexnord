@@ -12,7 +12,8 @@ logging.basicConfig(
 
 class Conveyor():
     def __init__(self):
-        self.running = False
+        pass
+        #self.running = False
 
     def run(self, robot):
         try:
@@ -20,12 +21,12 @@ class Conveyor():
 
             while True:
                 logging.info("Turning conveyor ON")
-                self.running = False
+                #self.running = False
                 robot.set_digital_output(output_id, True)
                 time.sleep(15)  # Conveyor ON for 15 seconds
                 
                 logging.info("Turning conveyor OFF")
-                self.running = False
+                #self.running = False
                 robot.set_digital_output(output_id, False)
                 time.sleep(45)  # Conveyor OFF for 45 seconds
 
