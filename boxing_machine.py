@@ -144,11 +144,10 @@ class BoxingMachine:
 
                     #pause so parts can be placed safely
                     #self.interface.start_button_pressed()
+
+
+                    logging.info("Do vision")
                     self.wait_if_paused()
-
-                    logging.info("Do vision, first wait for space")
-                    #item_type = 'Holed'
-
                     x, y, item_type = self.camera.detect_object_without_start()  # Get actual coordinates from vision
                     logging.info(f"x: {x}   y: {y}   item_type: {item_type}")
                     
