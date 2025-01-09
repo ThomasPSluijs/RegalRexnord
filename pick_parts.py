@@ -201,7 +201,7 @@ class Pick_parts():
         self.robot.move_l_path(path=path)
         '''end pickup tcp'''
   
-        #self.boxing_machine.pause()
+        #self.boxing_machine.self.interface.start_button_pressed()
 
         '''
         #move path 1 till 6 with pickup tcp
