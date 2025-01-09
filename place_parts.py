@@ -38,7 +38,7 @@ class Part:
 #in total 4 parts per box, two rotated 90 degrees
 #total parts in height gets calculated
 class Pack_Box:
-    def __init__(self, box, part, robot):
+    def __init__(self, box, part, robot, boxing_machine):
         #get box info
         self.box = box
         self.box_length, self.box_width, self.box_height = self.box.box_size
@@ -55,6 +55,9 @@ class Pack_Box:
         
         #robot
         self.robot = robot
+
+        #boxing machine
+        self.boxing_machine = boxing_machine
 
    
         #get al packing positions in the boxes. These are the center coordinates of the parts, rotations of the parts and the z_height of the parts
@@ -418,16 +421,18 @@ class Pack_Box:
             # Positie 1: [X, Y, Z, RX, RY, RZ, snelheid, versnelling, blend]
             path_step_6,  # step 6: move to correct z height (x and y are already correct)
             path_step_7,  # step 7: rotate parts
-            #path_step_8,  # step 8: move so parts fall off
-            #path_step_9,  # step 9: rotate more at end
-            #path_step_10,  #step 10: move the rest
+            path_step_8,  # step 8: move so parts fall off
+            path_step_9,  # step 9: rotate more at end
+            path_step_10,  #step 10: move the rest
             # Voeg meer posities toe zoals nodig
         ]
         self.robot.move_l_path(path=path)
 
         
         #keyboard.wait('space')    
+        #self.boxing_machine.pause()
 
+        '''
         self.robot.set_tcp(pickup_tcp)  
         path = [
             # Positie 1: [X, Y, Z, RX, RY, RZ, snelheid, versnelling, blend]
@@ -438,7 +443,7 @@ class Pack_Box:
             path_step_10,  #step 5: move to target x and y
             # Voeg meer posities toe zoals nodig
         ]
-        self.robot.move_l_path(path=path) 
+        self.robot.move_l_path(path=path) '''
         '''end pickup tcp'''
 
         '''start pickup tcp'''
@@ -484,7 +489,7 @@ class Pack_Box:
             #move up first
             cur_pos = self.robot.get_tcp_pos()
             cur_pos[2] = z_above_box
-            self.robot.move_l(cur_pos, speed_slow, acc_slow)
+            self.robot.move_l(cur_pos, speed_fast, acc_fast)
 
             #rotate
             cur_joint_pos = self.robot.get_joint_pos()
@@ -494,4 +499,4 @@ class Pack_Box:
             #move to take pic pos
             target_position = [-0.6639046352765678, -0.08494527187802497, 0.529720350746548, 2.222, 2.248, 0.004]
             target_pos = target_position.copy()
-            self.robot.move_l(target_position, speed_slow, acc_slow)
+            self.robot.move_l(target_position, speed_fast, acc_fast)
