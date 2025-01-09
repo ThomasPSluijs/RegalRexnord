@@ -172,8 +172,8 @@ class Pack_Box:
         speed_fast = 3
         acc_fast = 1.5
                                                      
-        speed_slow = 0.5
-        acc_slow = 0.5
+        speed_slow = 0.4
+        acc_slow = 0.4
 
         box_center = self.box.box_centers[box_index]
         logging.info(f"Box center: {box_center}")
@@ -281,6 +281,8 @@ class Pack_Box:
             x+=1
 
         '''end placement tcp'''
+
+        self.boxing_machine.wait_if_paused()
 
         #self.robot.set_tool_frame(placement_tcp)
         path = [
@@ -416,6 +418,7 @@ class Pack_Box:
 
 
 
+        self.boxing_machine.wait_if_paused()
         self.robot.set_tcp(pickup_tcp)  
         path = [
             # Positie 1: [X, Y, Z, RX, RY, RZ, snelheid, versnelling, blend]
@@ -429,22 +432,6 @@ class Pack_Box:
         self.robot.move_l_path(path=path)
 
          
-        #self.boxing_machine.self.interface.start_button_pressed()
-
-        '''
-        self.robot.set_tcp(pickup_tcp)  
-        path = [
-            # Positie 1: [X, Y, Z, RX, RY, RZ, snelheid, versnelling, blend]
-            #path_step_6,  # step 1: move up
-            #path_step_7,  # step 2: move to center box
-            path_step_8,  # step 3: move down
-            path_step_9,  # step 4: rotate around z
-            path_step_10,  #step 5: move to target x and y
-            # Voeg meer posities toe zoals nodig
-        ]
-        self.robot.move_l_path(path=path) '''
-        '''end pickup tcp'''
-
         '''start pickup tcp'''
         self.robot.set_tcp(pickup_tcp)
         cur_pos = self.robot.get_tcp_pos()
@@ -473,7 +460,8 @@ class Pack_Box:
             for y in speed_acc_blend:
                 path_step_12 = np.append(path_step_12, y)
 
-            
+
+            self.boxing_machine.wait_if_paused()
             #placement tcp 
             path = [
                 # Positie 1: [X, Y, Z, RX, RY, RZ, snelheid, versnelling, blend]
@@ -499,3 +487,5 @@ class Pack_Box:
             target_position = [-0.6639046352765678, -0.08494527187802497, 0.529720350746548, 2.222, 2.248, 0.004]
             target_pos = target_position.copy()
             self.robot.move_l(target_position, speed_fast, acc_fast)
+
+        self.boxing_machine.wait_if_paused()
