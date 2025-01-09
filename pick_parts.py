@@ -44,7 +44,7 @@ class Pick_parts():
 
 
         '''STEP 1 MOVE TO PART X,Y AND Z A BIT ABOVE THE PART'''
-        part_y_offset = 10/1000 + 15/1000 #y offset so there is a bit of clearance.
+        part_y_offset = 10/1000 + 19/1000 #y offset so there is a bit of clearance.
         part_pos_x_offset = 0.010  #x offset so gripper starts before parts and does not crash down when going down. also used in step 4
         part_z_offset = 100/1000  #z offset so gripper starts a bit above the part
 
@@ -59,12 +59,12 @@ class Pick_parts():
         '''STEP 3 Z LOCATION'''
         #belt z location, for some parts the gripper needs to be a little bit higher or lower
         if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': belt_z = [0,0,-124/1000,0,0,0]
-        elif part_type == 'Big-BLue': belt_z = [0,0,-114/1000,0,0,0]
+        elif part_type == 'Big-BLue': belt_z = [0,0,-116/1000,0,0,0]
         else: belt_z = [0,0,-122/1000,0,0,0]   
         logging.info(f"belt z: {belt_z} {part_type}") 
 
         #one side needs to be a little bit higher
-        if part_type == 'Big-Blue' and part_y > 0.05: belt_z = [0,0,-114/1000,0,0,0]                 
+        if part_type == 'Big-Blue' and part_y > 0.05: belt_z = [0,0,-116/1000,0,0,0]                 
         
 
         '''STEP 4 PICKUP MOVEMENT'''
