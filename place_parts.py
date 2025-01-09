@@ -428,9 +428,8 @@ class Pack_Box:
         ]
         self.robot.move_l_path(path=path)
 
-        
-        #keyboard.wait('space')    
-        #self.boxing_machine.pause()
+         
+        #self.boxing_machine.self.interface.start_button_pressed()
 
         '''
         self.robot.set_tcp(pickup_tcp)  
