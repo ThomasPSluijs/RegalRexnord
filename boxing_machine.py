@@ -33,8 +33,8 @@ class BoxingMachine:
  
    
         # Initialize pack box and pick parts classes
-        self.pack_box = Pack_Box(box=self.box, part=self.part, robot=self.robot)
-        self.pick_part = Pick_parts(robot=self.robot)
+        self.pack_box = Pack_Box(box=self.box, part=self.part, robot=self.robot, boxing_machine=self)
+        self.pick_part = Pick_parts(robot=self.robot, boxing_machine=self)
 
         # Initialize vision camera class
         self.camera = CameraPosition(robot=self.robot)
