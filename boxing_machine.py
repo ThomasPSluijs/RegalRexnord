@@ -142,7 +142,9 @@ class BoxingMachine:
                         self.total_parts = len(box)
 
 
+                    #pause so parts can be placed safely
                     self.interface.start_button_pressed()
+                    self.wait_if_paused()
 
                     logging.info("Do vision, first wait for space")
                     item_type = 'Holed'
