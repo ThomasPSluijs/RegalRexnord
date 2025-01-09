@@ -105,22 +105,18 @@ class CameraPosition:
                                     xd, yd = self.transform_coordinates(x_left, y_middle, depth)
                                     target_position = [xd, yd, -0.0705907482294739, 2.222, 2.248, 0.004]
                                     logging.info(f"Detected (x, y, z): ({x_left}, {y_middle}, {depth}) -> Calculated TCP Position: {target_position}  conf: {box.conf}")
+
+                                    # Draw box and label on the frame
+                                    cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 0, 0), 2)
+                                    cv2.circle(frame, (x_left, y_middle), 5, (0, 0, 255), -1)
+                                    text = f'X: {x_left}, Y: {y_middle}, Z: {depth:.2f}m'
+                                    cv2.putText(frame, text, (x_left, y_middle - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+                                    text = f'{label} ({box.conf.item():.2f})'
+                                    cv2.putText(frame, text, (bbox[0], bbox[1] - 40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+                                    
                                     with self.frame_lock:  # Update last_frame safely
                                         self.last_frame = frame
                                     return (xd, yd, label)
-
-                            # Draw box and label on the frame
-                            cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 0, 0), 2)
-                            cv2.circle(frame, (x_left, y_middle), 5, (0, 0, 255), -1)
-                            text = f'X: {x_left}, Y: {y_middle}, Z: {depth:.2f}m'
-                            cv2.putText(frame, text, (x_left, y_middle - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-                            text = f'{label} ({box.conf.item():.2f})'
-                            cv2.putText(frame, text, (bbox[0], bbox[1] - 40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-                            
-            # Show the frame
-            cv2.imshow('RealSense Camera Stream', frame)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
 
         return (0, 0, 0)
 
@@ -131,7 +127,7 @@ class CameraPosition:
             return False
 
         distance = np.linalg.norm(np.array(current_coordinates) - np.array(self.previous_coordinates))
-        if distance > 5:
+        if distance > 6:
             self.previous_coordinates = current_coordinates
             self.last_stable_time = time.time()
             return False
