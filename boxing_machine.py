@@ -143,7 +143,7 @@ class BoxingMachine:
                     self.wait_if_paused()  # Pause-safe
 
                     logging.info("Do vision, first wait for space")
-                    keyboard.wait('space')    
+                    self.pause()
                     item_type = 'Holed'
                     x, y, item_type = self.camera.detect_object_without_start()  # Get actual coordinates from vision
 
@@ -164,37 +164,3 @@ class BoxingMachine:
             self.boxes_are_full = True
 
         #self.stop()  # End operations
-
-         
-           
-
-#for testing only  
-if __name__ == '__main__':
-    logging.info("START")
-    
-    # Define configurations
-    robot_ip = "192.168.0.1"
-
-    # Create and start BoxingMachine
-    machine = BoxingMachine(robot_ip)
- 
-    # Start in a separate thread to allow pause/resume control
-    threading.Thread(target=machine.start, daemon=True).start()
-
-    # Start display thread
-    #display_thread = threading.Thread(target=display_frames, args=(machine.camera,), daemon=True) 
-    #display_thread.start() 
-
-    # Listen for pause and resume commands
-    while True:
-        key = keyboard.read_event().name
-        if key == 'p':  # Pause
-            machine.pause()
-        elif key == 'r':  # Resume
-            machine.resume()
-        elif key == 'q':  # Quit
-            logging.info("Quitting...")
-            break
-
-#machine.camera.stop_display_thread()
-#display_thread.join()
