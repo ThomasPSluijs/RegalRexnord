@@ -123,21 +123,9 @@ class Pick_parts():
 
 
         '''start moving etc'''
-        #step 2
-        #rotate around x axis ~20 degrees
-        pose1 = start_pos.copy()
-        pose1 = pose1[:-3]
-        pose2 = rotate_x
-        result_pose = self.robot.pose_trans(pose1, pose2)
-        path_step_2 = result_pose.copy()
-
-        speed_acc_blend = [speed_fast, acc_fast, 0.0]
-        for y in speed_acc_blend:
-            path_step_2 = np.append(path_step_2, y)
-
         #step 1
         #move to part x and part y, apply a offset on the x so the gripper is a bit before the part. also rotate to start rotation(level and aligned)
-        cur_pos = path_step_2.copy()
+        cur_pos = start_pos.copy()
         cur_pos[0] = part_x + part_pos_x_offset
         cur_pos[1] = part_y + part_y_offset
         cur_pos[2] = belt_z[2] + part_z_offset
@@ -151,7 +139,19 @@ class Pick_parts():
         for y in speed_acc_blend:
             path_step_1 = np.append(path_step_1, y)
 
-    
+        
+        #step 2
+        #rotate around x axis ~20 degrees
+        pose1 = path_step_1.copy()
+        pose1 = pose1[:-3]
+        pose2 = rotate_x
+        result_pose = self.robot.pose_trans(pose1, pose2)
+        path_step_2 = result_pose.copy()
+
+        speed_acc_blend = [speed_fast, acc_fast, 0.0]
+        for y in speed_acc_blend:
+            path_step_2 = np.append(path_step_2, y)
+
         
         #step 3
         #move to determined z position (belt z) 
@@ -208,8 +208,8 @@ class Pick_parts():
         self.boxing_machine.wait_if_paused()
         #move path 1 till 6 with pickup tcp
         path = [
-            path_step_2,
             path_step_1,
+            path_step_2,
             path_step_3,
             path_step_4,
             path_step_5,
