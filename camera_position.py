@@ -66,7 +66,7 @@ class CameraPosition:
         return xd, yd
 
     # main function that detects objects and returns the object locations
-    def detect_object_without_start(self, min_length=170,slow=False):
+    def detect_object_without_start(self, min_length=170,slow=False,conveyor=None):
         self.capture_position(slow)
 
         time.sleep(1)
@@ -74,73 +74,75 @@ class CameraPosition:
         not_found = True
         logging.info("start capturing frames")
         while not_found:
-            logging.info("not found parts yet")
-            frames = self.pipeline.wait_for_frames()
-            aligned_frames = self.align.process(frames)
-            color_frame = aligned_frames.get_color_frame()
-            depth_frame = aligned_frames.get_depth_frame()
+            if conveyor.running == False:
+                logging.info("not found parts yet")
 
-            if not color_frame or not depth_frame:
-                continue
+                frames = self.pipeline.wait_for_frames()
+                aligned_frames = self.align.process(frames)
+                color_frame = aligned_frames.get_color_frame()
+                depth_frame = aligned_frames.get_depth_frame()
 
-
-            logging.info("Processing frames...")
-            frame = np.asanyarray(color_frame.get_data())
-            with self.frame_lock:  # Update last_frame safely
-                self.last_frame = frame
-            results = None
-            results = self.detector.detect_objects(frame.copy())
-            
-            #logging.info(f"Detection results 1: {results}")
-            if results is not None:
-                #logging.info(f"Detection results 2: {results}")
-                for result in results:
-                    for box in result.boxes:
-                        if box.conf > 0.8:
-                            bbox = box.xyxy[0].cpu().numpy()
-                            bbox = [int(coord) for coord in bbox[:4]]
-                            x_left = bbox[0]
-                            y_middle = int((bbox[1] + bbox[3]) / 2)
-                            width = bbox[2] - bbox[0]
-                            height = bbox[3] - bbox[1]
-
-                            depth = depth_frame.get_distance(x_left, y_middle)
-
-                            logging.info(f" width * height: {width * height}, depth: {depth}")
+                if not color_frame or not depth_frame:
+                    continue
 
 
-                            #draw box around detected part and draw circle at pickup point
-                            cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 0, 0), 2)
-                            cv2.circle(frame, (x_left, y_middle), 5, (0, 0, 255), -1)
+                logging.info("Processing frames...")
+                frame = np.asanyarray(color_frame.get_data())
+                with self.frame_lock:  # Update last_frame safely
+                    self.last_frame = frame
+                results = None
+                results = self.detector.detect_objects(frame.copy())
+                
+                #logging.info(f"Detection results 1: {results}")
+                if results is not None:
+                    #logging.info(f"Detection results 2: {results}")
+                    for result in results:
+                        for box in result.boxes:
+                            if box.conf > 0.8:
+                                bbox = box.xyxy[0].cpu().numpy()
+                                bbox = [int(coord) for coord in bbox[:4]]
+                                x_left = bbox[0]
+                                y_middle = int((bbox[1] + bbox[3]) / 2)
+                                width = bbox[2] - bbox[0]
+                                height = bbox[3] - bbox[1]
 
-                            #put text with coordiantes at the circle
-                            text = f'X: {x_left}, Y: {y_middle}, Z: {depth:.2f}m'
-                            cv2.putText(frame, text, (x_left, y_middle - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+                                depth = depth_frame.get_distance(x_left, y_middle)
 
-                            #put label (item_type) on screen
-                            label = self.labels[int(box.cls[0])]
-                            confidence = box.conf.item()
-                            text = f'{label} ({confidence:.2f})'
-                            cv2.putText(frame, text, (bbox[0], bbox[1] - 40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-                            logging.info(f"item type: {label}")
+                                logging.info(f" width * height: {width * height}, depth: {depth}")
 
-                            with self.frame_lock:  # Update last_frame safely
-                                self.last_frame = frame
-                            
-                            #length check and area check and label
-                            length = max(width, height)
-                            if label == 'Big-Blue' or label == 'Green' or label == 'Holed' or label == 'Rubber' or label == 'Small-Blue':
-                                if length >= min_length and width * height < 75000:
-                                    xd, yd = self.transform_coordinates(x_left, y_middle, depth)
-                                    target_position = [xd, yd, -0.0705907482294739, 2.222, 2.248, 0.004]
 
-                                    print(f"Detected (x, y, z): ({x_left}, {y_middle}, {depth}) -> Calculated TCP Position: {target_position}  conf: {box.conf}")
+                                #draw box around detected part and draw circle at pickup point
+                                cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 0, 0), 2)
+                                cv2.circle(frame, (x_left, y_middle), 5, (0, 0, 255), -1)
 
-                                    not_found = False
+                                #put text with coordiantes at the circle
+                                text = f'X: {x_left}, Y: {y_middle}, Z: {depth:.2f}m'
+                                cv2.putText(frame, text, (x_left, y_middle - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+
+                                #put label (item_type) on screen
+                                label = self.labels[int(box.cls[0])]
+                                confidence = box.conf.item()
+                                text = f'{label} ({confidence:.2f})'
+                                cv2.putText(frame, text, (bbox[0], bbox[1] - 40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+                                logging.info(f"item type: {label}")
+
+                                with self.frame_lock:  # Update last_frame safely
+                                    self.last_frame = frame
                                 
-                                    with self.frame_lock:  # Update last_frame safely
-                                        self.last_frame = frame
-                                    return (xd, yd, label)
+                                #length check and area check and label
+                                length = max(width, height)
+                                if label == 'Big-Blue' or label == 'Green' or label == 'Holed' or label == 'Rubber' or label == 'Small-Blue':
+                                    if length >= min_length and width * height < 75000:
+                                        xd, yd = self.transform_coordinates(x_left, y_middle, depth)
+                                        target_position = [xd, yd, -0.0705907482294739, 2.222, 2.248, 0.004]
+
+                                        print(f"Detected (x, y, z): ({x_left}, {y_middle}, {depth}) -> Calculated TCP Position: {target_position}  conf: {box.conf}")
+
+                                        not_found = False
+                                    
+                                        with self.frame_lock:  # Update last_frame safely
+                                            self.last_frame = frame
+                                        return (xd, yd, label)
 
         return (0, 0, 0)
     
