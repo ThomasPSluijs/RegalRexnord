@@ -8,6 +8,7 @@ import threading
 import logging
 import numpy as np
 from conveyor import Conveyor
+import cv2
 
 
 logging.basicConfig(
@@ -150,6 +151,7 @@ class UserInterface:
                 if camera_position.last_frame is not None:
                     numpy_image = camera_position.last_frame.copy()
             if numpy_image is not None:
+                rgb_image = cv2.cvtColor(numpy_image, cv2.COLOR_BGR2RGB)
                 pil_image = Image.fromarray(numpy_image)
                 self.my_image = customtkinter.CTkImage(light_image=pil_image, size=(640/self.camscale, 420/self.camscale))
                 self.image_label.configure(image=self.my_image)
