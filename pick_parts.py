@@ -19,39 +19,6 @@ class Pick_parts():
 
     #picks parts from given x and y coordinate. y = center of part along y axis. x = edge of part closest to the robot
     def pick_parts(self, part_x, part_y,part_type='Green'):
-        
-
-        if part_y > 0.05: part_x += 16/1000 
-        else: part_x += 20/1000
-
-        #belt z location (should be )
-        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': belt_z = [0,0,-124/1000,0,0,0]
-        elif part_type == 'Big-BLue': belt_z = [0,0,-119/1000,0,0,0]
-        else: belt_z = [0,0,-122/1000,0,0,0]   
-        logging.info(f"belt z: {belt_z} {part_type}") 
-
-        if part_type == 'Big-Blue' and part_y > 0.05: belt_z = [0,0,-118/1000,0,0,0]                 
-        
-
-
-        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': rotate = -30
-        else: rotate = -23
-        rotate_x = [0,0,0,math.radians(rotate),math.radians(0),math.radians(0)]   #rotation about x axis of tool  
-        
-
-        part_pos_x_offset = 0.015                                #x offset so gripper starts before parts and does not crash down when going down
-        part_pos_x_offset_2 = 0.0000                                #x offset so gripper does not go into wall #was 0.0245
-        
-        
-        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': part_length = 0.172
-        elif part_type == 'Big-Blue': part_length = 0.176
-        else: part_length = 0.174
-        
-  
-        #total x movement when tool is rotated and aligned to pick up the parts. moves partlength + offset
-        move_x = [-part_length-part_pos_x_offset+part_pos_x_offset_2,0,0,0,0,0]  
-
-
         #fast and slow speeds and accelerations. fast for general movements, slow for special movements. 
         speed_fast = 3
         acc_fast = 3
@@ -59,44 +26,93 @@ class Pick_parts():
         speed_middle = 1
         acc_middle = 1
 
-        speed_slow = 0.25
-        acc_slow = 0.25
+        speed_slow = 0.3
+        acc_slow = 0.3
+
+
+        #part_x offset, one side needs a little bit more than the other side (or tune the camera calibration)
+        if part_y > 0.05: part_x += 16/1000 
+        else: part_x += 20/1000
+
+
+
+        #part length, some parts are a bit shorter so robot has to move less
+        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': part_length = 0.172
+        elif part_type == 'Big-Blue': part_length = 0.176
+        else: part_length = 0.174
+
+
+
+        '''STEP 1 MOVE TO PART X,Y AND Z A BIT ABOVE THE PART'''
+        part_y_offset = 10/1000 + 15/1000 #y offset so there is a bit of clearance.
+        part_pos_x_offset = 0.010  #x offset so gripper starts before parts and does not crash down when going down. also used in step 4
+        part_z_offset = 100/1000  #z offset so gripper starts a bit above the part
+
+
+        '''STEP 2 ROTATION'''
+        #rotation about x of tool, for narrow parts the rotation needs to be a bit more
+        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': rotate = -30
+        else: rotate = -23
+        rotate_x = [0,0,0,math.radians(rotate),math.radians(0),math.radians(0)]   
+
+
+        '''STEP 3 Z LOCATION'''
+        #belt z location, for some parts the gripper needs to be a little bit higher or lower
+        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': belt_z = [0,0,-124/1000,0,0,0]
+        elif part_type == 'Big-BLue': belt_z = [0,0,-119/1000,0,0,0]
+        else: belt_z = [0,0,-122/1000,0,0,0]   
+        logging.info(f"belt z: {belt_z} {part_type}") 
+
+        #one side needs to be a little bit higher
+        if part_type == 'Big-Blue' and part_y > 0.05: belt_z = [0,0,-118/1000,0,0,0]                 
+        
+
+        '''STEP 4 PICKUP MOVEMENT'''
+        #total x movement when tool is rotated and aligned to pick up the parts. moves partlength + offset
+        move_x = [-part_length-part_pos_x_offset,0,0,0,0,0]  
+
+
+        '''STEP 5 MOVE BACK A BIT WHILE ROTATING BACK'''
+        #small x offset for narrow parts
+        if part_type != 'Big-BLue' and part_type != 'Holed': step_5_x_back = 5/1000                               
+        step_5_x_back = 0/1000
+
+
+        '''STEP 6 MOVE BACK A BIT MORE'''
+        if part_type != 'Big-Blue' and part_type != 'Holed': step_6_x_back=[7/1000,0,0,0,0,0]
+        else: step_6_x_back=[2/1000,0,0,0,0,0]
+
 
 
 
         #tcp section
         pickup_tcp = [-47.5/1000,-140/1000,135/1000,0,0,0]  #edge of part (x=centerpart, y=edge)
-
         rotate_tcp = [-47.5/1000, 42/1000, 135/1000, 0, 0, 0]
-
         self.robot.set_tool_frame(pickup_tcp)
 
 
+
+        #start rotation, this is aligned to the belt
         start_rotation = [2.230, 2.209, 0.013]
 
 
 
-        '''start moving etc'''
+        #get current robot position
         self.robot.set_tcp(pickup_tcp)
         speed_acc_blend = [1,1,0.45]
         start_pos = self.robot.get_tcp_pos()
         for y in speed_acc_blend:
             start_pos.append(y)
 
-        #move to take pic pos
-        target_position = [-0.6639046352765678, -0.08494527187802497, 0.529720350746548, 2.222, 2.248, 0.004]
-        path_step_0 = target_position.copy()
-        speed_acc_blend = [speed_fast, acc_fast, 0.0]
-        for y in speed_acc_blend:
-            path_step_0 = np.append(path_step_0, y)
 
 
+        '''start moving etc'''
         #step 1
         #move to part x and part y, apply a offset on the x so the gripper is a bit before the part. also rotate to start rotation(level and aligned)
         cur_pos = start_pos.copy()
         cur_pos[0] = part_x + part_pos_x_offset
-        cur_pos[1] = part_y + 10/1000 + 15/1000
-        cur_pos[2] = belt_z[2] + 100/1000
+        cur_pos[1] = part_y + part_y_offset
+        cur_pos[2] = belt_z[2] + part_z_offset
         cur_pos[3] = start_rotation[0]
         cur_pos[4] = start_rotation[1]
         cur_pos[5] = start_rotation[2]
@@ -153,8 +169,7 @@ class Pick_parts():
         pose2 = rotate_x
         rotate_x[3] *= -1
         result_pose = self.robot.pose_trans(pose1, pose2)
-        if part_type != 'Big-BLue': result_pose[0] += 5/1000                               
-        result_pose[2] += 0/1000
+        result_pose[0] += step_5_x_back
 
         path_step_5 = result_pose.copy()
         speed_acc_blend = [speed_middle, acc_middle, 0.0]
@@ -164,11 +179,9 @@ class Pick_parts():
 
         #step 6
         #move back relative
-        if part_type != 'Big-Blue': relative_move=[7/1000,0,0,0,0,0]
-        else: relative_move=[2/1000,0,0,0,0,0]
         cur_pos = path_step_5.copy()
         cur_pos = cur_pos[:-3]
-        new_linear_move = [cur_pos[i] +  relative_move[i] for i in range(6)]
+        new_linear_move = [cur_pos[i] +  step_6_x_back[i] for i in range(6)]
 
         path_step_6 = new_linear_move.copy()
         speed_acc_blend = [speed_middle, 0.1, 0.0]
@@ -178,7 +191,6 @@ class Pick_parts():
 
         #move path 1 till 6 with pickup tcp
         path = [
-            #path_step_0,
             path_step_1,
             path_step_2,
             path_step_3,
@@ -194,7 +206,6 @@ class Pick_parts():
         '''
         #move path 1 till 6 with pickup tcp
         path = [
-            #path_step_0,
             #path_step_1,
             #path_step_2,
             #path_step_3,
