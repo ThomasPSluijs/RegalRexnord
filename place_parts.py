@@ -116,7 +116,7 @@ class Pack_Box:
                         z_pos_offset = -3/1000
                         # Third part (bottom left)
                         if box_index == 0:
-                            x_pos = box_center[0] - self.box_length / 2 + self.part_width / 2 + 0.008  # x positive for further away from box edge
+                            x_pos = box_center[0] - self.box_length / 2 + self.part_width / 2 + 0.010  # x positive for further away from box edge
                             y_pos = box_center[1] + self.box_width / 2 - self.part_length / 2 - 0.012 - place_extra_offset  # y negative for further away from place side
                             rotation = 90
                         elif box_index == 1:
@@ -128,7 +128,7 @@ class Pack_Box:
                         # Fourth part (bottom right)
                         if box_index == 0:
                             x_pos = box_center[0] + self.box_length / 2 - self.part_length / 2 - 0.013 - place_extra_offset  # x negative for further away from place side
-                            y_pos = box_center[1] + self.box_width / 2 - self.part_width / 2 - 0.014  # y negative for further away from box edge
+                            y_pos = box_center[1] + self.box_width / 2 - self.part_width / 2 - 0.016  # y negative for further away from box edge
                             rotation = 180
                         elif box_index == 1:
                             x_pos = box_center[0] + self.box_length / 2 - self.part_length / 2 - 0.000 - place_extra_offset # x negative for further away from place side
