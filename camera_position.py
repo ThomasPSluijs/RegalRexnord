@@ -78,7 +78,7 @@ class CameraPosition:
         return delta > 5
 
     # main function that detects objects and returns the object locations
-    def detect_object_without_start(self, min_length=170,slow=False):
+    def detect_object_without_start(self, min_length=170,slow=False,conveyor=None):
         self.capture_position(slow)
 
         time.sleep(1)
