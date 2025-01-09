@@ -40,7 +40,7 @@ class UserInterface:
 
         '''setup robot and machine class'''
         robot_ip = "192.168.0.1"  #Define ip
-        #self.machine = BoxingMachine(robot_ip) #Create and start BoxingMachine
+        self.machine = BoxingMachine(robot_ip) #Create and start BoxingMachine
 
 
         self.setup_ui() #setup UI
@@ -51,12 +51,12 @@ class UserInterface:
 
         '''start display thread to start showing images'''
         #start display thread
-        #self.display_thread = threading.Thread(target=self.update_live_feed, args=(self.machine.camera,), daemon=True) 
-        #self.display_thread.start() 
+        self.display_thread = threading.Thread(target=self.update_live_feed, args=(self.machine.camera,), daemon=True) 
+        self.display_thread.start() 
 
         #start update placementes thread. looks for updates regarding the placing of parts
-        #self.update_placements_thread = threading.Thread(target=self.update_placements, daemon=True)
-        #self.update_placements_thread.start()
+        self.update_placements_thread = threading.Thread(target=self.update_placements, daemon=True)
+        self.update_placements_thread.start()
 
 
 
