@@ -112,26 +112,29 @@ class CameraPosition:
 
                             if label in ['Big-Blue', 'Green', 'Holed', 'Rubber', 'Small-Blue'] and length >= min_length and width * height < 75000:
                                 current_coordinates = (x_left, y_middle)
-                                if self.is_stable(current_coordinates):
-                                    logging.info("stable")
-                                    xd, yd = self.transform_coordinates(x_left, y_middle, depth)
-                                    logging.info(f"Detected (x, y, z): ({x_left}, {y_middle}, {depth}) conf: {box.conf}")
+                                if x_left > -0.750 and  x_left < 0.373 and y_middle > -0.168 and y_middle < 0.131: #maximium x value for safety purposes
+                                    if self.is_stable(current_coordinates):
+                                        logging.info("stable")
+                                        xd, yd = self.transform_coordinates(x_left, y_middle, depth)
+                                        logging.info(f"Detected (x, y, z): ({x_left}, {y_middle}, {depth}) conf: {box.conf}")
 
-                                    # Draw box and label on the frame
-                                    cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 0, 0), 2)
-                                    cv2.circle(frame, (x_left, y_middle), 5, (0, 0, 255), -1)
-                                    text = f'X: {x_left}, Y: {y_middle}, Z: {depth:.2f}m'
-                                    cv2.putText(frame, text, (x_left, y_middle - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-                                    text = f'{label} ({box.conf.item():.2f})'
-                                    cv2.putText(frame, text, (bbox[0], bbox[1] - 40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+                                        # Draw box and label on the frame
+                                        cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 0, 0), 2)
+                                        cv2.circle(frame, (x_left, y_middle), 5, (0, 0, 255), -1)
+                                        text = f'X: {x_left}, Y: {y_middle}, Z: {depth:.2f}m'
+                                        cv2.putText(frame, text, (x_left, y_middle - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+                                        text = f'{label} ({box.conf.item():.2f})'
+                                        cv2.putText(frame, text, (bbox[0], bbox[1] - 40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
 
-                                    not_found = False
+                                        not_found = False
 
-                                    with self.frame_lock:  # Update last_frame safely
-                                        self.last_frame = frame
-                                    return (xd, yd, label)
+                                        with self.frame_lock:  # Update last_frame safely
+                                            self.last_frame = frame
+                                        return (xd, yd, label)
+                                    else:
+                                        logging.info("not stable")
                                 else:
-                                    logging.info("not stable")
+                                    logging.error("part out of reach")
 
         return (0, 0, 0)
 
