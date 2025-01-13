@@ -55,17 +55,23 @@ class CameraPosition:
         self.row_threshold = 6  # Stability threshold in pixels
         self.row_gap_threshold = 50  # Distance to separate rows (adjust as necessary)
 
+        # Define new capture positions
+        self.capture_positions = {
+            "belt": [-0.6639046352765678, -0.08494527187802497, 0.529720350746548, 2.222, 2.248, 0.004],
+            "box1": [-0.5, 0.2, 0.5, 2.222, 2.248, 0.004],  # Example positions, adjust as needed
+            "box2": [-0.5, -0.2, 0.5, 2.222, 2.248, 0.004]  # Example positions, adjust as needed
+        }
     # moves robot to capture position
-    def capture_position(self, slow=False):
-        pickup_tcp = [-47.5 / 1000, -140 / 1000, 135 / 1000, math.radians(0), math.radians(0), math.radians(0)]
-        self.robot.set_tcp(pickup_tcp)
-
-        target_position = [-0.6639046352765678, -0.08494527187802497, 0.529720350746548, 2.222, 2.248, 0.004]
-        if slow:
-            logging.info("check part type, move to camera position")
-            self.robot.move_l(target_position, 0.3, 0.3)
-        else:
-            self.robot.move_l(target_position, 3, 3)
+        def move_to_capture_position(self, position_name, slow=False):
+            pickup_tcp = [-47.5 / 1000, -140 / 1000, 135 / 1000, math.radians(0), math.radians(0), math.radians(0)]
+            self.robot.set_tcp(pickup_tcp)
+    
+            target_position = self.capture_positions[position_name]
+            if slow:
+                logging.info(f"Moving to {position_name} position")
+                self.robot.move_l(target_position, 0.3, 0.3)
+            else:
+                self.robot.move_l(target_position, 3, 3)
 
     # transform camera coordinates to real world (robot) coordinates
     def transform_coordinates(self, xp, yp, zp):
@@ -74,74 +80,80 @@ class CameraPosition:
 
         xd = a * xp + b * yp + c
         yd = d * xp + e * yp + f
+        zd = zp 
 
-        return xd, yd
+        return xd, yd, zd
 
     # main function that detects objects and returns the object locations
     def detect_object_without_start(self, min_length=170, slow=False):
-        self.capture_position(slow)
-        time.sleep(0.3)
-        not_found = True
-        logging.info("start capturing frames")
-        while not_found:
-            self.boxing_machine.wait_if_paused()
-            frames = self.pipeline.wait_for_frames()
-            aligned_frames = self.align.process(frames)
-            color_frame = aligned_frames.get_color_frame()
-            depth_frame = aligned_frames.get_depth_frame()
+        capture_points = ["belt", "box1", "box2"]
+        for point in capture_points:
+            self.move_to_capture_position(point, slow)
+            time.sleep(0.3)
+            not_found = True
+            logging.info(f"Start capturing frames at {point}")
+            while not_found:
+                self.boxing_machine.wait_if_paused()
+                frames = self.pipeline.wait_for_frames()
+                aligned_frames = self.align.process(frames)
+                color_frame = aligned_frames.get_color_frame()
+                depth_frame = aligned_frames.get_depth_frame()
 
-            if not color_frame or not depth_frame:
-                continue
+                if not color_frame or not depth_frame:
+                    continue
 
-            frame = np.asanyarray(color_frame.get_data())
-            with self.frame_lock:  # Update last_frame safely
-                self.last_frame = frame
-            results = self.detector.detect_objects(frame.copy())
+                frame = np.asanyarray(color_frame.get_data())
+                with self.frame_lock:
+                    self.last_frame = frame
 
-        
-            if results is not None:
-                for result in results:
-                    for box in result.boxes:
-                        if box.conf > 0.8:
-                            bbox = box.xyxy[0].cpu().numpy()
-                            bbox = [int(coord) for coord in bbox[:4]]
-                            x_left = bbox[0]
-                            y_middle = int((bbox[1] + bbox[3]) / 2)
-                            width = bbox[2] - bbox[0]
-                            height = bbox[3] - bbox[1]
-                            depth = depth_frame.get_distance(x_left, y_middle)
-                            label = self.labels[int(box.cls[0])]
-                            length = max(width, height)
+                if self.check_for_hand(frame):
+                    logging.info("Hand detected! Pausing operations...")
+                    self.boxing_machine.pause()
+                    continue
 
-                            if label in ['Big-Blue', 'Green', 'Holed', 'Rubber', 'Small-Blue'] and length >= min_length and width * height < 75000:
-                                current_coordinates = (x_left, y_middle)
-                                if self.is_stable(current_coordinates):
-                                    logging.info("stable")
-                                    xd, yd = self.transform_coordinates(x_left, y_middle, depth)
-                                    logging.info(f"Detected (x, y, z): ({x_left}, {y_middle}, {depth}) conf: {box.conf}")
+                results = self.detector.detect_objects(frame.copy())
 
-                                    if xd > -0.750 and  xd < -0.41 and yd > -0.152 and yd < 0.095: #maximium x value for safety purposes
-                                        # Draw box and label on the frame
-                                        cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 0, 0), 2)
-                                        cv2.circle(frame, (x_left, y_middle), 5, (0, 0, 255), -1)
-                                        text = f'X: {x_left}, Y: {y_middle}, Z: {depth:.2f}m'
-                                        cv2.putText(frame, text, (x_left, y_middle - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-                                        text = f'{label} ({box.conf.item():.2f})'
-                                        cv2.putText(frame, text, (bbox[0], bbox[1] - 40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+                if results is not None:
+                    for result in results:
+                        for box in result.boxes:
+                            if box.conf > 0.8:
+                                bbox = box.xyxy[0].cpu().numpy()
+                                bbox = [int(coord) for coord in bbox[:4]]
+                                x_left = bbox[0]
+                                y_middle = int((bbox[1] + bbox[3]) / 2)
+                                width = bbox[2] - bbox[0]
+                                height = bbox[3] - bbox[1]
+                                depth = depth_frame.get_distance(x_left, y_middle)  # Get depth value
+                                label = self.labels[int(box.cls[0])]
+                                length = max(width, height)
 
-                                        not_found = False
+                                if self.detector.is_bad_placement(label):
+                                    logging.info("Bad placement detected!")
+                                    return True
 
-                                        with self.frame_lock:  # Update last_frame safely
-                                            self.last_frame = frame
-                                        return (xd, yd, label)
+                                if label in ['Big-Blue', 'Green', 'Holed', 'Rubber', 'Small-Blue'] and length >= min_length and width * height < 75000:
+                                    current_coordinates = (x_left, y_middle)
+                                    if self.is_stable(current_coordinates):
+                                        logging.info("Stable")
+                                        xd, yd, zd = self.transform_coordinates(x_left, y_middle, depth)  # Transform coordinates
+                                        logging.info(f"Detected (x, y, z): ({x_left}, {y_middle}, {depth}) conf: {box.conf}")
+
+                                        if xd > -0.750 and xd < -0.41 and yd > -0.152 and yd < 0.095:
+                                            cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 0, 0), 2)
+                                            text = f'X: {x_left}, Y: {y_middle}, Z: {depth:.2f}m'
+                                            cv2.putText(frame, text, (x_left, y_middle - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+                                            text = f'{label} ({box.conf.item():.2f})'
+                                            cv2.putText(frame, text, (bbox[0], bbox[1] - 40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+
+                                            not_found = False
+                                            with self.frame_lock:
+                                                self.last_frame = frame
+                                            return (xd, yd, zd, label)
+                                        else:
+                                            logging.error("Part out of reach")
                                     else:
-                                        logging.error("part out of reach")
-                                else:
-                                    logging.info("not stable")
-
-        return (0, 0, 0)
-
-
+                                        logging.info("Not stable")
+        return (0, 0, 0, "")
 
     def is_stable(self, current_coordinates):
         """Check stability separately for two rows."""
@@ -184,6 +196,31 @@ class CameraPosition:
 
     def stop_display_thread(self):
         self.display_thread_running = False
+
+    def inspect_box_for_bad_placement(self):
+        frames = self.pipeline.wait_for_frames()
+        aligned_frames = self.align.process(frames)
+        color_frame = aligned_frames.get_color_frame()
+        depth_frame = aligned_frames.get_depth_frame()
+
+        if not color_frame or not depth_frame:
+            return False
+
+        frame = np.asanyarray(color_frame.get_data())
+        with self.frame_lock:
+            self.last_frame = frame
+
+        results = self.detector.detect_objects(frame.copy())
+
+        if results is not None:
+            for result in results:
+                for box in result.boxes:
+                    if box.conf > 0.8:
+                        label = self.labels[int(box.cls[0])]
+                        if self.detector.is_bad_placement(label):
+                            logging.info("Bad placement detected in the box!")
+                            return True
+        return False
 
 # runs yolo model and detects objects
 class ObjectDetector:
