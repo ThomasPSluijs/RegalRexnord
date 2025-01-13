@@ -50,7 +50,7 @@ class UserInterface:
 
         '''setup robot and machine class'''
         robot_ip = "192.168.0.1"  #Define ip
-        self.machine = BoxingMachine(robot_ip, interface=self) #Create and start BoxingMachine
+        #self.machine = BoxingMachine(robot_ip, interface=self) #Create and start BoxingMachine
 
         '''start conveyer'''
         #self.conveyor = Conveyor()
@@ -66,12 +66,12 @@ class UserInterface:
 
         '''start display thread to start showing images'''
         #start display thread
-        self.display_thread = threading.Thread(target=self.update_live_feed, args=(self.machine.camera,), daemon=True) 
-        self.display_thread.start() 
+        #self.display_thread = threading.Thread(target=self.update_live_feed, args=(self.machine.camera,), daemon=True) 
+        #self.display_thread.start() 
 
         #start update placementes thread. looks for updates regarding the placing of parts
-        self.update_placements_thread = threading.Thread(target=self.update_placements, daemon=True)
-        self.update_placements_thread.start()
+        #self.update_placements_thread = threading.Thread(target=self.update_placements, daemon=True)
+        #self.update_placements_thread.start()
 
 
 
@@ -179,7 +179,7 @@ class UserInterface:
 
         # Configure window
         self.root.attributes("-fullscreen", True)       #should be true and uncommented
-        #self.root.geometry('1024x600')                      #should be deleted
+        self.root.geometry('1024x600')                      #should be deleted
         self.root.configure(bg='gray14')
 
         # Setup close event
