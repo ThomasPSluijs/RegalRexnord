@@ -164,6 +164,10 @@ class BoxingMachine:
                     logging.info(f"x: {x}   y: {y}   item_type: {item_type}")
 
                     logging.info("pickup part")
+                    if self.stop_main_loop:  # Check after potentially long operations
+                        self.stop_main_loop = False
+                        logging.info("Stopping main loop due to stop signal.")
+                        return
                     self.wait_if_paused()
                     if self.stop_main_loop:  # Check after potentially long operations
                         self.stop_main_loop = False

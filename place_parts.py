@@ -228,7 +228,7 @@ class Pack_Box:
         '''step 8: perform placing movement. because box higher in the middle, move z a bit up'''
         offset_step_8=157    #should be 175
         if part_type == 'Big-Blue' or part_type == 'Holed': z_offset_step_8 = 3
-        elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': z_offset_step_8 = 2
+        elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': z_offset_step_8 = 5
 
 
         '''STEP 9: rotate more about x for last placing movement'''
