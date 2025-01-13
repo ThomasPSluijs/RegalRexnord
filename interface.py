@@ -122,7 +122,7 @@ class UserInterface:
         self.update_status("Stopped")
 
         #pause boxing machine. pausing for now instead of stopping
-        self.machine.pause()
+        #self.machine.pause()
 
 
         #change pause button
