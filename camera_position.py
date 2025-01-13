@@ -83,7 +83,9 @@ class CameraPosition:
         time.sleep(0.3)
         not_found = True
         logging.info("start capturing frames")
+
         while not_found:
+            logging.info("not found yet")
             self.boxing_machine.wait_if_paused()
             if self.boxing_machine.stop_main_loop:
                 return (0,0,0)
