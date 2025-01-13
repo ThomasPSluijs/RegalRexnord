@@ -64,7 +64,7 @@ class Pick_parts():
 
         '''STEP 2 ROTATION'''
         #rotation about x of tool, for narrow parts the rotation needs to be a bit more
-        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': rotate = -30
+        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': rotate = -34
         else: rotate = -23
         rotate_x = [0,0,0,math.radians(rotate),math.radians(0),math.radians(0)]   
 
