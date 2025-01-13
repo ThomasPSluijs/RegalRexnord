@@ -85,6 +85,9 @@ class CameraPosition:
         logging.info("start capturing frames")
         while not_found:
             self.boxing_machine.wait_if_paused()
+            if self.boxing_machine.stop_main_loop:
+                return (0,0,0)
+            
             frames = self.pipeline.wait_for_frames()
             aligned_frames = self.align.process(frames)
             color_frame = aligned_frames.get_color_frame()

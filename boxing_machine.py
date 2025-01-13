@@ -50,6 +50,8 @@ class BoxingMachine:
         self.boxes_are_full = False
         self.thread_lock = threading.Lock()
 
+        self.stop_main_loop = False
+
     def pause(self):
         logging.info("Pausing operations...")
         self.pause_event.clear()
@@ -78,6 +80,7 @@ class BoxingMachine:
     def wait_if_paused(self):
         #logging.info("Waiting if paused...")
         if self.interface.stopped: 
+            self.stop_main_loop = True
             self.interface.stopped = False
             return
         self.pause_event.wait()  # Block if paused
@@ -125,12 +128,21 @@ class BoxingMachine:
         count = 0
 
         self.boxes_are_full = False
-    
-        box_index = 0 
+
+        box_index = 0
         for box in filled_boxes:
+            if self.stop_main_loop:  # Check if stop signal is set
+                logging.info("Stopping main loop due to stop signal.")
+                return  # Exit the function immediately
+
             with self.thread_lock:
                 self.current_box = box_index
+
             for part in box:
+                if self.stop_main_loop:  # Check if stop signal is set
+                    logging.info("Stopping main loop due to stop signal.")
+                    return  # Exit the function immediately
+
                 if count < tot_parts:
                     logging.info(f"Processing part: {part}")
 
@@ -140,21 +152,36 @@ class BoxingMachine:
 
                     logging.info("Do vision")
                     self.wait_if_paused()
+                    if self.stop_main_loop:  # Check after potentially long operations
+                        logging.info("Stopping main loop due to stop signal.")
+                        return
+
                     x, y, item_type = self.camera.detect_object_without_start()  # Get actual coordinates from vision
                     logging.info(f"x: {x}   y: {y}   item_type: {item_type}")
- 
+
                     logging.info("pickup part")
-                    self.wait_if_paused()  # Pause-safe
-                    self.pick_part.pick_parts(x, y,part_type=item_type)  # Uncomment when ready
-                    
+                    self.wait_if_paused()
+                    if self.stop_main_loop:  # Check after potentially long operations
+                        logging.info("Stopping main loop due to stop signal.")
+                        return
+
+                    self.pick_part.pick_parts(x, y, part_type=item_type)  # Uncomment when ready
+
                     logging.info("Place part")
-                    self.wait_if_paused()  # Pause-safe
+                    self.wait_if_paused()
+                    if self.stop_main_loop:  # Check after potentially long operations
+                        logging.info("Stopping main loop due to stop signal.")
+                        return
+
                     self.pack_box.place_part(part, part_type=item_type)  # Uncomment when ready
 
                     count += 1
+
             box_index += 1
 
         with self.thread_lock:
             self.boxes_are_full = True
+
+        self.stop_main_loop = False
 
         #self.stop()  # End operations

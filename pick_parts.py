@@ -207,8 +207,13 @@ class Pick_parts():
         for y in speed_acc_blend:
             path_step_6 = np.append(path_step_6, y)
 
-
+        
+        
+        if self.boxing_machine.stop_main_loop:
+            return 
         self.boxing_machine.wait_if_paused()
+        if self.boxing_machine.stop_main_loop:
+            return 
         #move path 1 till 6 with pickup tcp
         path = [
             path_step_1,
@@ -289,7 +294,8 @@ class Pick_parts():
             path_step_10 = np.append(path_step_10, y)
 
 
-
+        if self.boxing_machine.stop_main_loop:
+            return 
         self.boxing_machine.wait_if_paused()
         path = [
             path_step_8,
@@ -299,6 +305,11 @@ class Pick_parts():
         self.robot.move_l_path(path=path)
         '''end pickup tcp'''
 
+
+        if self.boxing_machine.stop_main_loop:
+            return 
         self.boxing_machine.wait_if_paused()
+        if self.boxing_machine.stop_main_loop:
+            return 
 
   
