@@ -45,12 +45,12 @@ class Pick_parts():
         else: 
             if part_type == 'Big-Blue' or part_type == 'Holed':
                 part_x += 25/1000     #move bit less. furthes to boxes
-            else: part_x += 25/1000
+            else: part_x += 22/1000
 
 
 
         #part length, some parts are a bit shorter so robot has to move less
-        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': part_length = 0.165
+        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': part_length = 0.170
         elif part_type == 'Big-Blue': part_length = 0.176
         else: part_length = 0.174
 

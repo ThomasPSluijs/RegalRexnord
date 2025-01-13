@@ -80,6 +80,7 @@ class UserInterface:
     def start_button_pressed(self):
         #start packing
         if self.start_button == True:
+            logging.info("start/resume button pressed")
             self.update_status("running/packing")
 
             self.hoisting_mode.configure(state="disabled")
