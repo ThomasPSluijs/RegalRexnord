@@ -90,12 +90,13 @@ class UserInterface:
             self.start_but.configure(text=self.start_button_msg, fg_color=self.start_button_color, hover_color=self.start_button_color)
 
             #calls a thread to start running the machine. if started before, just resume
-            if not self.started_before: 
-                self.machine_run_t = threading.Thread(target=self.machine_run_wrapper, daemon=True)
+            if self.started_before == False: 
+                logging.info("start new machine thread!")
+                self.machine_run_t = threading.Thread(target=self.machine.run, daemon=True)
                 self.machine_run_t.start()
             else: self.machine.resume()
 
-            if not self.started_before: self.started_before=True
+            if self.started_before == False: self.started_before=True
 
             self.start_button = False
 
@@ -117,7 +118,7 @@ class UserInterface:
 
     #check if stop button pressed
     def stop_button_pressed(self):
-        self.update_status("paused")
+        self.update_status("Stopped")
 
         #pause boxing machine. pausing for now instead of stopping
         self.machine.pause()
@@ -131,11 +132,10 @@ class UserInterface:
         self.start_but.configure(text=self.start_button_msg, fg_color=self.start_button_color, hover_color=self.start_button_color)
         self.start_button = True
 
-
         self.update_status("stopped: replace boxes before starting")
         self.started_before = False
         self.stopped = True
-        self.stop_event.set()
+        #self.stop_event.set()
 
 
     '''update placementes of parts on the display'''
