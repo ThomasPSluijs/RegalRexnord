@@ -92,7 +92,7 @@ class UserInterface:
             #calls a thread to start running the machine. if started before, just resume
             if self.started_before == False: 
                 logging.info("start new machine thread!")
-                self.machine_run_t = threading.Thread(target=self.machine.run, daemon=True)
+                self.machine_run_t = threading.Thread(target=self.machine.start, daemon=True)
                 self.machine_run_t.start()
             else: self.machine.resume()
 
