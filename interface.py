@@ -41,7 +41,7 @@ class UserInterface:
         self.start_button_color = self.button_color 
 
         self.leftbar_button_width = 160
-        self.camscale = 1.1
+        self.camscale = 1
 
         self.machine_run_t = None #placeholder for machine thread
         self.stop_event = threading.Event() #event to signal thread to stop
@@ -193,7 +193,7 @@ class UserInterface:
 
         # Configure window
         self.root.attributes("-fullscreen", True)       #should be true and uncommented
-        self.root.geometry('1024x600')                      #should be deleted
+        #self.root.geometry('1024x600')                      #should be deleted
         self.root.configure(bg='gray14')
 
         # Setup close event
