@@ -117,14 +117,24 @@ class UserInterface:
 
     #check if stop button pressed
     def stop_button_pressed(self):
-         self.start_button_pressed()
-         self.update_status("stopped: replace boxes before starting")
-         self.stopped = True
-         self.stop_event.set()
+        self.update_status("paused")
 
-         self.hoisting_mode.configure(state="enabled")
-         self.running_mode.configure(state="enabled")         
+        #pause boxing machine. pausing for now instead of stopping
+        self.machine.pause()
 
+
+        #change pause button
+        self.hoisting_mode.configure(state="enabled")
+        self.running_mode.configure(state="enabled")
+        self.start_button_msg = "start"
+        self.start_button_color = '#106A43'
+        self.start_but.configure(text=self.start_button_msg, fg_color=self.start_button_color, hover_color=self.start_button_color)
+        self.start_button = True
+
+
+        self.update_status("stopped: replace boxes before starting")
+        self.stopped = True
+        self.stop_event.set()
 
 
     '''update placementes of parts on the display'''

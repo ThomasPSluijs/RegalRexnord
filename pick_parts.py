@@ -47,7 +47,7 @@ class Pick_parts():
 
 
         #part length, some parts are a bit shorter so robot has to move less
-        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': part_length = 0.172
+        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': part_length = 0.170
         elif part_type == 'Big-Blue': part_length = 0.176
         else: part_length = 0.174
 
@@ -68,7 +68,7 @@ class Pick_parts():
 
         '''STEP 3 Z LOCATION'''
         #belt z location, for some parts the gripper needs to be a little bit higher or lower
-        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': belt_z = [0,0,-124/1000,0,0,0]
+        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': belt_z = [0,0,-126/1000,0,0,0]
         elif part_type == 'Big-BLue': belt_z = [0,0,-116/1000,0,0,0]
         else: belt_z = [0,0,-122/1000,0,0,0]   
         logging.info(f"belt z: {belt_z} {part_type}") 
@@ -109,8 +109,6 @@ class Pick_parts():
 
         '''STEP 9 MOVE TO SAFE Y SO LIGHTS DONT GET HIT'''
         safe_y = -0.01964
-
-
 
 
 
