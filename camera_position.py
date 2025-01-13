@@ -87,7 +87,7 @@ class CameraPosition:
         while not_found:
             logging.info("not found yet")
             
-            #self.boxing_machine.wait_if_paused()
+            self.boxing_machine.wait_if_paused()
 
             logging.info("check if stopped")
             if self.boxing_machine.stop_main_loop:
