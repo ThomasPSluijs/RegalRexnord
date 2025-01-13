@@ -62,6 +62,7 @@ class UserInterface:
 
 
         self.started_before = False #if not started before, a start thread will be started to start the machine, otherwise, resume will be used
+        self.stopped = False
 
 
         '''start display thread to start showing images'''
@@ -116,7 +117,9 @@ class UserInterface:
 
     #check if stop button pressed
     def stop_button_pressed(self):
+         self.start_button_pressed()
          self.update_status("stopped: replace boxes before starting")
+         self.stopped = True
          self.stop_event.set()
 
          self.hoisting_mode.configure(state="enabled")
