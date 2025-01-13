@@ -133,6 +133,7 @@ class UserInterface:
 
 
         self.update_status("stopped: replace boxes before starting")
+        self.started_before = False
         self.stopped = True
         self.stop_event.set()
 
