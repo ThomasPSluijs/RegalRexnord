@@ -78,7 +78,7 @@ class BoxingMachine:
         self.robot.move_l(target_position, 0.3, 3)
 
     def wait_if_paused(self):
-        #logging.info("Waiting if paused...")
+        logging.info("Waiting if paused...")
         if self.interface.stopped: 
             logging.info("interface stopped, stop main loop")
             self.stop_main_loop = True
