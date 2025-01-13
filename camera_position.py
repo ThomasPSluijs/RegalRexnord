@@ -94,10 +94,14 @@ class CameraPosition:
                 logging.info("camera position: stop main loop")
                 return (0,0,0)
             
-            frames = self.pipeline.wait_for_frames()
-            aligned_frames = self.align.process(frames)
-            color_frame = aligned_frames.get_color_frame()
-            depth_frame = aligned_frames.get_depth_frame()
+            try:
+                frames = self.pipeline.wait_for_frames()
+                aligned_frames = self.align.process(frames)
+                color_frame = aligned_frames.get_color_frame()
+                depth_frame = aligned_frames.get_depth_frame()
+            except Exception as e:
+                logging.error(f"error with camera: {e}")
+                continue #go back to start
 
             if not color_frame or not depth_frame:
                 continue
