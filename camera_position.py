@@ -87,7 +87,9 @@ class CameraPosition:
         while not_found:
             logging.info("not found yet")
             self.boxing_machine.wait_if_paused()
+
             if self.boxing_machine.stop_main_loop:
+                logging.info("camera position: stop main loop")
                 return (0,0,0)
             
             frames = self.pipeline.wait_for_frames()
