@@ -135,7 +135,6 @@ class UserInterface:
         self.update_status("stopped: replace boxes before starting")
         self.started_before = False
         self.stopped = True
-        #self.stop_event.set()
 
 
     '''update placementes of parts on the display'''
@@ -374,19 +373,6 @@ class UserInterface:
             print('moving to packing position')
             move_to_pack_pos_t = threading.Thread(target=self.machine.packing_mode, daemon=True) 
             move_to_pack_pos_t.start() 
-
-
-    
-    def machine_run_wrapper(self):
-        while not self.stop_event.is_set():
-            self.machine.start()
-            time.sleep(0.1)
-
-    def stop_machine_thread(self):
-        if self.machine_run_t and self.machine_run_t.is_alive():
-            self.stop_event.set()
-            self.machine_run_t.join()
-
         
 
 

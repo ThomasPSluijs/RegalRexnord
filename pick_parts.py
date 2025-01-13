@@ -42,7 +42,10 @@ class Pick_parts():
         if part_y > 0.00: 
             part_x += 14/1000   #move bit further. closet to boxes
             logging.info("move bit more on x")
-        else: part_x += 25/1000     #move bit less. furthes to boxes
+        else: 
+            if part_type == 'Big-Blue' or part_type == 'Holed':
+                part_x += 25/1000     #move bit less. furthes to boxes
+            else: part_x += 30/1000
 
 
 
