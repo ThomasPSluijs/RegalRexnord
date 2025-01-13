@@ -213,7 +213,7 @@ class Pack_Box:
         '''STEP 6: move to desired z height'''
         z_offset_step_6 = 0
         if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue':
-            if part['layer_number'] == 0: z_offset_step_6 = 0/1000    #layer 0: negative z offset for pressing down the box a bit
+            if part['layer_number'] == 0: z_offset_step_6 = -3/1000    #layer 0: negative z offset for pressing down the box a bit
             elif part['layer_number'] > 0: z_offset_step_6 = 0   #rest of the layers: normal height
         else:
             z_offset_step_6 = 5/1000
@@ -322,7 +322,6 @@ class Pack_Box:
                 rotation_angle = 160
 
         if rotations == 2: rotation_angle = 180
-
 
         
         
@@ -439,7 +438,7 @@ class Pack_Box:
 
 
         #step 10 #move y relative to the axiis to the tool, so last part can be pushed of and there is clearance for other parts already laying in the boxs
-        relative_from_tcp = [0,0,y_movement_step_10,0,math.radians(0),math.radians(0),math.radians(0)]
+        relative_from_tcp = [0,y_movement_step_10,0,0,math.radians(0),math.radians(0),math.radians(0)]
         pose1 = path_step_9.copy()
         pose1 = pose1[:-3]
         pose2 = relative_from_tcp
