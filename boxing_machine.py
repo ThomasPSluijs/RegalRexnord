@@ -83,6 +83,9 @@ class BoxingMachine:
 
     def wait_if_paused(self):
         logging.info("Waiting if paused...")
+        if self.interface.stopped: 
+            self.interface.stopped = False
+            return
         self.pause_event.wait()  # Block if paused
 
     def start(self):
@@ -140,11 +143,6 @@ class BoxingMachine:
                     with self.thread_lock:
                         self.current_part_number = part['part_number']
                         self.total_parts = len(box)
-
-
-                    #pause so parts can be placed safely
-                    #self.interface.start_button_pressed()
-
 
                     logging.info("Do vision")
                     self.wait_if_paused()
