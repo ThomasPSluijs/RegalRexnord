@@ -186,6 +186,66 @@ class Pack_Box:
         start_rotation = [2.219, 2.227, -0.010]
 
 
+        '''step 1 t/m 5 in 1 PATH'''
+        '''STEP 1: currently just picked up parts, now move to proper Z height for travelling to boxes'''
+        z_above_box = 0.4
+
+
+        '''STEP 2: move to center box. no tuning here'''
+
+
+        '''STEP 3: move to desired z height for placing + offset'''
+        z_offset_step_3 = 30/1000
+
+
+        '''STEP 4: rotate parts, no tuning here'''
+        '''STEP 5: move to x and y target position, no tuning here'''
+
+
+
+        '''step 5.1 t/m step 10 in 1 PATH'''
+        '''STEP 5.1: rotate a bit before fully going to proper z'''
+        if part_type == 'Big-Blue' or part_type == 'Holed': rotate_x = -10
+        elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': rotate_x = -2
+        rotate_x_step_5_1 = [0,0,0,math.radians(rotate_x),math.radians(0),math.radians(0)]     #shouold be -5
+
+
+        '''STEP 6: move to desired z height'''
+        z_offset_step_6 = 0
+        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue':
+            if part['layer_number'] == 0: z_offset_step_6 = 0/1000    #layer 0: negative z offset for pressing down the box a bit
+            elif part['layer_number'] > 0: z_offset_step_6 = 0   #rest of the layers: normal height
+        else:
+            z_offset_step_6 = 5/1000
+
+        
+        '''STEP 7: rotate about x so parts can be placed'''
+        if part_type == 'Big-Blue' or part_type == 'Holed': rotate_x = -20
+        elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': rotate_x = -30
+        rotate_x_step_7 = [0,0,0,math.radians(rotate_x),math.radians(0),math.radians(0)]
+
+
+        '''step 8: perform placing movement. because box higher in the middle, move z a bit up'''
+        offset_step_8=157    #should be 175
+        if part_type == 'Big-Blue' or part_type == 'Holed': z_offset_step_8 = 3
+        elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': z_offset_step_8 = 2
+
+
+        '''STEP 9: rotate more about x for last placing movement'''
+        if part_type == 'Big-Blue' or part_type == 'Holed': rotation = -10
+        elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': rotation = -5
+        rotate_x_step_9 = [0,0,0,math.radians(rotation),math.radians(0),math.radians(0)]
+
+
+        '''STEP 10: perform last placing movement'''
+        y_movement_step_10 = 0.03
+
+
+
+        '''rest of movementents: no tuning'''
+
+
+
         self.robot.set_tcp(placement_tcp)
         speed_acc_blend = [1,1,0.45]
         start_pos = self.robot.get_tcp_pos()
@@ -194,8 +254,7 @@ class Pack_Box:
 
 
         '''start placement tcp'''
-        #step 1: move to proper z height (currently pos: just picked up parts)
-        z_above_box = 0.4       
+        #step 1: move to proper z height (currently pos: just picked up parts)     
         cur_pos = start_pos.copy()
         cur_pos[2] = z_above_box
 
@@ -224,7 +283,7 @@ class Pack_Box:
         
         # Step 3: Move to the desired Z height for placement + 30mm
         cur_pos = path_step_2.copy()
-        cur_pos[2] = part_position[2] + 30/1000  # Set Z height to target position within the box
+        cur_pos[2] = part_position[2] + z_offset_step_3 # Set Z height to target position within the box
         cur_pos[3] = start_rotation[0]
         cur_pos[4] = start_rotation[1]
         cur_pos[5] = start_rotation[2]
@@ -308,32 +367,20 @@ class Pack_Box:
         '''start pickup tcp'''
         #step 5.1: rotate a bit about x of tcp
         start_pos = cur_pos.copy()
-        if part_type == 'Big-Blue' or part_type == 'Holed': rotate_x = -10
-        elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': rotate_x = -2
-        rotate_x = [0,0,0,math.radians(rotate_x),math.radians(0),math.radians(0)]     #shouold be -5
-        
         pose1 = start_pos
         pose1 = pose1[:-3]
-        pose2 = rotate_x
+        pose2 = rotate_x_step_5_1
         result_pose = self.robot.pose_trans(pose1, pose2)
 
-        path_step_5 = result_pose.copy()
+        path_step_5_1 = result_pose.copy()
         speed_acc_blend = [speed_slow, acc_slow, 0]
         for y in speed_acc_blend:
-            path_step_5 = np.append(path_step_5, y)
+            path_step_5_1 = np.append(path_step_5_1, y)
 
        
         # Step 6: Move to the desired Z height for placement
-        cur_pos = path_step_5.copy()
-        z_offset = 0
-        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue':
-            if part['layer_number'] == 0: z_offset = 0/1000    #layer 0: negative z offset for pressing down the box a bit
-            elif part['layer_number'] > 0: z_offset = 0   #rest of the layers: normal height
-        else:
-            z_offset = 5/1000
-
-
-        cur_pos[2] = part_position[2] + z_offset   # Set Z height to target position within the box
+        cur_pos = path_step_5_1.copy()
+        cur_pos[2] = part_position[2] + z_offset_step_6   # Set Z height to target position within the box
 
         x = 6
         path_step_6 = cur_pos.copy()  
@@ -343,14 +390,10 @@ class Pack_Box:
             x+=1
 
 
-
-        if part_type == 'Big-Blue' or part_type == 'Holed': rotate_x = -20
-        elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': rotate_x = -30
         # Step 7: Slide part into place (rotates about x axis)     
-        rotate_x = [0,0,0,math.radians(rotate_x),math.radians(0),math.radians(0)]
         pose1 = path_step_6.copy()
         pose1 = pose1[:-3]
-        pose2 = rotate_x
+        pose2 = rotate_x_step_7
         result_pose = self.robot.pose_trans(pose1, pose2)
 
         path_step_7 = result_pose.copy()
@@ -358,24 +401,20 @@ class Pack_Box:
         for y in speed_acc_blend:
             path_step_7 = np.append(path_step_7, y)
 
-
            
         #step 8: depending on rotation, move x or y or a bit of z
-        offset=157    #should be 175
-        if part_type == 'Big-Blue' or part_type == 'Holed': z_offset = 3
-        elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': z_offset = 2
         if rotation_angle == 0:
             #move x positive
-            offset= [offset/1000,0,z_offset/1000,0,0,0]
+            offset= [offset_step_8/1000,0,z_offset_step_8/1000,0,0,0]
         elif rotation_angle == -90:
             #move y positive
-            offset= [0,offset/1000,z_offset/1000,0,0,0]
+            offset= [0,offset_step_8/1000,z_offset_step_8/1000,0,0,0]
         elif rotation_angle == 90:
             #move y negative
-            offset= [0,-offset/1000,z_offset/1000,0,0,0]  
+            offset= [0,-offset_step_8/1000,z_offset_step_8/1000,0,0,0]  
         elif rotation_angle == 180:
             #move y negatie
-            offset= [-offset/1000,0,z_offset/1000,0,0,0]
+            offset= [-offset_step_8/1000,0,z_offset_step_8/1000,0,0,0]
 
         cur_pos = path_step_7.copy()
         cur_pos = cur_pos[:-3]
@@ -387,14 +426,10 @@ class Pack_Box:
             path_step_8 = np.append(path_step_8, y)
 
 
-        #step 9
-        #rotatate more at last part
-        if part_type == 'Big-Blue' or part_type == 'Holed': rotation = -10
-        elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': rotation = -5
-        rotate_x = [0,0,0,math.radians(rotation),math.radians(0),math.radians(0)]
+        #step 9 #rotatate more at last part
         pose1 = path_step_8.copy()
         pose1 = pose1[:-3]
-        pose2 = rotate_x
+        pose2 = rotate_x_step_9
         result_pose = self.robot.pose_trans(pose1, pose2)
 
         path_step_9 = result_pose.copy()
@@ -403,9 +438,8 @@ class Pack_Box:
             path_step_9 = np.append(path_step_9, y)
 
 
-        #step 10
-        #move y relative to the axiis to the tool, so last part can be pushed of and there is clearance for other parts already laying in the boxs
-        relative_from_tcp = [0,0.03,0,math.radians(0),math.radians(0),math.radians(0)]
+        #step 10 #move y relative to the axiis to the tool, so last part can be pushed of and there is clearance for other parts already laying in the boxs
+        relative_from_tcp = [0,0,y_movement_step_10,0,math.radians(0),math.radians(0),math.radians(0)]
         pose1 = path_step_9.copy()
         pose1 = pose1[:-3]
         pose2 = relative_from_tcp
@@ -422,6 +456,7 @@ class Pack_Box:
         self.robot.set_tcp(pickup_tcp)  
         path = [
             # Positie 1: [X, Y, Z, RX, RY, RZ, snelheid, versnelling, blend]
+            path_step_5_1,
             path_step_6,  # step 6: move to correct z height (x and y are already correct)
             path_step_7,  # step 7: rotate parts
             path_step_8,  # step 8: move so parts fall off
