@@ -80,6 +80,7 @@ class BoxingMachine:
     def wait_if_paused(self):
         #logging.info("Waiting if paused...")
         if self.interface.stopped: 
+            logging.info("interface stopped, stop main loop")
             self.stop_main_loop = True
             self.interface.stopped = False
             return
@@ -133,6 +134,7 @@ class BoxingMachine:
         for box in filled_boxes:
             if self.stop_main_loop:  # Check if stop signal is set
                 logging.info("Stopping main loop due to stop signal.")
+                self.stop_main_loop = False
                 return  # Exit the function immediately
 
             with self.thread_lock:
@@ -141,6 +143,7 @@ class BoxingMachine:
             for part in box:
                 if self.stop_main_loop:  # Check if stop signal is set
                     logging.info("Stopping main loop due to stop signal.")
+                    self.stop_main_loop = False
                     return  # Exit the function immediately
 
                 if count < tot_parts:
@@ -153,6 +156,7 @@ class BoxingMachine:
                     logging.info("Do vision")
                     self.wait_if_paused()
                     if self.stop_main_loop:  # Check after potentially long operations
+                        self.stop_main_loop = False
                         logging.info("Stopping main loop due to stop signal.")
                         return
 
@@ -162,6 +166,7 @@ class BoxingMachine:
                     logging.info("pickup part")
                     self.wait_if_paused()
                     if self.stop_main_loop:  # Check after potentially long operations
+                        self.stop_main_loop = False
                         logging.info("Stopping main loop due to stop signal.")
                         return
 
@@ -170,6 +175,7 @@ class BoxingMachine:
                     logging.info("Place part")
                     self.wait_if_paused()
                     if self.stop_main_loop:  # Check after potentially long operations
+                        self.stop_main_loop = False
                         logging.info("Stopping main loop due to stop signal.")
                         return
 

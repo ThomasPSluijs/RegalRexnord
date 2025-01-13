@@ -340,11 +340,9 @@ class Pack_Box:
 
         '''end placement tcp'''
 
-        if self.boxing_machine.stop_main_loop:
-            return 
+
         self.boxing_machine.wait_if_paused()
-        if self.boxing_machine.stop_main_loop:
-            return 
+
 
         #self.robot.set_tool_frame(placement_tcp)
         path = [
@@ -454,12 +452,8 @@ class Pack_Box:
             path_step_10 = np.append(path_step_10, y)
 
 
-
-        if self.boxing_machine.stop_main_loop:
-            return 
         self.boxing_machine.wait_if_paused()
-        if self.boxing_machine.stop_main_loop:
-            return 
+
         self.robot.set_tcp(pickup_tcp)  
         path = [
             # Positie 1: [X, Y, Z, RX, RY, RZ, snelheid, versnelling, blend]
@@ -502,12 +496,9 @@ class Pack_Box:
             for y in speed_acc_blend:
                 path_step_12 = np.append(path_step_12, y)
 
-
-            if self.boxing_machine.stop_main_loop:
-                return 
             self.boxing_machine.wait_if_paused()
-            if self.boxing_machine.stop_main_loop:
-                return 
+
+
             #placement tcp 
             path = [
                 # Positie 1: [X, Y, Z, RX, RY, RZ, snelheid, versnelling, blend]
@@ -533,9 +524,3 @@ class Pack_Box:
             target_position = [-0.6639046352765678, -0.08494527187802497, 0.529720350746548, 2.222, 2.248, 0.004]
             target_pos = target_position.copy()
             self.robot.move_l(target_position, speed_fast, acc_fast)
-
-        if self.boxing_machine.stop_main_loop:
-            return
-        self.boxing_machine.wait_if_paused()
-        if self.boxing_machine.stop_main_loop:
-            return 
