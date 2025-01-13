@@ -143,6 +143,6 @@ class ObjectDetector:
         return results
 
 if __name__ == "__main__":
-    use_realsense = False  # Set to True to use RealSense, or False to use the webcam
+    use_realsense = False  # Set# to True to use RealSense, or False to use the webcam
     camera = CameraPosition(use_realsense=use_realsense)
     camera.stream_and_detect()
