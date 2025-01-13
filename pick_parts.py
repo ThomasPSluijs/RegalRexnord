@@ -80,7 +80,7 @@ class Pick_parts():
         #if part_type == 'Big-Blue' and part_y > 0.05: belt_z = [0,0,-116/1000,0,0,0]
 
         #one side()
-        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': belt_z = [0,0,-125/1000,0,0,0]
+        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': belt_z = [0,0,-123/1000,0,0,0]
         
 
         '''STEP 4 PICKUP MOVEMENT'''

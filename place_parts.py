@@ -172,7 +172,7 @@ class Pack_Box:
         speed_fast = 3
         acc_fast = 1.5
                                                      
-        speed_slow = 0.4
+        speed_slow = 0.6
         acc_slow = 0.4
 
         box_center = self.box.box_centers[box_index]
