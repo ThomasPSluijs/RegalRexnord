@@ -45,12 +45,12 @@ class Pick_parts():
         else: 
             if part_type == 'Big-Blue' or part_type == 'Holed':
                 part_x += 25/1000     #move bit less. furthes to boxes
-            else: part_x += 30/1000
+            else: part_x += 25/1000
 
 
 
         #part length, some parts are a bit shorter so robot has to move less
-        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': part_length = 0.168
+        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': part_length = 0.165
         elif part_type == 'Big-Blue': part_length = 0.176
         else: part_length = 0.174
 
@@ -90,7 +90,7 @@ class Pick_parts():
 
         '''STEP 5 MOVE BACK A BIT WHILE ROTATING BACK'''
         #small x offset for narrow parts
-        if part_type != 'Big-BLue' and part_type != 'Holed': step_5_x_back = 5/1000                               
+        if part_type != 'Big-BLue' and part_type != 'Holed': step_5_x_back = 8/1000                               
         step_5_x_back = 0/1000
 
 
@@ -219,6 +219,22 @@ class Pick_parts():
             path_step_2,
             path_step_3,
             path_step_4,
+            #path_step_5,
+            #path_step_6,
+        ]
+        self.robot.move_l_path(path=path)
+
+
+        self.boxing_machine.pause()
+        self.boxing_machine.interface.start_button_pressed()
+        self.boxing_machine.wait_if_paused()
+
+        #move path 1 till 6 with pickup tcp
+        path = [
+            #path_step_1,
+            #path_step_2,
+            #path_step_3,
+            #path_step_4,
             path_step_5,
             path_step_6,
         ]
