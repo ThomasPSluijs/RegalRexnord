@@ -92,12 +92,12 @@ class Pick_parts():
 
 
         '''STEP 6 MOVE BACK A BIT MORE'''
-        if part_type != 'Big-Blue' and part_type != 'Holed': step_6_x_back=[7/1000,0,0,0,0,0]
+        if part_type != 'Big-Blue' and part_type != 'Holed': step_6_x_back=[2/1000,0,0,0,0,0]
         else: step_6_x_back=[2/1000,0,0,0,0,0]
+        '''END PATH'''
 
 
-
-
+        '''NEW PATH'''
         '''STEP 6.1 MOVE UP A BIT RELATIVE'''
         step_6_1_relative_z = [0,0,10/1000,0,0,0]
 

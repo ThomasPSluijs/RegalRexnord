@@ -108,7 +108,7 @@ class UserInterface:
             self.hoisting_mode.configure(state="disabled")
             self.running_mode.configure(state="disabled")
 
-            self.start_button_msg = "start"
+            self.start_button_msg = "start/resume"
             self.start_button_color = '#106A43'
             self.start_but.configure(text=self.start_button_msg, fg_color=self.start_button_color, hover_color=self.start_button_color)
 
