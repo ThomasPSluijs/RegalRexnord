@@ -80,7 +80,7 @@ class CameraPosition:
     # main function that detects objects and returns the object locations
     def detect_object_without_start(self, min_length=170, slow=False):
         self.capture_position(slow)
-        time.sleep(1)
+        time.sleep(0.3)
         not_found = True
         logging.info("start capturing frames")
         while not_found:
