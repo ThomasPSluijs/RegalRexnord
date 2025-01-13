@@ -327,7 +327,7 @@ class Pack_Box:
         cur_pos = path_step_5.copy()
         z_offset = 0
         if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue':
-            if part['layer_number'] == 0: z_offset = -4/1000    #layer 0: negative z offset for pressing down the box a bit
+            if part['layer_number'] == 0: z_offset = 0/1000    #layer 0: negative z offset for pressing down the box a bit
             elif part['layer_number'] > 0: z_offset = 0   #rest of the layers: normal height
         else:
             z_offset = 5/1000
