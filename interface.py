@@ -23,9 +23,13 @@ class UserInterface:
         self.root = root
         self.on_close_callback = on_close_callback
 
+
+        '''setup UI parameters'''
         self.percentage_msg = 0.0
         self.start_button_msg = "start"
         self.start_button = True
+
+        self.stop_button_msg = "stop"
 
         self.font = "Century Regular"
         self.fontsize = 20
@@ -39,14 +43,18 @@ class UserInterface:
         self.leftbar_button_width = 160
         self.camscale = 1.3
 
+        self.machine_run_t = None #placeholder for machine thread
+        self.stop_event = threading.Event() #event to signal thread to stop
+
+
 
         '''setup robot and machine class'''
         robot_ip = "192.168.0.1"  #Define ip
         self.machine = BoxingMachine(robot_ip, interface=self) #Create and start BoxingMachine
 
         '''start conveyer'''
-        self.conveyor = Conveyor()
-        conveyer_start = threading.Thread(target=self.conveyor.run, args=(self.machine.robot,),daemon=True)
+        #self.conveyor = Conveyor()
+        #conveyer_start = threading.Thread(target=self.conveyor.run, args=(self.machine.robot,),daemon=True)
         #conveyer_start.start()
 
 
@@ -71,21 +79,19 @@ class UserInterface:
     def start_button_pressed(self):
         #start packing
         if self.start_button == True:
-    
+            self.update_status("running/packing")
 
-            print('packing')
             self.hoisting_mode.configure(state="disabled")
             self.running_mode.configure(state="disabled")
-            #self.partselection.configure(state="disabled")
-            
-            self.start_button_msg = "stop"
-            self.start_button_color = "red"
 
+            self.start_button_msg = "pause"
+            self.start_button_color = "red"
             self.start_but.configure(text=self.start_button_msg, fg_color=self.start_button_color, hover_color=self.start_button_color)
 
-
             #calls a thread to start running the machine. if started before, just resume
-            if not self.started_before: threading.Thread(target=self.machine.start, daemon=True).start()
+            if not self.started_before: 
+                self.machine_run_t = threading.Thread(target=self.machine_run_wrapper, daemon=True)
+                self.machine_run_t.start()
             else: self.machine.resume()
 
             if not self.started_before: self.started_before=True
@@ -93,21 +99,28 @@ class UserInterface:
             self.start_button = False
 
         else:
-            print("stopped")
+            self.update_status("paused")
 
             #pause boxing machine. pausing for now instead of stopping
             self.machine.pause()
 
-            self.hoisting_mode.configure(state="enabled")
-            self.running_mode.configure(state="enabled")
-            #self.partselection.configure(state="enabled")
+            self.hoisting_mode.configure(state="disabled")
+            self.running_mode.configure(state="disabled")
 
             self.start_button_msg = "start"
             self.start_button_color = '#106A43'
-
             self.start_but.configure(text=self.start_button_msg, fg_color=self.start_button_color, hover_color=self.start_button_color)
 
             self.start_button = True
+
+
+    #check if stop button pressed
+    def stop_button_pressed(self):
+         self.update_status("stopped: replace boxes before starting")
+         self.stop_event.set()
+
+         self.hoisting_mode.configure(state="enabled")
+         self.running_mode.configure(state="enabled")         
 
 
 
@@ -137,10 +150,7 @@ class UserInterface:
             self.percentage.configure(text=f"{self.percentage_value}%")
             time.sleep(0.5)
 
-    #idk man
-    def update_activity(self, activity_msg):
-         self.activity.configure(text=activity_msg)
-        
+
 
     #updates images on the interface that have been taking by the camera 
     def update_live_feed(self, camera_position):
@@ -193,7 +203,9 @@ class UserInterface:
         self.leftbar.grid_rowconfigure(5, weight=0)
         self.leftbar.grid_rowconfigure(6, weight=0)
 
-        # Buttons in Left Bar
+
+
+        # hoisting mode button
         self.hoisting_mode = customtkinter.CTkButton(
             master=self.leftbar,
             corner_radius=0,
@@ -207,6 +219,7 @@ class UserInterface:
         )
         self.hoisting_mode.grid(row=0, column=0, pady=(20, 0), padx=0, sticky="w")
 
+        #running mode button
         self.running_mode = customtkinter.CTkButton(
             master=self.leftbar,
             corner_radius=0,
@@ -220,6 +233,7 @@ class UserInterface:
         )
         self.running_mode.grid(row=1, column=0, pady=(20, 0), padx=0, sticky="w")
 
+        #add a start/pause button
         self.start_but = customtkinter.CTkButton(
             master=self.leftbar,
             corner_radius=0,
@@ -233,6 +247,33 @@ class UserInterface:
         )
         self.start_but.grid(row=2, column=0, pady=(20, 0), padx=0, sticky="w")
 
+        #add a stop button
+        self.stop_but = customtkinter.CTkButton(
+            master=self.leftbar,
+            corner_radius=0,
+            text=self.stop_button_msg,
+            font=(self.font, self.fontsize),
+            width=self.leftbar_button_width,
+            height=60,
+            fg_color=self.start_button_color,
+            anchor="w",
+            command=self.stop_button_pressed  # Add functionality here
+        )
+        self.stop_but.grid(row=3, column=0, pady=(20, 0), padx=0, sticky="w")
+
+
+        # Add Status Text at the Top Center
+        self.status_text = customtkinter.CTkLabel(
+            master=self.root,
+            text="Status: Ready",
+            font=(self.font, self.fontsize, "bold"),
+            fg_color="transparent",
+            text_color="white",
+        )
+        self.status_text.grid(row=0, column=1, pady=(10, 0), sticky="n")
+
+
+        #add status
         self.status = customtkinter.CTkLabel(
             master=self.leftbar,
             text="status:",
@@ -254,22 +295,21 @@ class UserInterface:
         )
         self.statuslight.grid(row=6, column=0, padx=(80, 0), pady=(0, 10), sticky="w")
 
+
+
         # Camera View Section
         self.camview = customtkinter.CTkFrame(master=self.root, corner_radius=0, fg_color=self.background_color)
         self.camview.grid(row=0, column=1, padx=0, pady=0, sticky="")
-
-
         height, width = 420, 640  # Define the size of the image
         yellow_color = [255, 255, 0]  # RGB values for yellow
         numpy_image = np.full((height, width, 3), yellow_color, dtype=np.uint8)
-
-        # Convert the NumPy array to a PIL image
-        pil_image = Image.fromarray(numpy_image)
+        pil_image = Image.fromarray(numpy_image) # Convert the NumPy array to a PIL image
         self.my_image = customtkinter.CTkImage(light_image=pil_image, size=(640 / self.camscale, 420 / self.camscale))
 
         self.image_label = customtkinter.CTkLabel(self.camview, image=self.my_image, text="")
         self.image_label.image = self.my_image
         self.image_label.grid(row=0, column=0, padx=(20, 0), sticky="")
+
 
         # Progress Section
         self.progress = customtkinter.CTkFrame(master=self.root, fg_color=self.frame_color)
@@ -299,6 +339,14 @@ class UserInterface:
         self.root.quit()
 
 
+
+    #update status text
+    def update_status(self, new_status):
+        """Update the status text displayed at the top center."""
+        self.status_text.configure(text=new_status)
+
+
+
     #gets called when running_mode button is pressed. puts the robot in correct starting position
     def running_mode_func(self):
             #go to start position
@@ -312,6 +360,18 @@ class UserInterface:
             print('moving to packing position')
             move_to_pack_pos_t = threading.Thread(target=self.machine.packing_mode, daemon=True) 
             move_to_pack_pos_t.start() 
+
+
+    
+    def machine_run_wrapper(self):
+        while not self.stop_event.is_set():
+            self.machine.start()
+            time.sleep(0.1)
+
+    def stop_machine_thread(self):
+        if self.machine_run_t and self.machine_run_t.is_alive():
+            self.stop_event.set()
+            self.machine_run_t.join()
 
         
 
