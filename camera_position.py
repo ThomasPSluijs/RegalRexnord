@@ -126,8 +126,8 @@ class CameraPosition:
                             label = self.labels[int(box.cls[0])]
                             length = max(width, height)
 
-                            if label == 'Green' or label == 'Rubber' or label == 'Small-Blue': min_length += 40
-                            
+                            if label == 'Green' or label == 'Rubber' or label == 'Small-Blue': min_length += 20
+
                             if label in ['Big-Blue', 'Green', 'Holed', 'Rubber', 'Small-Blue'] and length >= min_length and width * height < 75000:
                                 current_coordinates = (x_left, y_middle)
                                 if self.is_stable(current_coordinates):
