@@ -40,14 +40,14 @@ class Pick_parts():
 
         #part_x offset, one side needs a little bit more than the other side (or tune the camera calibration)
         if part_y > 0.00: 
-            part_x += 14/1000   #move bit further
+            part_x += 14/1000   #move bit further. closet to boxes
             logging.info("move bit more on x")
-        else: part_x += 25/1000     #move bit less
+        else: part_x += 25/1000     #move bit less. furthes to boxes
 
 
 
         #part length, some parts are a bit shorter so robot has to move less
-        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': part_length = 0.170
+        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': part_length = 0.168
         elif part_type == 'Big-Blue': part_length = 0.176
         else: part_length = 0.174
 
@@ -68,13 +68,16 @@ class Pick_parts():
 
         '''STEP 3 Z LOCATION'''
         #belt z location, for some parts the gripper needs to be a little bit higher or lower
-        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': belt_z = [0,0,-126/1000,0,0,0]
+        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': belt_z = [0,0,-124/1000,0,0,0]
         elif part_type == 'Big-BLue': belt_z = [0,0,-116/1000,0,0,0]
         else: belt_z = [0,0,-122/1000,0,0,0]   
         logging.info(f"belt z: {belt_z} {part_type}") 
 
-        #one side needs to be a little bit higher
-        if part_type == 'Big-Blue' and part_y > 0.05: belt_z = [0,0,-116/1000,0,0,0]                 
+        #one side needs to be a little bit higher. y > 0.05, row closest to boxes
+        #if part_type == 'Big-Blue' and part_y > 0.05: belt_z = [0,0,-116/1000,0,0,0]
+
+        #one side()
+        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': belt_z = [0,0,-123/1000,0,0,0]
         
 
         '''STEP 4 PICKUP MOVEMENT'''
