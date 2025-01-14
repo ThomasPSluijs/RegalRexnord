@@ -96,7 +96,7 @@ class Pack_Box:
                         # First part (top left)
                         if box_index == 0:
                             x_pos = box_center[0] - self.box_length / 2 + self.part_length / 2 + 0.010 + place_extra_offset  # x positive for further away from place side was 
-                            y_pos = box_center[1] - self.box_width / 2 + self.part_width / 2 + 0.007  # y positive for further away from box edge
+                            y_pos = box_center[1] - self.box_width / 2 + self.part_width / 2 + 0.009  # y positive for further away from box edge
                             rotation = 0
                         elif box_index == 1:
                             x_pos = box_center[0] - self.box_length / 2 + self.part_length / 2 + 0.00 + place_extra_offset  # x positive for further away from place side
@@ -105,7 +105,7 @@ class Pack_Box:
                     elif i == 1:
                         # Second part (top right)
                         if box_index == 0:
-                            x_pos = box_center[0] + self.box_length / 2 - self.part_width / 2 - 0.012   # x negative for further away from box edge
+                            x_pos = box_center[0] + self.box_length / 2 - self.part_width / 2 - 0.010   # x negative for further away from box edge
                             y_pos = box_center[1] - self.box_width / 2 + self.part_length / 2 + 0.007 + place_extra_offset  # y positive for further away from place side
                             rotation = -90
                         elif box_index == 1:
@@ -128,7 +128,7 @@ class Pack_Box:
                         # Fourth part (bottom right)
                         if box_index == 0:
                             x_pos = box_center[0] + self.box_length / 2 - self.part_length / 2 - 0.013 - place_extra_offset  # x negative for further away from place side
-                            y_pos = box_center[1] + self.box_width / 2 - self.part_width / 2 - 0.018  # y negative for further away from box edge
+                            y_pos = box_center[1] + self.box_width / 2 - self.part_width / 2 - 0.014  # y negative for further away from box edge
                             rotation = 180
                         elif box_index == 1:
                             x_pos = box_center[0] + self.box_length / 2 - self.part_length / 2 - 0.000 - place_extra_offset # x negative for further away from place side
@@ -221,24 +221,24 @@ class Pack_Box:
                 if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue':
                     z_offset_step_6 = 0/1000    #layer 0: negative z offset for pressing down the box a bit
                 else: #big parts
-                    z_offset_step_6 = 3/1000
+                    z_offset_step_6 = 4/1000
             else:   #angled side. bit heigher than low side
                 if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue':
                     z_offset_step_6 = 2/1000    #layer 0: negative z offset for pressing down the box a bit
                 else: #big parts
-                    z_offset_step_6 = 5/1000
+                    z_offset_step_6 = 6/1000
 
         elif box_rotation == 1: #high side not parrallel to belt
             if rotation == 0 or rotation == 180:
                 if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue':
                     z_offset_step_6 = 0/1000    #layer 0: negative z offset for pressing down the box a bit
                 else: #big parts
-                    z_offset_step_6 = 3/1000
+                    z_offset_step_6 = 4/1000
             else:   #angled side. bit heigher than low side
                 if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue':
                     z_offset_step_6 = 2/1000    #layer 0: negative z offset for pressing down the box a bit
                 else: #big parts
-                    z_offset_step_6 = 5/1000
+                    z_offset_step_6 = 6/1000
 
         
         '''STEP 7: rotate about x so parts can be placed'''
