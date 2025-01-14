@@ -26,6 +26,39 @@ class YoloLogFilter(logging.Filter):
 yolo_logger = logging.getLogger("yolo_logger")
 yolo_logger.addFilter(YoloLogFilter())
 
+class HandDetection:
+    def __init__(self, camera_position, robot_control, fail_confidence):
+        self.camera_position = camera_position
+        self.robot_control = robot_control
+        self.fail_confidence = fail_confidence
+        self.hand_detected = False
+        self.thread = threading.Thread(target=self.detect_hand, daemon=True)
+        self.thread.start()
+
+    def detect_hand(self):
+        while True:
+            with self.camera_position.frame_lock:
+                frame = self.camera_position.last_frame.copy() if self.camera_position.last_frame is not None else None
+
+            if frame is not None:
+                logging.info("HandDetection: Frame captured for detection.")
+                results = self.camera_position.detector.detect_objects(frame.copy())
+                if results is not None:
+                    for result in results:
+                        for box in result.boxes:
+                            bbox = box.xyxy[0].cpu().numpy()
+                            bbox = [int(coord) for coord in bbox[:4]]
+                            label = self.camera_position.labels[int(box.cls[0])]
+                            confidence = box.conf.item()
+
+                            if 'hand' in label.lower() and confidence > self.fail_confidence:
+                                logging.info(f"Hand detected with confidence {confidence:.2f}! Initiating emergency stop.")
+                                self.robot_control.stop_robot_control()
+                                self.hand_detected = True
+                                return  # Exit the thread after detecting a hand
+
+            time.sleep(0.1)  # Adjust the sleep time as needed to balance performance and responsiveness
+
 # uses camera to run yolo model and get x, y, and z coordinates of the parts
 class CameraPosition:
     def __init__(self, robot, boxing_machine):
