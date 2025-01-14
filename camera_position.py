@@ -126,6 +126,13 @@ class CameraPosition:
                             label = self.labels[int(box.cls[0])]
                             length = max(width, height)
 
+                            if 'bad' in label.lower():
+                                logging.info("Bad position detected!")
+                                self.robot.set_digital_output(2, True)  # Turn output 2 to True
+                                time.sleep(5)  # Wait for 5 seconds
+                                self.robot.set_digital_output(2, False)  # Turn output 2 to False
+                                continue  # Scan again
+
                             if label == 'Green' or label == 'Rubber' or label == 'Small-Blue': min_length += 20
 
                             if label in ['Big-Blue', 'Green', 'Holed', 'Rubber', 'Small-Blue'] and length >= min_length and width * height < 75000:
@@ -148,6 +155,22 @@ class CameraPosition:
 
                                         with self.frame_lock:  # Update last_frame safely
                                             self.last_frame = frame
+                                            frames = self.pipeline.wait_for_frames()
+                                            aligned_frames = self.align.process(frames)
+                                            color_frame = aligned_frames.get_color_frame()
+                                            depth_frame = aligned_frames.get_depth_frame()
+
+                                            if not color_frame or not depth_frame:
+                                                return False
+
+                                            color_image = np.asanyarray(color_frame.get_data())
+                                            detections = self.detector.detect(color_image)
+
+                                            for detection in detections:
+                                                if 'bad' in detection['label']:
+                                                    return True
+
+                                            return False
                                         return (xd, yd, label)
                                     else:
                                         logging.error("part out of reach")
@@ -213,5 +236,3 @@ class ObjectDetector:
     def detect_objects(self, frame):
         results = self.model.predict(source=frame, verbose=False, show=False)
         return results
-
-
