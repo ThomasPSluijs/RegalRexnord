@@ -260,7 +260,7 @@ class Pack_Box:
         z_offset_step_8=0
         rotation = part['rotation']
         if box_rotation == 0:       #high side parrallel to belt
-            if rotation == 0 or rotation == 180: #move z up if moving to high side
+            if rotation == 90 or rotation == -90: #move z up if moving to high side
                 if part_type == 'Big-Blue' or part_type == 'Holed': 
                     z_offset_step_8 = 7
                     logging.info("while placing move z up!!")
@@ -269,7 +269,7 @@ class Pack_Box:
                     logging.info("while placing move z up!!")
         
         elif  box_rotation == 1:    #high side not parrallel to belt
-            if rotation == 90 or rotation == -90:   #move z up if moving to high side
+            if rotation == 0 or rotation == 180:   #move z up if moving to high side
                 if part_type == 'Big-Blue' or part_type == 'Holed': 
                     z_offset_step_8 = 7
                     logging.info("while placing move z up!!")
