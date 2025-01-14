@@ -162,8 +162,17 @@ class Pack_Box:
 
 
     #place parts
-    def place_part(self, part, part_type='Big-Blue'):
+    def place_part(self, part, part_type='Big-Blue',box_rotation=0):
         logging.info(f"given part type to place part: {part_type}")
+
+
+
+        '''box rotation''' 
+        #if box rotation == 0: high edge in the middle of the box is parrallel to the belt
+        #if box rotation == 1: high edge in the middle is turned 90degrees to the belt
+
+
+
 
         box_index = part['box_number']
         part_position = part['position']
@@ -199,6 +208,9 @@ class Pack_Box:
 
 
         '''STEP 4: rotate parts, no tuning here'''
+        rotation_angle = part['rotation']  # pick rotation from part info. convert to radians
+
+
         '''STEP 5: move to x and y target position, no tuning here'''
 
 
@@ -212,23 +224,64 @@ class Pack_Box:
 
         '''STEP 6: move to desired z height'''
         z_offset_step_6 = 0
-        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue':
-            if part['layer_number'] == 0: z_offset_step_6 = -3/1000    #layer 0: negative z offset for pressing down the box a bit
-            elif part['layer_number'] > 0: z_offset_step_6 = 0   #rest of the layers: normal height
-        else:
-            z_offset_step_6 = 5/1000
+        rotation = part['rotation']
+        if box_rotation == 0:   #high side parrallel to belt
+            if rotation == 0 or rotation == 180:    #low side. 
+                if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue':
+                    z_offset_step_6 = 0/1000    #layer 0: negative z offset for pressing down the box a bit
+                else: #big parts
+                    z_offset_step_6 = 3/1000
+            else:   #angled side. bit heigher than low side
+                if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue':
+                    z_offset_step_6 = 2/1000    #layer 0: negative z offset for pressing down the box a bit
+                else: #big parts
+                    z_offset_step_6 = 5/1000
+
+        elif box_rotation == 1: #high side not parrallel to belt
+            if rotation == 90 or rotation == -90:
+                if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue':
+                    z_offset_step_6 = 0/1000    #layer 0: negative z offset for pressing down the box a bit
+                else: #big parts
+                    z_offset_step_6 = 3/1000
+            else:   #angled side. bit heigher than low side
+                if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue':
+                    z_offset_step_6 = 2/1000    #layer 0: negative z offset for pressing down the box a bit
+                else: #big parts
+                    z_offset_step_6 = 5/1000
 
         
         '''STEP 7: rotate about x so parts can be placed'''
         if part_type == 'Big-Blue' or part_type == 'Holed': rotate_x = -20
         elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': rotate_x = -30
-        rotate_x_step_7 = [0,0,0,math.radians(rotate_x),math.radians(0),math.radians(0)]
+        rotate_y = 0
+        rotation = part['rotation']
+        if box_rotation == 0:
+            if rotation == 90 or rotation == -90:
+                rotate_y = 5    #rotate 5 degrees about y of tool. this way placing is parralle to the bottom of the box
+        elif box_rotation == 1:
+            if rotation == 0 or rotation == 180:
+                rotate_y = 5    #rotate 5 degrees about y of tool. this way placing is parralle to the bottom of the box
+        rotate_x_step_7 = [0,0,0,math.radians(rotate_x),math.radians(rotate_y),math.radians(0)]
 
 
         '''step 8: perform placing movement. because box higher in the middle, move z a bit up'''
         offset_step_8=157    #should be 175
-        if part_type == 'Big-Blue' or part_type == 'Holed': z_offset_step_8 = 3
-        elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': z_offset_step_8 = 5
+        z_offset_step_8=0
+        rotation = part['rotation']
+        if box_rotation == 0:       #high side parrallel to belt
+            if rotation == 0 or rotation == 180: #move z up if moving to high side
+                if part_type == 'Big-Blue' or part_type == 'Holed': 
+                    z_offset_step_8 = 7
+                elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': 
+                    z_offset_step_8 = 7
+        
+        elif  box_rotation == 1:    #high side not parrallel to belt
+            if rotation == 90 or rotation == -90:   #move z up if moving to high side
+                if part_type == 'Big-Blue' or part_type == 'Holed': 
+                    z_offset_step_8 = 7
+                elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': 
+                    z_offset_step_8 = 7
+
 
 
         '''STEP 9: rotate more about x for last placing movement'''
@@ -240,12 +293,13 @@ class Pack_Box:
         '''STEP 10: perform last placing movement'''
         y_movement_step_10 = 0.03
 
-
-
         '''rest of movementents: no tuning'''
 
 
 
+        '''start placement tcp'''
+        '''PREPARTION MOVEMENTES: move to desired x,y. no placing in this part(STEP 1 t/m STEP 5)'''
+        #set tcp and get current position to base movements off
         self.robot.set_tcp(placement_tcp)
         speed_acc_blend = [1,1,0.45]
         start_pos = self.robot.get_tcp_pos()
@@ -253,7 +307,6 @@ class Pack_Box:
             start_pos.append(y)
 
 
-        '''start placement tcp'''
         #step 1: move to proper z height (currently pos: just picked up parts)     
         cur_pos = start_pos.copy()
         cur_pos[2] = z_above_box
@@ -280,7 +333,7 @@ class Pack_Box:
             path_step_2[x]=y
             x+=1
         
-        
+
         # Step 3: Move to the desired Z height for placement + 30mm
         cur_pos = path_step_2.copy()
         cur_pos[2] = part_position[2] + z_offset_step_3 # Set Z height to target position within the box
@@ -296,10 +349,9 @@ class Pack_Box:
             path_step_3[x]=y
             x+=1
 
-    
+
         # Step 4: Adjust rotation around the Z-axis
         #when angle=180, first do + 10 then do + 170
-        rotation_angle = part['rotation']  # pick rotation from part info. convert to radians
         logging.info(f"Step 4: Set rotation around Z-axis to: {rotation_angle}")
         rotations = 1
         if rotation_angle == 180: 
@@ -323,8 +375,7 @@ class Pack_Box:
 
         if rotations == 2: rotation_angle = 180
 
-        
-        
+
         # Step 5: Move to the part's target X, Y position
         cur_pos = path_step_4.copy()
         cur_pos[0] = part_position[0]  # Set X to the part's target position
@@ -338,13 +389,9 @@ class Pack_Box:
             path_step_5[x]=y
             x+=1
 
-        '''end placement tcp'''
-
-
+        
+        #create path and move robot
         self.boxing_machine.wait_if_paused()
-
-
-        #self.robot.set_tool_frame(placement_tcp)
         path = [
             # Positie 1: [X, Y, Z, RX, RY, RZ, snelheid, versnelling, blend]
             path_step_1,  # step 1: move up
@@ -355,9 +402,13 @@ class Pack_Box:
             # Voeg meer posities toe zoals nodig
         ]
         self.robot.move_l_path(path=path)
+        '''end placement tcp'''
 
 
 
+        '''PLACING SECTION: this section contains the path of the placement.'''
+        '''start pickup tcp'''
+        #set tcp and get start position with new tcp
         self.robot.set_tcp(pickup_tcp)
         cur_pos = self.robot.get_tcp_pos()
         speed_acc_blend = [speed_slow, acc_slow, 0]
@@ -365,7 +416,6 @@ class Pack_Box:
             cur_pos.append(y)
 
 
-        '''start pickup tcp'''
         #step 5.1: rotate a bit about x of tcp
         start_pos = cur_pos.copy()
         pose1 = start_pos
@@ -454,7 +504,6 @@ class Pack_Box:
 
         self.boxing_machine.wait_if_paused()
 
-        self.robot.set_tcp(pickup_tcp)  
         path = [
             # Positie 1: [X, Y, Z, RX, RY, RZ, snelheid, versnelling, blend]
             path_step_5_1,
@@ -466,61 +515,35 @@ class Pack_Box:
             # Voeg meer posities toe zoals nodig
         ]
         self.robot.move_l_path(path=path)
+        '''end placing movement'''
+
 
          
+        '''END FASE: parts have been placed. move up, rotate and move to proper x and y and z 
+        for checking if parts are properly placed, move to take pic pos at the dn '''
         '''start pickup tcp'''
-        self.robot.set_tcp(pickup_tcp)
+        #self.robot.set_tcp(pickup_tcp)
+
+        #move up first
         cur_pos = self.robot.get_tcp_pos()
-        speed_acc_blend = [speed_slow, acc_slow, 0]
-        for y in speed_acc_blend:
-            cur_pos.append(y)
+        cur_pos[2] = z_above_box
+        self.robot.move_l(cur_pos, speed_fast, acc_fast)
 
-
-        if rotation_angle != 180:
-            # Step 11: Return above the box 
-            cur_pos = cur_pos.copy()
-            cur_pos = cur_pos[:-3]
-            cur_pos[2] = z_above_box  # Return to a safe Z height above the box
-            
-            blend = 0.2
-            path_step_11 = cur_pos.copy()
-            speed_acc_blend = [speed_fast, acc_fast, blend]   #was 0.2
-            for y in speed_acc_blend:
-                path_step_11 = np.append(path_step_11, y)
-
-
-            #move to take pic pos
-            target_position = [-0.6639046352765678, -0.08494527187802497, 0.529720350746548, 2.222, 2.248, 0.004]
-            path_step_12 = target_position.copy()
-            speed_acc_blend = [speed_fast, acc_fast, 0.0]
-            for y in speed_acc_blend:
-                path_step_12 = np.append(path_step_12, y)
-
-            self.boxing_machine.wait_if_paused()
-
-
-            #placement tcp 
-            path = [
-                # Positie 1: [X, Y, Z, RX, RY, RZ, snelheid, versnelling, blend]
-                path_step_11,  # step 1: move up
-                path_step_12,   #move to take pic pos
-            ]
-            self.robot.move_l_path(path=path)
-            '''end placement tcp'''
-
-        #step 12 rotate a bit back if rotationangle=180
-        elif rotation_angle == 180:
-            #move up first
-            cur_pos = self.robot.get_tcp_pos()
-            cur_pos[2] = z_above_box
-            self.robot.move_l(cur_pos, speed_fast, acc_fast)
-
-            #rotate
+        #joint rotatation if needed
+        if rotation_angle == 180:
             cur_joint_pos = self.robot.get_joint_pos()
             cur_joint_pos[5] = math.radians(10)
             self.robot.move_j(cur_joint_pos, 2, 2)
 
-            #move to take pic pos
-            target_position = [-0.6639046352765678, -0.08494527187802497, 0.529720350746548, 2.222, 2.248, 0.004]
-            target_pos = target_position.copy()
-            self.robot.move_l(target_position, speed_fast, acc_fast)
+        #rotate more for checking
+        check_placement_pos = [box_center[0], box_center[1], z_above_box, 2.222,2.248,0.004]
+        #self.robot.move_l(check_placement_pos, speed_slow, acc_slow) #slow for testing !!! 
+
+
+        '''insert placement checking here !!!!!'''
+        #insert placement checking here 
+
+
+        #move to take pic pos
+        target_position = [-0.6639046352765678, -0.08494527187802497, 0.529720350746548, 2.222, 2.248, 0.004]
+        self.robot.move_l(target_position, speed_fast, acc_fast)
