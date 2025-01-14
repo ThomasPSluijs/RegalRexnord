@@ -105,7 +105,7 @@ class Pack_Box:
                     elif i == 1:
                         # Second part (top right)
                         if box_index == 0:
-                            x_pos = box_center[0] + self.box_length / 2 - self.part_width / 2 - 0.010   # x negative for further away from box edge
+                            x_pos = box_center[0] + self.box_length / 2 - self.part_width / 2 - 0.012   # x negative for further away from box edge
                             y_pos = box_center[1] - self.box_width / 2 + self.part_length / 2 + 0.007 + place_extra_offset  # y positive for further away from place side
                             rotation = -90
                         elif box_index == 1:
@@ -128,7 +128,7 @@ class Pack_Box:
                         # Fourth part (bottom right)
                         if box_index == 0:
                             x_pos = box_center[0] + self.box_length / 2 - self.part_length / 2 - 0.013 - place_extra_offset  # x negative for further away from place side
-                            y_pos = box_center[1] + self.box_width / 2 - self.part_width / 2 - 0.016  # y negative for further away from box edge
+                            y_pos = box_center[1] + self.box_width / 2 - self.part_width / 2 - 0.018  # y negative for further away from box edge
                             rotation = 180
                         elif box_index == 1:
                             x_pos = box_center[0] + self.box_length / 2 - self.part_length / 2 - 0.000 - place_extra_offset # x negative for further away from place side
@@ -247,10 +247,12 @@ class Pack_Box:
         rotate_y = 0
         rotation = part['rotation']
         if box_rotation == 0:
-            if rotation == 90 or rotation == -90:
+            if rotation == 0 or rotation == 180:
+                logging.info("---rotate also around y wile placing!---")
                 rotate_y = 5    #rotate 5 degrees about y of tool. this way placing is parralle to the bottom of the box
         elif box_rotation == 1:
-            if rotation == 0 or rotation == 180:
+            if rotation == 90 or rotation == -90:
+                logging.info("---rotate also around y wile placing!---")
                 rotate_y = 5    #rotate 5 degrees about y of tool. this way placing is parralle to the bottom of the box
         rotate_x_step_7 = [0,0,0,math.radians(rotate_x),math.radians(rotate_y),math.radians(0)]
 
@@ -260,21 +262,21 @@ class Pack_Box:
         z_offset_step_8=0
         rotation = part['rotation']
         if box_rotation == 0:       #high side parrallel to belt
-            if rotation == 0 or rotation == 180: #move z up if moving to high side
+            if rotation == 90 or rotation == -90: #move z up if moving to high side
                 if part_type == 'Big-Blue' or part_type == 'Holed': 
-                    z_offset_step_8 = 7
-                    logging.info("while placing move z up!!")
+                    z_offset_step_8 = 5
+                    logging.info("---while placing move z up!!--")
                 elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': 
-                    z_offset_step_8 = 7
-                    logging.info("while placing move z up!!")
+                    z_offset_step_8 = 6
+                    logging.info("---while placing move z up!!--")
         
         elif  box_rotation == 1:    #high side not parrallel to belt
-            if rotation == 90 or rotation == -90:   #move z up if moving to high side
+            if rotation == 0 or rotation == 180:   #move z up if moving to high side
                 if part_type == 'Big-Blue' or part_type == 'Holed': 
-                    z_offset_step_8 = 7
+                    z_offset_step_8 = 5
                     logging.info("while placing move z up!!")
                 elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': 
-                    z_offset_step_8 = 7
+                    z_offset_step_8 = 6
                     logging.info("while placing move z up!!")
 
 
@@ -531,9 +533,9 @@ class Pack_Box:
             self.robot.move_j(cur_joint_pos, 2, 2)
 
         #rotate more for checking
-        x_offset=-50/1000
-        y_offset=-50/1000
-        z_height=0.5
+        x_offset=-70/1000
+        y_offset=-70/1000
+        z_height=0.6
         check_placement_pos = [box_center[0]+x_offset, box_center[1] + y_offset, z_height, 2.222,2.248,0.004]
         self.robot.move_l(check_placement_pos, speed_slow, acc_slow) #slow for testing !!! 
 
