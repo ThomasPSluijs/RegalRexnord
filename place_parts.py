@@ -247,11 +247,11 @@ class Pack_Box:
         rotate_y = 0
         rotation = part['rotation']
         if box_rotation == 0:
-            if rotation == 90 or rotation == -90:
+            if rotation == 0 or rotation == 180:
                 logging.info("---rotate also around y wile placing!---")
                 rotate_y = 5    #rotate 5 degrees about y of tool. this way placing is parralle to the bottom of the box
         elif box_rotation == 1:
-            if rotation == 0 or rotation == 180:
+            if rotation == 90 or rotation == -90:
                 logging.info("---rotate also around y wile placing!---")
                 rotate_y = 5    #rotate 5 degrees about y of tool. this way placing is parralle to the bottom of the box
         rotate_x_step_7 = [0,0,0,math.radians(rotate_x),math.radians(rotate_y),math.radians(0)]
