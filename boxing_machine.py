@@ -85,7 +85,7 @@ class BoxingMachine:
             self.interface.stopped = False
             #self.resume()
             return
-        logging.info("block if paused")
+        #logging.info("block if paused")
         self.pause_event.wait()  # Block if paused
 
     def start(self):
