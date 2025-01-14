@@ -78,7 +78,7 @@ class CameraPosition:
         return xd, yd
 
     # main function that detects objects and returns the object locations
-    def detect_object_without_start(self, min_length=170, slow=False):
+    def detect_object_without_start(self, min_length=170, slow=False, fail_confidence=0.6):
         self.capture_position(slow)
         time.sleep(0.3)
         not_found = True
@@ -111,8 +111,41 @@ class CameraPosition:
                 self.last_frame = frame
             results = self.detector.detect_objects(frame.copy())
 
-        
             if results is not None:
+                bad_detected = False
+                hand_detected = False
+                for result in results:
+                    for box in result.boxes:
+                        bbox = box.xyxy[0].cpu().numpy()
+                        bbox = [int(coord) for coord in bbox[:4]]
+                        x_left = bbox[0]
+                        y_middle = int((bbox[1] + bbox[3]) / 2)
+                        width = bbox[2] - bbox[0]
+                        height = bbox[3] - bbox[1]
+                        depth = depth_frame.get_distance(x_left, y_middle)
+                        label = self.labels[int(box.cls[0])]
+                        length = max(width, height)
+
+                        if 'bad' in label.lower() and box.conf > fail_confidence:
+                            logging.info("Bad position detected!")
+                            self.robot.set_digital_output(2, True)  # Turn output 2 to True
+                            time.sleep(5)  # Wait for 5 seconds
+                            self.robot.set_digital_output(2, False)  # Turn output 2 to False
+                            bad_detected = True
+                            break  # Exit the loop to scan again
+
+                        if 'hand' in label.lower() and box.conf > fail_confidence:
+                            logging.info("Hand detected! Pausing the process.")
+                            self.boxing_machine.pause()
+                            hand_detected = True
+                            break  # Exit the loop to pause
+
+                    if bad_detected or hand_detected:
+                        break  # Exit the outer loop to handle detection
+
+                if bad_detected or hand_detected:
+                    continue  # Scan again or handle pause
+
                 for result in results:
                     for box in result.boxes:
                         if box.conf > 0.8:
@@ -126,14 +159,8 @@ class CameraPosition:
                             label = self.labels[int(box.cls[0])]
                             length = max(width, height)
 
-                            if 'bad' in label.lower():
-                                logging.info("Bad position detected!")
-                                self.robot.set_digital_output(2, True)  # Turn output 2 to True
-                                time.sleep(5)  # Wait for 5 seconds
-                                self.robot.set_digital_output(2, False)  # Turn output 2 to False
-                                continue  # Scan again
-    
-                            if label == 'Green' or label == 'Rubber' or label == 'Small-Blue': min_length += 20
+                            if label == 'Green' or label == 'Rubber' or label == 'Small-Blue': 
+                                min_length += 20
 
                             if label in ['Big-Blue', 'Green', 'Holed', 'Rubber', 'Small-Blue'] and length >= min_length and width * height < 75000:
                                 current_coordinates = (x_left, y_middle)
