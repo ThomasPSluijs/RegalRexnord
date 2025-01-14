@@ -217,7 +217,7 @@ class Pack_Box:
         z_offset_step_6 = 0
         rotation = part['rotation']
         if box_rotation == 0:   #high side parrallel to belt
-            if rotation == 0 or rotation == 180:    #low side. 
+            if rotation == 90 or rotation == -90:    #low side. 
                 if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue':
                     z_offset_step_6 = 0/1000    #layer 0: negative z offset for pressing down the box a bit
                 else: #big parts
@@ -229,7 +229,7 @@ class Pack_Box:
                     z_offset_step_6 = 5/1000
 
         elif box_rotation == 1: #high side not parrallel to belt
-            if rotation == 90 or rotation == -90:
+            if rotation == 0 or rotation == 180:
                 if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue':
                     z_offset_step_6 = 0/1000    #layer 0: negative z offset for pressing down the box a bit
                 else: #big parts
@@ -527,8 +527,11 @@ class Pack_Box:
             self.robot.move_j(cur_joint_pos, 2, 2)
 
         #rotate more for checking
-        check_placement_pos = [box_center[0], box_center[1], z_above_box, 2.222,2.248,0.004]
-        #self.robot.move_l(check_placement_pos, speed_slow, acc_slow) #slow for testing !!! 
+        x_offset=0/1000
+        y_offset=0/1000
+        z_height=z_above_box+0.1
+        check_placement_pos = [box_center[0]+x_offset, box_center[1] + y_offset, z_height, 2.222,2.248,0.004]
+        self.robot.move_l(check_placement_pos, speed_slow, acc_slow) #slow for testing !!! 
 
 
         '''insert placement checking here !!!!!'''
