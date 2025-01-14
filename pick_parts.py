@@ -228,8 +228,8 @@ class Pick_parts():
         self.robot.move_l_path(path=path)
 
 
-        self.boxing_machine.pause()
-        self.boxing_machine.interface.start_button_pressed()
+        #self.boxing_machine.pause()
+        #self.boxing_machine.interface.start_button_pressed()
         self.boxing_machine.wait_if_paused()
 
         #move path 1 till 6 with pickup tcp
