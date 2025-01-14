@@ -113,7 +113,7 @@ class Pack_Box:
                             y_pos = box_center[1] - self.box_width / 2 + self.part_length / 2 + 0.000 + place_extra_offset  # y positive for further away from place side
                             rotation = -90
                     elif i == 2:
-                        z_pos_offset = -3/1000
+                        z_pos_offset = -4/1000
                         # Third part (bottom left)
                         if box_index == 0:
                             x_pos = box_center[0] - self.box_length / 2 + self.part_width / 2 + 0.010  # x positive for further away from box edge
@@ -124,7 +124,7 @@ class Pack_Box:
                             y_pos = box_center[1] + self.box_width / 2 - self.part_length / 2 - 0.000 - place_extra_offset  # y negative for further away from place side
                             rotation = 90
                     elif i == 3:
-                        z_pos_offset = -3/1000
+                        z_pos_offset = -4/1000
                         # Fourth part (bottom right)
                         if box_index == 0:
                             x_pos = box_center[0] + self.box_length / 2 - self.part_length / 2 - 0.013 - place_extra_offset  # x negative for further away from place side
@@ -164,15 +164,6 @@ class Pack_Box:
     #place parts
     def place_part(self, part, part_type='Big-Blue',box_rotation=0):
         logging.info(f"given part type to place part: {part_type}")
-
-
-
-        '''box rotation''' 
-        #if box rotation == 0: high edge in the middle of the box is parrallel to the belt
-        #if box rotation == 1: high edge in the middle is turned 90degrees to the belt
-
-
-
 
         box_index = part['box_number']
         part_position = part['position']
