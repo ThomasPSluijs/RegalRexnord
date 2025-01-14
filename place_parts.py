@@ -263,15 +263,19 @@ class Pack_Box:
             if rotation == 0 or rotation == 180: #move z up if moving to high side
                 if part_type == 'Big-Blue' or part_type == 'Holed': 
                     z_offset_step_8 = 7
+                    logging.info("while placing move z up!!")
                 elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': 
                     z_offset_step_8 = 7
+                    logging.info("while placing move z up!!")
         
         elif  box_rotation == 1:    #high side not parrallel to belt
             if rotation == 90 or rotation == -90:   #move z up if moving to high side
                 if part_type == 'Big-Blue' or part_type == 'Holed': 
                     z_offset_step_8 = 7
+                    logging.info("while placing move z up!!")
                 elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': 
                     z_offset_step_8 = 7
+                    logging.info("while placing move z up!!")
 
 
 
@@ -523,13 +527,13 @@ class Pack_Box:
         #joint rotatation if needed
         if rotation_angle == 180:
             cur_joint_pos = self.robot.get_joint_pos()
-            cur_joint_pos[5] = math.radians(10)
+            cur_joint_pos[5] = math.radians(-25)
             self.robot.move_j(cur_joint_pos, 2, 2)
 
         #rotate more for checking
-        x_offset=0/1000
-        y_offset=0/1000
-        z_height=z_above_box+0.1
+        x_offset=-50/1000
+        y_offset=-50/1000
+        z_height=0.5
         check_placement_pos = [box_center[0]+x_offset, box_center[1] + y_offset, z_height, 2.222,2.248,0.004]
         self.robot.move_l(check_placement_pos, speed_slow, acc_slow) #slow for testing !!! 
 
