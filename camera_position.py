@@ -5,7 +5,6 @@ import logging
 import math
 import torch
 import numpy as np
-from UR5E_control import *
 from ultralytics import YOLO
 import threading
 import time
@@ -65,13 +64,15 @@ class CameraPosition:
 
         orientations = {}
 
-        while len(orientations) < len(positions):
-            for i, position in enumerate(positions):
-                if f'box_{i+1}' in orientations:
-                    continue  # Skip if orientation for this box is already found
+        not_found = [True,True]
+        frame_0 = None
+        frame_1 = None
 
-                self.robot.move_l(position, 0.5, 3)
-                time.sleep(0.3)
+        for i, position in enumerate(positions):
+            self.robot.move_l(position, 0.5, 3)
+            time.sleep(0.3)
+            
+            while not_found[i]:
                 frames = self.pipeline.wait_for_frames()
                 aligned_frames = self.align.process(frames)
                 color_frame = aligned_frames.get_color_frame()
@@ -90,8 +91,9 @@ class CameraPosition:
                             bbox = [int(coord) for coord in bbox[:4]]
                             label = self.labels[int(box.cls[0])]
                             confidence = box.conf.item()
+                            logging.info(f"confidence: {confidence}")
 
-                            if confidence > 0.4:
+                            if confidence > 0.25:
                                 if 'horizontal' in label.lower():
                                     logging.info(f"Horizontal object detected at position {i+1}.")
                                     orientations[f'box_{i+1}'] = 'horizontal'
@@ -99,8 +101,33 @@ class CameraPosition:
                                     logging.info(f"Vertical object detected at position {i+1}.")
                                     orientations[f'box_{i+1}'] = 'vertical'
 
+                                # Annotate the frame with bounding box and label
+                                color = (0, 255, 0) if 'horizontal' in label.lower() else (255, 0, 0)
+                                cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), color, 2)
+                                annotation = f"Box {i}: {label} ({confidence:.2f})"
+                                cv2.putText(frame, annotation, (bbox[0], bbox[1] - 10),
+                                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+                                
+                                if i == 0: frame_0 = frame
+                                elif i == 1: frame_1 = frame
+
+                                not_found[i] = False
+
+        # Ensure both frames have the same height for horizontal concatenation
+        h_min = min(frame_0.shape[0], frame_1.shape[0])
+        frame_0_resized = cv2.resize(frame_0, (int(frame_0.shape[1] * h_min / frame_0.shape[0]), h_min))
+        frame_1_resized = cv2.resize(frame_1, (int(frame_1.shape[1] * h_min / frame_1.shape[0]), h_min))
+
+        # Concatenate the frames horizontally
+        combined_frame = cv2.hconcat([frame_1_resized, frame_0_resized])
+
+        with self.frame_lock:
+            self.last_frame = combined_frame
+
         logging.info(f"Orientation detection complete: {orientations}")
         return orientations  # Return the orientations dictionary
+
+
 
     # moves robot to capture position
     def capture_position(self, slow=False):

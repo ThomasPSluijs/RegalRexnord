@@ -83,9 +83,7 @@ class BoxingMachine:
             logging.info("interface stopped, stop main loop")
             self.stop_main_loop = True
             self.interface.stopped = False
-            #self.resume()
             return
-        #logging.info("block if paused")
         self.pause_event.wait()  # Block if paused
 
     def start(self):
@@ -124,14 +122,15 @@ class BoxingMachine:
 
         #initialization box position check
         box_orientations = self.camera.initialize_position()
+        logging.info(f"box orientations: {box_orientations}")
+
+        keyboard.wait('space')
 
         x, y, item_type = self.camera.detect_pickable_parts(slow=True)  # Get actual coordinates from vision
         self.check_part_type(item_type)
 
         filled_boxes = self.pack_box.get_pack_pos('Green')
 
-        tot_parts = 1000  # For testing, limit part amount
-        count = 0
 
         self.boxes_are_full = False
 
@@ -154,49 +153,45 @@ class BoxingMachine:
                         self.stop_main_loop = False
                         return  # Exit the function immediately
 
-                    if count < tot_parts:
-                        logging.info(f"Processing part: {part}")
+                    logging.info(f"Processing part: {part}")
 
-                        with self.thread_lock:
-                            self.current_part_number = part['part_number']
-                            self.total_parts = len(box)
+                    with self.thread_lock:
+                        self.current_part_number = part['part_number']
+                        self.total_parts = len(box)
 
-                        logging.info("Do vision")
-                        self.wait_if_paused()
-                        if self.stop_main_loop:  # Check after potentially long operations
-                            self.stop_main_loop = False
-                            logging.info("Stopping main loop due to stop signal.")
-                            return
+                    logging.info("Do vision")
+                    self.wait_if_paused()
+                    if self.stop_main_loop:  # Check after potentially long operations
+                        self.stop_main_loop = False
+                        logging.info("Stopping main loop due to stop signal.")
+                        return
 
-                        x, y, item_type = self.camera.detect_pickable_parts()  # Get actual coordinates from vision
-                        logging.info(f"x: {x}   y: {y}   item_type: {item_type}")
+                    x, y, item_type = self.camera.detect_pickable_parts()  # Get actual coordinates from vision
+                    logging.info(f"x: {x}   y: {y}   item_type: {item_type}")
 
-                        logging.info("pickup part")
-                        if self.stop_main_loop:  # Check after potentially long operations
-                            self.stop_main_loop = False
-                            logging.info("Stopping main loop due to stop signal.")
-                            return
-                        self.wait_if_paused()
-                        if self.stop_main_loop:  # Check after potentially long operations
-                            self.stop_main_loop = False
-                            logging.info("Stopping main loop due to stop signal.")
-                            return
+                    logging.info("pickup part")
+                    if self.stop_main_loop:  # Check after potentially long operations
+                        self.stop_main_loop = False
+                        logging.info("Stopping main loop due to stop signal.")
+                        return
+                    self.wait_if_paused()
+                    if self.stop_main_loop:  # Check after potentially long operations
+                        self.stop_main_loop = False
+                        logging.info("Stopping main loop due to stop signal.")
+                        return
 
-                        self.pick_part.pick_parts(x, y, part_type=item_type)  # Uncomment when ready
+                    self.pick_part.pick_parts(x, y, part_type=item_type)  # Uncomment when ready
 
-                        logging.info("Place part")
-                        self.wait_if_paused()
-                        if self.stop_main_loop:  # Check after potentially long operations
-                            self.stop_main_loop = False
-                            logging.info("Stopping main loop due to stop signal.")
-                            return
+                    logging.info("Place part")
+                    self.wait_if_paused()
+                    if self.stop_main_loop:  # Check after potentially long operations
+                        self.stop_main_loop = False
+                        logging.info("Stopping main loop due to stop signal.")
+                        return
 
-                        box_orientation = box_orientations.get(f'box_{box_index+1}')  # Get the orientation for the current box
-                        logging.info(f"Box orientation: {box_orientation}")
-                        self.pack_box.place_part(part, part_type=item_type, box_rotation=box_orientation)  # Pass the box orientation
-
-
-                count += 1
+                    box_orientation = box_orientations.get(f'box_{box_index+1}')  # Get the orientation for the current box
+                    logging.info(f"Box orientation: {box_orientation}")
+                    self.pack_box.place_part(part, part_type=item_type, box_rotation=box_orientation)  # Pass the box orientation
 
             box_index += 1
 
@@ -204,5 +199,3 @@ class BoxingMachine:
             self.boxes_are_full = True
 
         self.stop_main_loop = False
-
-        #self.stop()  # End operations

@@ -55,7 +55,7 @@ class UserInterface:
         '''start conveyer'''
         self.conveyor = Conveyor()
         conveyer_start = threading.Thread(target=self.conveyor.run, args=(self.machine.robot,),daemon=True)
-        conveyer_start.start()
+        #conveyer_start.start()
 
 
         self.setup_ui() #setup UI
