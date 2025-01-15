@@ -126,22 +126,32 @@ class CameraPosition:
                             label = self.labels[int(box.cls[0])]
                             length = max(width, height)
 
-                            if 'bad' in label.lower() and box.conf > fail_confidence:
+                            if 'bad' in label.lower() and box.conf > 0.5:
                                 logging.info("Bad position detected!")
-                                self.robot.set_digital_output(2, True)  # Turn output 2 to True
+                                self.robot.set_digital_output(2, True)  # Turn output 2 to True (gate goes up)
                                 time.sleep(5)  # Wait for 5 seconds
-                                self.robot.set_digital_output(2, False)  # Turn output 2 to False
+                                self.robot.set_digital_output(2, False)  # Turn output 2 to False (gate goes down)
                                 bad_detected = True
+
                                 # Draw a thick red bounding box for 'bad' objects
                                 cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (0, 0, 255), 4)  # Red color, thickness 4
                                 text = f'{label} ({box.conf.item():.2f})'
                                 cv2.putText(frame, text, (bbox[0], bbox[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-                                cv2.imshow("Detection", frame)
-                                cv2.waitKey(1)
-                                return (0, 0, 0)  # Bad position detected, return early
+                                with self.frame_lock:
+                                    self.last_frame = frame
 
-                            if label == 'Green' or label == 'Rubber' or label == 'Small-Blue': min_length += 20
+                                self.boxing_machine.pause()
+                                self.boxing_machine.interface.start_button_pressed()
+                                self.boxing_machine.interface.update_status("bad placement on conveyor: please fix and resume")
+                                continue
+                                #return (0, 0, 0)  # Bad position detected, pause
 
+
+                            #small parts need more parts on belt, otherwise they bukkle up
+                            if label == 'Green' or label == 'Rubber' or label == 'Small-Blue': min_length += 30
+
+
+                            #check for parts on belt, minium length and maximu area
                             if label in ['Big-Blue', 'Green', 'Holed', 'Rubber', 'Small-Blue'] and length >= min_length and width * height < 75000:
                                 current_coordinates = (x_left, y_middle)
                                 if self.is_stable(current_coordinates):
@@ -172,6 +182,7 @@ class CameraPosition:
 
 
 
+    #checks if parts are stationary. only pick up parts if they are stationary
     def is_stable(self, current_coordinates):
         """Check stability separately for two rows."""
         x, y = current_coordinates
@@ -202,6 +213,7 @@ class CameraPosition:
 
         return False
 
+
     def update_row_state(self, row, coordinates):
         """Update the state for a specific row."""
         if row == "row1":
@@ -211,8 +223,12 @@ class CameraPosition:
             self.previous_coordinates_row2 = coordinates
             self.last_stable_time_row2 = time.time()
 
+
     def stop_display_thread(self):
         self.display_thread_running = False
+
+
+
 
 # runs yolo model and detects objects
 class ObjectDetector:
