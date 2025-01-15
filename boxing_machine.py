@@ -127,7 +127,7 @@ class BoxingMachine:
         logging.info(f"box orientations: {box_orientations}")
 
 
-        time.sleep(5)
+        time.sleep(1)
 
 
         #check part type on belt
