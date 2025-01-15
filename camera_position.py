@@ -127,7 +127,7 @@ class CameraPosition:
                             label = self.labels[int(box.cls[0])]
                             length = max(width, height)
 
-                            if 'bad' in label.lower() and box.conf > 0.5:
+                            if 'bad' in label.lower() and box.conf > 0.656:
                                 # Draw a thick red bounding box for 'bad' objects
                                 cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (0, 0, 255), 4)  # Red color, thickness 4
                                 text = f'{label} ({box.conf.item():.2f})'

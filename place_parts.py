@@ -60,7 +60,7 @@ class Pack_Box:
         self.boxing_machine = boxing_machine
 
         #last layer
-        self.last_layer = -1
+        self.last_layer = 0
 
    
         #get al packing positions in the boxes. These are the center coordinates of the parts, rotations of the parts and the z_height of the parts
@@ -102,8 +102,8 @@ class Pack_Box:
                             y_pos = box_center[1] - self.box_width / 2 + self.part_width / 2 + 0.007  # y positive for further away from box edge
                             rotation = 0
                         elif box_index == 1:
-                            x_pos = box_center[0] - self.box_length / 2 + self.part_length / 2 + 0.00 + place_extra_offset  # x positive for further away from place side
-                            y_pos = box_center[1] - self.box_width / 2 + self.part_width / 2 + 0.000  # y positive for further away from box edge
+                            x_pos = box_center[0] - self.box_length / 2 + self.part_length / 2 + 0.003 + place_extra_offset  # x positive for further away from place side
+                            y_pos = box_center[1] - self.box_width / 2 + self.part_width / 2 + 0.008  # y positive for further away from box edge
                             rotation = 0
                     elif i == 1:
                         # Second part (top right)
@@ -112,30 +112,30 @@ class Pack_Box:
                             y_pos = box_center[1] - self.box_width / 2 + self.part_length / 2 + 0.007 + place_extra_offset  # y positive for further away from place side
                             rotation = -90
                         elif box_index == 1:
-                            x_pos = box_center[0] + self.box_length / 2 - self.part_width / 2 - 0.000  # x negative for further away from box edge
-                            y_pos = box_center[1] - self.box_width / 2 + self.part_length / 2 + 0.000 + place_extra_offset  # y positive for further away from place side
+                            x_pos = box_center[0] + self.box_length / 2 - self.part_width / 2 - 0.012  # x negative for further away from box edge
+                            y_pos = box_center[1] - self.box_width / 2 + self.part_length / 2 + 0.010 + place_extra_offset  # y positive for further away from place side
                             rotation = -90
                     elif i == 2:
-                        z_pos_offset = -4/1000
+                        z_pos_offset = -3/1000
                         # Third part (bottom left)
                         if box_index == 0:
                             x_pos = box_center[0] - self.box_length / 2 + self.part_width / 2 + 0.010  # x positive for further away from box edge
                             y_pos = box_center[1] + self.box_width / 2 - self.part_length / 2 - 0.012 - place_extra_offset  # y negative for further away from place side
                             rotation = 90
                         elif box_index == 1:
-                            x_pos = box_center[0] - self.box_length / 2 + self.part_width / 2 + 0.000  # x positive for further away from box edge
-                            y_pos = box_center[1] + self.box_width / 2 - self.part_length / 2 - 0.000 - place_extra_offset  # y negative for further away from place side
+                            x_pos = box_center[0] - self.box_length / 2 + self.part_width / 2 + 0.006  # x positive for further away from box edge
+                            y_pos = box_center[1] + self.box_width / 2 - self.part_length / 2 - 0.003 - place_extra_offset  # y negative for further away from place side
                             rotation = 90
                     elif i == 3:
-                        z_pos_offset = -4/1000
+                        z_pos_offset = -3/1000
                         # Fourth part (bottom right)
                         if box_index == 0:
                             x_pos = box_center[0] + self.box_length / 2 - self.part_length / 2 - 0.013 - place_extra_offset  # x negative for further away from place side
                             y_pos = box_center[1] + self.box_width / 2 - self.part_width / 2 - 0.015  # y negative for further away from box edge
                             rotation = 180
                         elif box_index == 1:
-                            x_pos = box_center[0] + self.box_length / 2 - self.part_length / 2 - 0.000 - place_extra_offset # x negative for further away from place side
-                            y_pos = box_center[1] + self.box_width / 2 - self.part_width / 2 - 0.000  # y negative for further away from box edge
+                            x_pos = box_center[0] + self.box_length / 2 - self.part_length / 2 - 0.005 - place_extra_offset # x negative for further away from place side
+                            y_pos = box_center[1] + self.box_width / 2 - self.part_width / 2 - 0.005  # y negative for further away from box edge
                             rotation = 180
 
                     _z_pos = z_pos + z_pos_offset
@@ -174,10 +174,10 @@ class Pack_Box:
 
         #fast and slow speeds and accelerations. fast for general movements, slow for special movements. 
         speed_fast = 3
-        acc_fast = 1.5
+        acc_fast = 2
                                                      
-        speed_slow = 0.6
-        acc_slow = 0.4
+        speed_slow = 1
+        acc_slow = 0.8
 
         box_center = self.box.box_centers[box_index]
         logging.info(f"Box center: {box_center}")
@@ -230,7 +230,7 @@ class Pack_Box:
                 if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue':
                     z_offset_step_6 = 2/1000    #layer 0: negative z offset for pressing down the box a bit
                 else: #big parts
-                    z_offset_step_6 = 5/1000
+                    z_offset_step_6 = 6/1000
 
         elif box_rotation == 1: #high side not parrallel to belt
             if rotation == 0 or rotation == 180:
@@ -242,7 +242,7 @@ class Pack_Box:
                 if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue':
                     z_offset_step_6 = 2/1000    #layer 0: negative z offset for pressing down the box a bit
                 else: #big parts
-                    z_offset_step_6 = 5/1000
+                    z_offset_step_6 = 6/1000
 
         
         '''STEP 7: rotate about x so parts can be placed'''
@@ -533,19 +533,22 @@ class Pack_Box:
         #joint rotatation if needed
         if rotation_angle == 180:
             cur_joint_pos = self.robot.get_joint_pos()
-            cur_joint_pos[5] = math.radians(-25)
+            cur_joint_pos[5] = math.radians(-40)
             self.robot.move_j(cur_joint_pos, 2, 2)
-
-        #rotate more for checking
-        x_offset=-133/1000
-        y_offset=-100/1000
-        z_height=0.6
-        check_placement_pos = [box_center[0]+x_offset, box_center[1] + y_offset, z_height, 2.222,2.248,0.004]
-        self.robot.move_l(check_placement_pos, speed_slow, acc_slow) #slow for testing !!! 
 
 
         # Placement checking
+        cur_layer = self.last_layer
         if cur_layer != self.last_layer:
+            self.last_layer = cur_layer
+
+            #rotate more for checking
+            x_offset=-133/1000
+            y_offset=-100/1000
+            z_height=0.6
+            check_placement_pos = [box_center[0]+x_offset, box_center[1] + y_offset, z_height, 2.222,2.248,0.004]
+            self.robot.move_l(check_placement_pos, speed_slow, acc_slow) #slow for testing !!! 
+
             bad_detected = self.boxing_machine.camera.check_bad_part_placement()
             if bad_detected:
                 logging.info("bad placement detected")

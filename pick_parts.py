@@ -54,7 +54,7 @@ class Pick_parts():
 
         #part length, some parts are a bit shorter so robot has to move less
         if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': part_length = 0.170
-        elif part_type == 'Big-Blue': part_length = 0.174
+        elif part_type == 'Big-Blue': part_length = 0.1735
         else: part_length = 0.174
 
 
@@ -182,7 +182,11 @@ class Pick_parts():
         new_linear_move = [cur_pos[i] +  move_x[i] for i in range(6)]
 
         path_step_4 = new_linear_move.copy()
-        speed_acc_blend = [speed_slow, acc_slow, 0.0]
+        if part_type == 'Big-Blue' or part_type == 'Holed':
+            speed,acc = 3,3
+        else:
+            speed,acc = speed_slow, acc_slow
+        speed_acc_blend = [speed, acc, 0.0]
         for y in speed_acc_blend:
             path_step_4 = np.append(path_step_4, y)
 
