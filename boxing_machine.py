@@ -4,8 +4,7 @@ from UR5E_control import URControl
 from camera_position import CameraPosition         # used for scanning the belt for detected parts
 from pick_parts import *                           # used for picking parts from belt. needs x and y coordinates
 from place_parts import *                          # used for getting place locations and placing parts in boxes
-import keyboard
-import cv2
+import time
 
 logging.basicConfig(
     level=logging.INFO,
@@ -118,22 +117,31 @@ class BoxingMachine:
     #main loop that fills all available boxes
     def main_loop(self):
         logging.info("In main loop")
-        logging.info("Get all packing positions")
+
+        #first move to safe normal working pos
+        self.normal_mode()
+
 
         #initialization box position check
         box_orientations = self.camera.initialize_position()
         logging.info(f"box orientations: {box_orientations}")
 
-        keyboard.wait('space')
 
-        x, y, item_type = self.camera.detect_pickable_parts(slow=True)  # Get actual coordinates from vision
+        time.sleep(5)
+
+
+        #check part type on belt
+        x, y, item_type = self.camera.detect_pickable_parts(slow=False)  # Get actual coordinates from vision
         self.check_part_type(item_type)
 
-        filled_boxes = self.pack_box.get_pack_pos('Green')
+
+        #get packing positions
+        filled_boxes = self.pack_box.get_pack_pos(item_type)
 
 
+
+        #start for loop to go through all packing positions and fill the boxes
         self.boxes_are_full = False
-
         box_index = 0
         for box in filled_boxes:
             if self.stop_main_loop:  # Check if stop signal is set

@@ -58,20 +58,19 @@ class CameraPosition:
     def initialize_position(self):
         # Define the specific positions to check
         positions = [
-            [-0.3753183914824111, 0.41502349118468146, 0.3336486043503155, -2.194948227521941, -2.220646389582354, -0.003956852917971313],  # Position 1
-            [0.04576259998657983, 0.4238738887110429, 0.28894615997387796, -2.196305082737091, -2.21929681284849, -0.003980920453761424],  # Position 2
+            [-0.375, 0.415, 0.333, -2.195, -2.221, -0.004],  # Position 1
+            [0.0457, 0.424, 0.333, -2.195, -2.221, -0.004],  # Position 2
         ]
 
         orientations = {}
-
-        not_found = [True,True]
+        not_found = [True, True]
         frame_0 = None
         frame_1 = None
 
         for i, position in enumerate(positions):
             self.robot.move_l(position, 0.5, 3)
             time.sleep(0.3)
-            
+
             while not_found[i]:
                 frames = self.pipeline.wait_for_frames()
                 aligned_frames = self.align.process(frames)
@@ -85,33 +84,48 @@ class CameraPosition:
                 results = self.detector.detect_objects(frame.copy())
 
                 if results is not None:
+                    highest_confidence = 0
+                    best_bbox = None
+                    best_label = None
+
                     for result in results:
                         for box in result.boxes:
                             bbox = box.xyxy[0].cpu().numpy()
                             bbox = [int(coord) for coord in bbox[:4]]
                             label = self.labels[int(box.cls[0])]
                             confidence = box.conf.item()
-                            logging.info(f"confidence: {confidence}")
+                            logging.info(f"Detected object: {label} with confidence {confidence} at position {i+1}")
 
-                            if confidence > 0.25:
-                                if 'horizontal' in label.lower():
-                                    logging.info(f"Horizontal object detected at position {i+1}.")
-                                    orientations[f'box_{i+1}'] = 'horizontal'
-                                elif 'vertical' in label.lower():
-                                    logging.info(f"Vertical object detected at position {i+1}.")
-                                    orientations[f'box_{i+1}'] = 'vertical'
+                            # Only consider the detection with the highest confidence
+                            if confidence > 0.25 and confidence > highest_confidence:
+                                highest_confidence = confidence
+                                best_bbox = bbox
+                                best_label = label
 
-                                # Annotate the frame with bounding box and label
-                                color = (0, 255, 0) if 'horizontal' in label.lower() else (255, 0, 0)
-                                cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), color, 2)
-                                annotation = f"Box {i}: {label} ({confidence:.2f})"
-                                cv2.putText(frame, annotation, (bbox[0], bbox[1] - 10),
-                                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
-                                
-                                if i == 0: frame_0 = frame
-                                elif i == 1: frame_1 = frame
+                    if best_bbox and best_label:
+                        # Assign orientation based on label
+                        if 'horizontal' in best_label.lower():
+                            orientations[f'box_{i+1}'] = 'horizontal'
+                            color = (0, 255, 0)
+                        elif 'vertical' in best_label.lower():
+                            orientations[f'box_{i+1}'] = 'vertical'
+                            color = (255, 0, 0)
 
-                                not_found[i] = False
+                        # Annotate the frame with the best detection
+                        cv2.rectangle(frame, (best_bbox[0], best_bbox[1]), (best_bbox[2], best_bbox[3]), color, 2)
+                        annotation = f"Box {i + 1}: {best_label} ({highest_confidence:.2f})"
+                        text_x = best_bbox[0]
+                        text_y = max(best_bbox[1] - 10, 20)  # Ensure text is always visible
+                        cv2.putText(frame, annotation, (text_x, text_y),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+
+                        # Assign the annotated frame to the correct box
+                        if i == 0:
+                            frame_0 = frame
+                        elif i == 1:
+                            frame_1 = frame
+
+                        not_found[i] = False
 
         # Ensure both frames have the same height for horizontal concatenation
         h_min = min(frame_0.shape[0], frame_1.shape[0])
@@ -125,7 +139,7 @@ class CameraPosition:
             self.last_frame = combined_frame
 
         logging.info(f"Orientation detection complete: {orientations}")
-        return orientations  # Return the orientations dictionary
+        return orientations
 
 
 
