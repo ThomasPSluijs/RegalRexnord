@@ -1,9 +1,7 @@
 import logging
 from math import floor
 import math
-from UR5E_control import URControl
 import time
-import keyboard
 import numpy as np
 
 import cv2
@@ -217,7 +215,7 @@ class Pack_Box:
 
 
     #place parts
-    def place_part(self, part, part_type='Big-Blue',box_rotation=0):
+    def place_part(self, part, part_type='Big-Blue',box_rotation=1):
         logging.info(f"given part type to place part: {part_type}")
 
         box_index = part['box_number']
