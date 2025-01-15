@@ -122,7 +122,7 @@ class BoxingMachine:
         logging.info("In main loop")
         logging.info("Get all packing positions")
 
-        x, y, item_type = self.camera.detect_object_without_start(slow=True)  # Get actual coordinates from vision
+        x, y, item_type = self.camera.detect_pickable_parts(slow=True)  # Get actual coordinates from vision
         self.check_part_type(item_type)
 
         filled_boxes = self.pack_box.get_pack_pos(item_type)
@@ -162,7 +162,7 @@ class BoxingMachine:
                         logging.info("Stopping main loop due to stop signal.")
                         return
 
-                    x, y, item_type = self.camera.detect_object_without_start()  # Get actual coordinates from vision
+                    x, y, item_type = self.camera.detect_pickable_parts()  # Get actual coordinates from vision
                     logging.info(f"x: {x}   y: {y}   item_type: {item_type}")
 
                     logging.info("pickup part")

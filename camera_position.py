@@ -40,13 +40,12 @@ class CameraPosition:
         self.align = rs.align(rs.stream.color)
         self.labels = self.detector.labels
 
-        self.last_frame = None
-        self.frame_lock = threading.Lock()
-        self.display_thread_running = True
-        self.previous_coordinates = None
-        self.last_stable_time = 0
+        self.last_frame = None                  #last frame storage so interface can show last frame
+        self.frame_lock = threading.Lock()      #threading lock so no reading/writing lastframe at the same time
+        self.display_thread_running = True      #display thread runs as long as this is true
 
-        # Separate states for each row
+
+        # Separate states for each row. makes sure parts are stationary when picking up
         self.previous_coordinates_row1 = None
         self.previous_coordinates_row2 = None
         self.last_stable_time_row1 = 0
@@ -54,6 +53,8 @@ class CameraPosition:
 
         self.row_threshold = 6  # Stability threshold in pixels
         self.row_gap_threshold = 50  # Distance to separate rows (adjust as necessary)
+
+
 
     # moves robot to capture position
     def capture_position(self, slow=False):
@@ -78,7 +79,7 @@ class CameraPosition:
         return xd, yd
 
     # main function that detects objects and returns the object locations
-    def detect_object_without_start(self, min_length=170, slow=False):
+    def detect_pickable_parts(self, min_length=170, slow=False):
         self.capture_position(slow)
         time.sleep(0.3)
         not_found = True
@@ -127,12 +128,6 @@ class CameraPosition:
                             length = max(width, height)
 
                             if 'bad' in label.lower() and box.conf > 0.5:
-                                logging.info("Bad position detected!")
-                                self.robot.set_digital_output(2, True)  # Turn output 2 to True (gate goes up)
-                                time.sleep(5)  # Wait for 5 seconds
-                                self.robot.set_digital_output(2, False)  # Turn output 2 to False (gate goes down)
-                                bad_detected = True
-
                                 # Draw a thick red bounding box for 'bad' objects
                                 cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (0, 0, 255), 4)  # Red color, thickness 4
                                 text = f'{label} ({box.conf.item():.2f})'
@@ -143,8 +138,13 @@ class CameraPosition:
                                 self.boxing_machine.pause()
                                 self.boxing_machine.interface.start_button_pressed()
                                 self.boxing_machine.interface.update_status("bad placement on conveyor: please fix and resume")
+
+                                logging.info("Bad position detected!")
+                                self.robot.set_digital_output(2, True)  # Turn output 2 to True (gate goes up)
+                                time.sleep(5)  # Wait for 5 seconds
+                                self.robot.set_digital_output(2, False)  # Turn output 2 to False (gate goes down)
+                                bad_detected = True
                                 continue
-                                #return (0, 0, 0)  # Bad position detected, pause
 
 
                             #small parts need more parts on belt, otherwise they bukkle up
@@ -181,7 +181,6 @@ class CameraPosition:
         return (0, 0, 0)
 
 
-
     #checks if parts are stationary. only pick up parts if they are stationary
     def is_stable(self, current_coordinates):
         """Check stability separately for two rows."""
@@ -213,7 +212,6 @@ class CameraPosition:
 
         return False
 
-
     def update_row_state(self, row, coordinates):
         """Update the state for a specific row."""
         if row == "row1":
@@ -224,6 +222,53 @@ class CameraPosition:
             self.last_stable_time_row2 = time.time()
 
 
+    def check_bad_part_placement(self, bad_confidence=0.6):
+        #try 4 times
+        tries = 4
+        for i in range(tries):
+            #get frames and check if we have a color frame
+            frames = self.pipeline.wait_for_frames()
+            color_frame = frames.get_color_frame()
+            if not color_frame:
+                logging.error("No color frame captured")
+                break
+
+            #get frame as np array and get results from yolo model
+            frame = np.asanyarray(color_frame.get_data())
+            results = self.detector.detect_objects(frame)
+
+            #update frame on user interface
+            with self.frame_lock:
+                self.last_frame = frame
+
+
+            #process the yolo results
+            if results is not None:
+                for result in results:
+                    for box in result.boxes:
+                        bbox = box.xyxy[0].cpu().numpy()
+                        bbox = [int(coord) for coord in bbox[:4]]
+                        label = self.labels[int(box.cls[0])]
+                        confidence = box.conf.item()
+
+                        if 'bad' in label.lower() and confidence > bad_confidence:
+                            logging.info("Bad position detected!")
+
+                            # Draw a thick red bounding box for 'bad' objects
+                            cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (0, 0, 255), 4)  # Red color, thickness 4
+                            text = f'{label} ({box.conf.item():.2f})'
+                            cv2.putText(frame, text, (bbox[0], bbox[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+                        
+                            #update frame for interface
+                            with self.frame_lock:
+                                self.last_frame = frame
+                            return True  # Bad position detected
+            return False  # No bad position detected      
+
+
+
+
+    #stop display thread
     def stop_display_thread(self):
         self.display_thread_running = False
 

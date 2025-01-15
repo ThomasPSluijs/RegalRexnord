@@ -1,63 +1,10 @@
 import logging
 from math import floor
 import math
-import time
 import numpy as np
 
-import cv2
-import pyrealsense2 as rs
-import numpy as np
-from ultralytics import YOLO
 
 #Place parts in boxes check 
-# Initialize the camera
-pipeline = rs.pipeline()
-config = rs.config()
-config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
-pipeline.start(config)
-
-# Load the object detection model (assuming YOLO model is used)
-model = YOLO("best.pt")  # Replace with the path to your model
-
-# Function to detect objects in a frame
-def detect_objects(frame):
-    results = model.predict(source=frame, verbose=False, show=False)
-    return results
-
-# Function to check for bad position
-def check_bad_position(robot, fail_confidence=0.6):
-    frames = pipeline.wait_for_frames()
-    color_frame = frames.get_color_frame()
-    if not color_frame:
-        logging.error("No color frame captured")
-        return False
-
-    frame = np.asanyarray(color_frame.get_data())
-    results = detect_objects(frame)
-
-    if results is not None:
-        for result in results:
-            for box in result.boxes:
-                bbox = box.xyxy[0].cpu().numpy()
-                bbox = [int(coord) for coord in bbox[:4]]
-                label = model.names[int(box.cls[0])]
-                confidence = box.conf.item()
-
-                if 'bad' in label.lower() and confidence > fail_confidence:
-                    logging.info("Bad position detected!")
-                    robot.set_digital_output(2, True)  # Turn output 2 to True
-                    time.sleep(5)  # Wait for 5 seconds
-                    robot.set_digital_output(2, False)  # Turn output 2 to False
-
-                    # Draw a thick red bounding box for 'bad' objects
-                    cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (0, 0, 255), 4)  # Red color, thickness 4
-                    text = f'{label} ({box.conf.item():.2f})'
-                    cv2.putText(frame, text, (bbox[0], bbox[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-                    cv2.imshow("Detection", frame)
-                    cv2.waitKey(1)
-                    return True  # Bad position detected
-    return False  # No bad position detected
-
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -112,6 +59,9 @@ class Pack_Box:
         #boxing machine
         self.boxing_machine = boxing_machine
 
+        #last layer
+        self.last_layer = -1
+
    
         #get al packing positions in the boxes. These are the center coordinates of the parts, rotations of the parts and the z_height of the parts
     def get_pack_pos(self, item_type):
@@ -158,7 +108,7 @@ class Pack_Box:
                     elif i == 1:
                         # Second part (top right)
                         if box_index == 0:
-                            x_pos = box_center[0] + self.box_length / 2 - self.part_width / 2 - 0.012   # x negative for further away from box edge
+                            x_pos = box_center[0] + self.box_length / 2 - self.part_width / 2 - 0.014   # x negative for further away from box edge
                             y_pos = box_center[1] - self.box_width / 2 + self.part_length / 2 + 0.007 + place_extra_offset  # y positive for further away from place side
                             rotation = -90
                         elif box_index == 1:
@@ -181,7 +131,7 @@ class Pack_Box:
                         # Fourth part (bottom right)
                         if box_index == 0:
                             x_pos = box_center[0] + self.box_length / 2 - self.part_length / 2 - 0.013 - place_extra_offset  # x negative for further away from place side
-                            y_pos = box_center[1] + self.box_width / 2 - self.part_width / 2 - 0.018  # y negative for further away from box edge
+                            y_pos = box_center[1] + self.box_width / 2 - self.part_width / 2 - 0.015  # y negative for further away from box edge
                             rotation = 180
                         elif box_index == 1:
                             x_pos = box_center[0] + self.box_length / 2 - self.part_length / 2 - 0.000 - place_extra_offset # x negative for further away from place side
@@ -220,6 +170,7 @@ class Pack_Box:
 
         box_index = part['box_number']
         part_position = part['position']
+        cur_layer = part['layer_number']
 
         #fast and slow speeds and accelerations. fast for general movements, slow for special movements. 
         speed_fast = 3
@@ -586,21 +537,25 @@ class Pack_Box:
             self.robot.move_j(cur_joint_pos, 2, 2)
 
         #rotate more for checking
-        x_offset=-70/1000
-        y_offset=-70/1000
+        x_offset=-133/1000
+        y_offset=-100/1000
         z_height=0.6
         check_placement_pos = [box_center[0]+x_offset, box_center[1] + y_offset, z_height, 2.222,2.248,0.004]
         self.robot.move_l(check_placement_pos, speed_slow, acc_slow) #slow for testing !!! 
 
+
         # Placement checking
-        bad_detected = check_bad_position(self.robot)
-        if bad_detected:
-            logging.info("Bad position detected and handled.")
-            self.boxing_machine.pause()
-            # Display message on the interface
-            self.boxing_machine.display_message("Please fix the placement position")
-        else:
-            logging.info("No bad position detected.")
+        if cur_layer != self.last_layer:
+            bad_detected = self.boxing_machine.camera.check_bad_part_placement()
+            if bad_detected:
+                logging.info("bad placement detected")
+                self.boxing_machine.pause()
+                self.boxing_machine.interface.start_button_pressed()
+                self.boxing_machine.interface.update_status("please fix placement position, then press resume")
+            else:
+                logging.info("no bad position detected")
+
+        self.boxing_machine.wait_if_paused()
 
         #move to take pic pos
         target_position = [-0.6639046352765678, -0.08494527187802497, 0.529720350746548, 2.222, 2.248, 0.004]
