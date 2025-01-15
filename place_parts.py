@@ -165,7 +165,7 @@ class Pack_Box:
 
 
     #place parts
-    def place_part(self, part, part_type='Big-Blue',box_rotation=1):
+    def place_part(self, part, part_type='Big-Blue',box_rotation='horizontal'):
         logging.info(f"given part type to place part: {part_type}")
 
         box_index = part['box_number']
@@ -220,7 +220,7 @@ class Pack_Box:
         '''STEP 6: move to desired z height'''
         z_offset_step_6 = 0
         rotation = part['rotation']
-        if box_rotation == 0:   #high side parrallel to belt
+        if box_rotation == 'horizontal':   #high side parrallel to belt
             if rotation == 90 or rotation == -90:    #low side. 
                 if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue':
                     z_offset_step_6 = 0/1000    #layer 0: negative z offset for pressing down the box a bit
@@ -232,7 +232,7 @@ class Pack_Box:
                 else: #big parts
                     z_offset_step_6 = 6/1000
 
-        elif box_rotation == 1: #high side not parrallel to belt
+        elif box_rotation == 'vertical': #high side not parrallel to belt
             if rotation == 0 or rotation == 180:
                 if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue':
                     z_offset_step_6 = 0/1000    #layer 0: negative z offset for pressing down the box a bit
@@ -250,11 +250,11 @@ class Pack_Box:
         elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': rotate_x = -30
         rotate_y = 0
         rotation = part['rotation']
-        if box_rotation == 0:
+        if box_rotation == 'horizontal':
             if rotation == 0 or rotation == 180:
                 logging.info("---rotate also around y wile placing!---")
                 rotate_y = 5    #rotate 5 degrees about y of tool. this way placing is parralle to the bottom of the box
-        elif box_rotation == 1:
+        elif box_rotation == 'vertical':
             if rotation == 90 or rotation == -90:
                 logging.info("---rotate also around y wile placing!---")
                 rotate_y = 5    #rotate 5 degrees about y of tool. this way placing is parralle to the bottom of the box
@@ -265,7 +265,7 @@ class Pack_Box:
         offset_step_8=157    #should be 175
         z_offset_step_8=0
         rotation = part['rotation']
-        if box_rotation == 0:       #high side parrallel to belt
+        if box_rotation == 'horizontal':       #high side parrallel to belt
             if rotation == 90 or rotation == -90: #move z up if moving to high side
                 if part_type == 'Big-Blue' or part_type == 'Holed': 
                     z_offset_step_8 = 5
@@ -274,7 +274,7 @@ class Pack_Box:
                     z_offset_step_8 = 6
                     logging.info("---while placing move z up!!--")
         
-        elif  box_rotation == 1:    #high side not parrallel to belt
+        elif  box_rotation == 'vertical':    #high side not parrallel to belt
             if rotation == 0 or rotation == 180:   #move z up if moving to high side
                 if part_type == 'Big-Blue' or part_type == 'Holed': 
                     z_offset_step_8 = 5
