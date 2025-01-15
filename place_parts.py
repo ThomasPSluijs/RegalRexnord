@@ -89,7 +89,7 @@ class Pack_Box:
 
             if item_type == 'Big-Blue': place_extra_offset=4/1000
             else: place_extra_offset = 0
-            z_pos_offset = 0 #for differen parts, differen offset because box is not level
+            z_pos_offset = -1.5/1000 #for differen parts, differen offset because box is not level
 
             # For loop to go through total z parts to fill a box
             for z in range(total_z_parts):
@@ -99,7 +99,7 @@ class Pack_Box:
                         # First part (top left)
                         if box_index == 0:
                             x_pos = box_center[0] - self.box_length / 2 + self.part_length / 2 + 0.010 + place_extra_offset  # x positive for further away from place side was 
-                            y_pos = box_center[1] - self.box_width / 2 + self.part_width / 2 + 0.007  # y positive for further away from box edge
+                            y_pos = box_center[1] - self.box_width / 2 + self.part_width / 2 + 0.009  # y positive for further away from box edge
                             rotation = 0
                         elif box_index == 1:
                             x_pos = box_center[0] - self.box_length / 2 + self.part_length / 2 + 0.003 + place_extra_offset  # x positive for further away from place side
@@ -108,7 +108,7 @@ class Pack_Box:
                     elif i == 1:
                         # Second part (top right)
                         if box_index == 0:
-                            x_pos = box_center[0] + self.box_length / 2 - self.part_width / 2 - 0.014   # x negative for further away from box edge
+                            x_pos = box_center[0] + self.box_length / 2 - self.part_width / 2 - 0.012   # x negative for further away from box edge
                             y_pos = box_center[1] - self.box_width / 2 + self.part_length / 2 + 0.007 + place_extra_offset  # y positive for further away from place side
                             rotation = -90
                         elif box_index == 1:
@@ -116,7 +116,7 @@ class Pack_Box:
                             y_pos = box_center[1] - self.box_width / 2 + self.part_length / 2 + 0.010 + place_extra_offset  # y positive for further away from place side
                             rotation = -90
                     elif i == 2:
-                        z_pos_offset = -3/1000
+                        z_pos_offset = -4/1000
                         # Third part (bottom left)
                         if box_index == 0:
                             x_pos = box_center[0] - self.box_length / 2 + self.part_width / 2 + 0.010  # x positive for further away from box edge
@@ -127,7 +127,7 @@ class Pack_Box:
                             y_pos = box_center[1] + self.box_width / 2 - self.part_length / 2 - 0.003 - place_extra_offset  # y negative for further away from place side
                             rotation = 90
                     elif i == 3:
-                        z_pos_offset = -3/1000
+                        z_pos_offset = -4/1000
                         # Fourth part (bottom right)
                         if box_index == 0:
                             x_pos = box_center[0] + self.box_length / 2 - self.part_length / 2 - 0.013 - place_extra_offset  # x negative for further away from place side
@@ -174,13 +174,18 @@ class Pack_Box:
 
         #fast and slow speeds and accelerations. fast for general movements, slow for special movements. 
         speed_fast = 3
-        acc_fast = 2
-                                                     
-        speed_slow = 1
-        acc_slow = 0.8
+        acc_fast = 2.5
+
+        if part_type == 'Big-Blue' or part_type == 'Holed':                          
+            speed_slow = 1.5
+            acc_slow = 1.2
+        else:
+            speed_slow = 0.6
+            acc_slow = 0.6
 
         box_center = self.box.box_centers[box_index]
-        logging.info(f"Box center: {box_center}")
+        #
+        # logging.info(f"Box center: {box_center}")
 
         # TCP offsets
         pickup_tcp = [-47.5/1000,-140/1000,135/1000,math.radians(0),math.radians(0),math.radians(0)]  #edge of part (x=centerpart, y=edge)
@@ -252,11 +257,11 @@ class Pack_Box:
         rotation = part['rotation']
         if box_rotation == 'horizontal':
             if rotation == 0 or rotation == 180:
-                logging.info("---rotate also around y wile placing!---")
+                #logging.info("---rotate also around y wile placing!---")
                 rotate_y = 5    #rotate 5 degrees about y of tool. this way placing is parralle to the bottom of the box
         elif box_rotation == 'vertical':
             if rotation == 90 or rotation == -90:
-                logging.info("---rotate also around y wile placing!---")
+                #logging.info("---rotate also around y wile placing!---")
                 rotate_y = 5    #rotate 5 degrees about y of tool. this way placing is parralle to the bottom of the box
         rotate_x_step_7 = [0,0,0,math.radians(rotate_x),math.radians(rotate_y),math.radians(0)]
 
@@ -269,19 +274,19 @@ class Pack_Box:
             if rotation == 90 or rotation == -90: #move z up if moving to high side
                 if part_type == 'Big-Blue' or part_type == 'Holed': 
                     z_offset_step_8 = 5
-                    logging.info("---while placing move z up!!--")
+                    #logging.info("---while placing move z up!!--")
                 elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': 
                     z_offset_step_8 = 6
-                    logging.info("---while placing move z up!!--")
+                    #logging.info("---while placing move z up!!--")
         
         elif  box_rotation == 'vertical':    #high side not parrallel to belt
             if rotation == 0 or rotation == 180:   #move z up if moving to high side
                 if part_type == 'Big-Blue' or part_type == 'Holed': 
                     z_offset_step_8 = 5
-                    logging.info("while placing move z up!!")
+                    #logging.info("while placing move z up!!")
                 elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': 
                     z_offset_step_8 = 6
-                    logging.info("while placing move z up!!")
+                    #logging.info("while placing move z up!!")
 
 
 
@@ -314,22 +319,21 @@ class Pack_Box:
 
         x = 6
         path_step_1 = cur_pos.copy()
-        speed_acc_blend = [speed_fast, acc_fast, 0.0]
+        speed_acc_blend = [speed_fast, acc_fast, 0.3]
         for y in speed_acc_blend:
             path_step_1[x]=y
             x+=1
 
 
-        # Step 2: Move above the box center and set proper rotation
+        # Step 2: Move above the box center 
         cur_pos = path_step_1.copy()
         cur_pos[0] = box_center[0]     # Align x position with box center
         cur_pos[1] = box_center[1]     # Align y position with box center
         cur_pos[2] = z_above_box               # Set a safe z height above the box
-        logging.info(f"Step 2: Move to box center: {cur_pos}")
 
         x = 6
         path_step_2 = cur_pos.copy()
-        speed_acc_blend = [speed_fast, acc_fast, 0.2]       #WAS 0.0
+        speed_acc_blend = [speed_fast, acc_fast, 0.05]       #
         for y in speed_acc_blend:
             path_step_2[x]=y
             x+=1
@@ -341,11 +345,10 @@ class Pack_Box:
         cur_pos[3] = start_rotation[0]
         cur_pos[4] = start_rotation[1]
         cur_pos[5] = start_rotation[2]
-        logging.info(f"Step 3: Move to placement height: {cur_pos}")
 
         x = 6
         path_step_3 = cur_pos.copy()
-        speed_acc_blend = [speed_fast, acc_fast, 0.0]       #was 0.4
+        speed_acc_blend = [speed_fast, acc_fast, 0.0]       
         for y in speed_acc_blend:
             path_step_3[x]=y
             x+=1
@@ -353,12 +356,10 @@ class Pack_Box:
 
         # Step 4: Adjust rotation around the Z-axis
         #when angle=180, first do + 10 then do + 170
-        logging.info(f"Step 4: Set rotation around Z-axis to: {rotation_angle}")
         rotations = 1
         if rotation_angle == 180: 
             rotation_angle = 20
             rotations = 2
-            logging.info(f"rotations: {rotations}  rotationangel: {rotation_angle}")
         for rotation in range(rotations):
             rotate = [0,0,0,math.radians(0),math.radians(0),math.radians(rotation_angle)]
             pose1 = path_step_3.copy()
@@ -381,7 +382,6 @@ class Pack_Box:
         cur_pos = path_step_4.copy()
         cur_pos[0] = part_position[0]  # Set X to the part's target position
         cur_pos[1] = part_position[1]  # Set Y to the part's target position
-        logging.info(f"Step 5: Move to part placement position: {cur_pos}")
 
         x = 6
         path_step_5 = cur_pos.copy()
@@ -523,31 +523,61 @@ class Pack_Box:
         '''END FASE: parts have been placed. move up, rotate and move to proper x and y and z 
         for checking if parts are properly placed, move to take pic pos at the dn '''
         '''start pickup tcp'''
-        #self.robot.set_tcp(pickup_tcp)
+        if rotation_angle != 180:
+            '''start pickup tcp'''
+            self.robot.set_tcp(pickup_tcp)
+            cur_pos = self.robot.get_tcp_pos()
+            speed_acc_blend = [speed_slow, acc_slow, 0]
+            for y in speed_acc_blend:
+                cur_pos.append(y)
 
-        #move up first
-        cur_pos = self.robot.get_tcp_pos()
-        cur_pos[2] = z_above_box
-        self.robot.move_l(cur_pos, speed_fast, acc_fast)
+            # Step 11: Return above the box 
+            cur_pos = cur_pos.copy()
+            cur_pos = cur_pos[:-3]
+            cur_pos[2] = z_above_box   # Return to a safe Z height above the box
+            
+            path_step_11 = cur_pos.copy()
+            speed_acc_blend = [speed_fast, acc_fast, 0.2]   #was 0.2
+            for y in speed_acc_blend:
+                path_step_11 = np.append(path_step_11, y)
+
+            #move to take pic pos
+            target_position = [-0.6639046352765678, -0.08494527187802497, 0.529720350746548, 2.222, 2.248, 0.004]
+            path_step_12 = target_position.copy()
+            speed_acc_blend = [speed_fast, acc_fast, 0.0]
+            for y in speed_acc_blend:
+                path_step_12 = np.append(path_step_12, y)
+
+            self.boxing_machine.wait_if_paused()
+
+            #placement tcp 
+            path = [
+                # Positie 1: [X, Y, Z, RX, RY, RZ, snelheid, versnelling, blend]
+                path_step_11,  # step 1: move up
+                path_step_12,   #move to take pic pos
+            ]
+            self.robot.move_l_path(path=path)
+            '''end placement tcp'''
+
 
         #joint rotatation if needed
-        if rotation_angle == 180:
+        elif rotation_angle == 180:
+            #move up first
+            cur_pos = self.robot.get_tcp_pos()
+            cur_pos[2] = z_above_box
+            self.robot.move_l(cur_pos, speed_fast, acc_fast)
+
+            #move joint 6 to safe angle
             cur_joint_pos = self.robot.get_joint_pos()
-            cur_joint_pos[5] = math.radians(-40)
-            self.robot.move_j(cur_joint_pos, 2, 2)
-
-
-        # Placement checking
-        #cur_layer = self.last_layer
-        if cur_layer != self.last_layer:
-            self.last_layer = cur_layer
+            cur_joint_pos[5] = math.radians(-70)
+            self.robot.move_j(cur_joint_pos, 3, 3)
 
             #rotate more for checking
             x_offset=-133/1000
             y_offset=-100/1000
             z_height=0.6
             check_placement_pos = [box_center[0]+x_offset, box_center[1] + y_offset, z_height, 2.222,2.248,0.004]
-            self.robot.move_l(check_placement_pos, speed_slow, acc_slow) #slow for testing !!! 
+            self.robot.move_l(check_placement_pos, speed_fast, acc_fast) #slow for testing !!! 
 
             bad_detected = self.boxing_machine.camera.check_bad_part_placement()
             if bad_detected:
@@ -558,8 +588,8 @@ class Pack_Box:
             else:
                 logging.info("no bad position detected")
 
-        self.boxing_machine.wait_if_paused()
+            self.boxing_machine.wait_if_paused()
 
-        #move to take pic pos
-        target_position = [-0.6639046352765678, -0.08494527187802497, 0.529720350746548, 2.222, 2.248, 0.004]
-        self.robot.move_l(target_position, speed_fast, acc_fast)
+            #move to take pic pos
+            target_position = [-0.6639046352765678, -0.08494527187802497, 0.529720350746548, 2.222, 2.248, 0.004]
+            self.robot.move_l(target_position, speed_fast, acc_fast)

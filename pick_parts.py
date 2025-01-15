@@ -34,8 +34,8 @@ class Pick_parts():
         speed_middle = 1
         acc_middle = 1
 
-        speed_slow = 0.4
-        acc_slow = 0.3
+        speed_slow = 0.7
+        acc_slow = 0.7
 
 
         #part_x offset, one side needs a little bit more than the other side (or tune the camera calibration)
@@ -44,7 +44,7 @@ class Pick_parts():
                 part_x += 14/1000   #move bit further. closet to boxes
             else:
                 part_x += 14/1000
-            logging.info("move bit more on x")
+            #logging.info("move bit more on x")
         else: 
             if part_type == 'Big-Blue' or part_type == 'Holed':
                 part_x += 25/1000     #move bit less. furthes to boxes
@@ -77,7 +77,7 @@ class Pick_parts():
         if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': belt_z = [0,0,-122/1000,0,0,0]
         elif part_type == 'Big-Blue': belt_z = [0,0,-119/1000,0,0,0]
         else: belt_z = [0,0,-119/1000,0,0,0]   
-        logging.info(f"belt z: {belt_z} {part_type}") 
+        #logging.info(f"belt z: {belt_z} {part_type}") 
 
         #one side needs to be a little bit higher. y > 0.05, row closest to boxes
         #if part_type == 'Big-Blue' and part_y > 0.05: belt_z = [0,0,-116/1000,0,0,0]
@@ -109,7 +109,7 @@ class Pick_parts():
 
 
         '''STEP 7 ROTATE A BIT BACK SO PARTS DONT FALL OFF'''
-        step_7_rotate_x_back = [0,0,0,math.radians(5),0,0]
+        step_7_rotate_x_back = [0,0,0,math.radians(7),0,0]
 
 
         '''STEP 8 MOVE UP RELATIVE'''
@@ -117,7 +117,7 @@ class Pick_parts():
 
 
         '''STEP 9 MOVE TO SAFE Y SO LIGHTS DONT GET HIT'''
-        safe_y = -0.01964
+        safe_y = -0.0196
 
 
 
@@ -171,8 +171,6 @@ class Pick_parts():
         speed_acc_blend = [speed_fast, acc_fast, 0.00]
         for y in speed_acc_blend:
             path_step_3 = np.append(path_step_3, y)
-
-        logging.info(f"pick pos step 3: {cur_pos[0]}  {cur_pos[1]}")
 
     
         #step 4

@@ -55,11 +55,36 @@ class CameraPosition:
 
 
 
+    # moves robot to capture position
+    def capture_position(self, slow=False):
+        pickup_tcp = [-47.5 / 1000, -140 / 1000, 135 / 1000, math.radians(0), math.radians(0), math.radians(0)]
+        self.robot.set_tcp(pickup_tcp)
+
+        target_position = [-0.6639046352765678, -0.08494527187802497, 0.529720350746548, 2.222, 2.248, 0.004]
+        if slow:
+            logging.info("check part type, move to camera position")
+            self.robot.move_l(target_position, 0.3, 0.3)
+        else:
+            self.robot.move_l(target_position, 3, 3)
+
+    # transform camera coordinates to real world (robot) coordinates
+    def transform_coordinates(self, xp, yp, zp):
+        a, b, c = -0.0010677615453140213, 3.094561948991097e-05, -0.17959680557618776
+        d, e, f = 2.482562688915765e-05, 0.0010493343791252749, -0.2507558317896495
+
+        xd = a * xp + b * yp + c
+        yd = d * xp + e * yp + f
+
+        return xd, yd
+    
+
+
+    #function that detects box orientation
     def initialize_position(self):
         # Define the specific positions to check
         positions = [
             [-0.375, 0.415, 0.333, -2.195, -2.221, -0.004],  # Position 1
-            [0.0457, 0.424, 0.333, -2.195, -2.221, -0.004],  # Position 2
+            [0.0457, 0.415, 0.333, -2.195, -2.221, -0.004],  # Position 2
         ]
 
         orientations = {}
@@ -142,29 +167,6 @@ class CameraPosition:
         return orientations
 
 
-
-    # moves robot to capture position
-    def capture_position(self, slow=False):
-        pickup_tcp = [-47.5 / 1000, -140 / 1000, 135 / 1000, math.radians(0), math.radians(0), math.radians(0)]
-        self.robot.set_tcp(pickup_tcp)
-
-        target_position = [-0.6639046352765678, -0.08494527187802497, 0.529720350746548, 2.222, 2.248, 0.004]
-        if slow:
-            logging.info("check part type, move to camera position")
-            self.robot.move_l(target_position, 0.3, 0.3)
-        else:
-            self.robot.move_l(target_position, 3, 3)
-
-    # transform camera coordinates to real world (robot) coordinates
-    def transform_coordinates(self, xp, yp, zp):
-        a, b, c = -0.0010677615453140213, 3.094561948991097e-05, -0.17959680557618776
-        d, e, f = 2.482562688915765e-05, 0.0010493343791252749, -0.2507558317896495
-
-        xd = a * xp + b * yp + c
-        yd = d * xp + e * yp + f
-
-        return xd, yd
-
     # main function that detects objects and returns the object locations
     def detect_pickable_parts(self, min_length=170, slow=False):
         self.capture_position(slow)
@@ -214,7 +216,7 @@ class CameraPosition:
                             label = self.labels[int(box.cls[0])]
                             length = max(width, height)
 
-                            if 'bad' in label.lower() and box.conf > 0.656:
+                            if 'bad' in label.lower() and box.conf > 0.6:
                                 # Draw a thick red bounding box for 'bad' objects
                                 cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (0, 0, 255), 4)  # Red color, thickness 4
                                 text = f'{label} ({box.conf.item():.2f})'
