@@ -538,7 +538,7 @@ class Pack_Box:
 
 
         # Placement checking
-        cur_layer = self.last_layer
+        #cur_layer = self.last_layer
         if cur_layer != self.last_layer:
             self.last_layer = cur_layer
 

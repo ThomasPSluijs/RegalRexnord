@@ -59,42 +59,46 @@ class CameraPosition:
     def initialize_position(self):
         # Define the specific positions to check
         positions = [
-            [-0.3696253536541555, 0.416125489542688, 0.66265243987996, -2.2234240275479062, -2.1921608232715784, -0.004339849221115471],  # Position 1
+            [-0.3753183914824111, 0.41502349118468146, 0.3336486043503155, -2.194948227521941, -2.220646389582354, -0.003956852917971313],  # Position 1
             [0.04576259998657983, 0.4238738887110429, 0.28894615997387796, -2.196305082737091, -2.21929681284849, -0.003980920453761424],  # Position 2
         ]
-    
+
         orientations = {}
-    
-        for i, position in enumerate(positions):
-            self.robot.move_l(position, 0.5, 3)
-            time.sleep(0.3)
-            frames = self.pipeline.wait_for_frames()
-            aligned_frames = self.align.process(frames)
-            color_frame = aligned_frames.get_color_frame()
-            depth_frame = aligned_frames.get_depth_frame()
-    
-            if not color_frame or not depth_frame:
-                continue
-    
-            frame = np.asanyarray(color_frame.get_data())
-            results = self.detector.detect_objects(frame.copy())
-    
-            if results is not None:
-                for result in results:
-                    for box in result.boxes:
-                        bbox = box.xyxy[0].cpu().numpy()
-                        bbox = [int(coord) for coord in bbox[:4]]
-                        label = self.labels[int(box.cls[0])]
-                        confidence = box.conf.item()
-    
-                        if confidence > 0.45:
-                            if 'horizontal' in label.lower():
-                                logging.info(f"Horizontal object detected at position {i+1}.")
-                                orientations[f'box_{i+1}'] = 'horizontal'
-                            elif 'vertical' in label.lower():
-                                logging.info(f"Vertical object detected at position {i+1}.")
-                                orientations[f'box_{i+1}'] = 'vertical'
-    
+
+        while len(orientations) < len(positions):
+            for i, position in enumerate(positions):
+                if f'box_{i+1}' in orientations:
+                    continue  # Skip if orientation for this box is already found
+
+                self.robot.move_l(position, 0.5, 3)
+                time.sleep(0.3)
+                frames = self.pipeline.wait_for_frames()
+                aligned_frames = self.align.process(frames)
+                color_frame = aligned_frames.get_color_frame()
+                depth_frame = aligned_frames.get_depth_frame()
+
+                if not color_frame or not depth_frame:
+                    continue
+
+                frame = np.asanyarray(color_frame.get_data())
+                results = self.detector.detect_objects(frame.copy())
+
+                if results is not None:
+                    for result in results:
+                        for box in result.boxes:
+                            bbox = box.xyxy[0].cpu().numpy()
+                            bbox = [int(coord) for coord in bbox[:4]]
+                            label = self.labels[int(box.cls[0])]
+                            confidence = box.conf.item()
+
+                            if confidence > 0.4:
+                                if 'horizontal' in label.lower():
+                                    logging.info(f"Horizontal object detected at position {i+1}.")
+                                    orientations[f'box_{i+1}'] = 'horizontal'
+                                elif 'vertical' in label.lower():
+                                    logging.info(f"Vertical object detected at position {i+1}.")
+                                    orientations[f'box_{i+1}'] = 'vertical'
+
         logging.info(f"Orientation detection complete: {orientations}")
         return orientations  # Return the orientations dictionary
 
@@ -201,7 +205,7 @@ class CameraPosition:
                                     xd, yd = self.transform_coordinates(x_left, y_middle, depth)
                                     logging.info(f"Detected (x, y, z): ({x_left}, {y_middle}, {depth}) conf: {box.conf}")
 
-                                    if xd > -0.750 and  xd < -0.41 and yd > -0.152 and yd < 0.095: #maximium x value for safety purposes
+                                    if xd > -0.750 and  xd < -0.42 and yd > -0.152 and yd < 0.095: #maximium x value for safety purposes
                                         # Draw box and label on the frame
                                         cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 0, 0), 2)
                                         cv2.circle(frame, (x_left, y_middle), 5, (0, 0, 255), -1)

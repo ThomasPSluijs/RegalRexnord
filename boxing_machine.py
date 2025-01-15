@@ -148,7 +148,7 @@ class BoxingMachine:
             logging.info(f"box index: {box_index}")
 
             for part in box:
-                if box_index == 1:
+                if box_index >= 0:
                     if self.stop_main_loop:  # Check if stop signal is set
                         logging.info("Stopping main loop due to stop signal.")
                         self.stop_main_loop = False
@@ -191,7 +191,8 @@ class BoxingMachine:
                             logging.info("Stopping main loop due to stop signal.")
                             return
 
-                        box_orientation = box_orientations.get(f'box_{box_index+1}', 'vertical')  # Get the orientation for the current box
+                        box_orientation = box_orientations.get(f'box_{box_index+1}')  # Get the orientation for the current box
+                        logging.info(f"Box orientation: {box_orientation}")
                         self.pack_box.place_part(part, part_type=item_type, box_rotation=box_orientation)  # Pass the box orientation
 
 
