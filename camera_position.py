@@ -56,6 +56,48 @@ class CameraPosition:
 
 
 
+    def initialize_position(self):
+        # Define the specific positions to check
+        positions = [
+            [-0.3696253536541555, 0.416125489542688, 0.66265243987996, -2.2234240275479062, -2.1921608232715784, -0.004339849221115471],  # Position 1
+            [0.04576259998657983, 0.4238738887110429, 0.28894615997387796, -2.196305082737091, -2.21929681284849, -0.003980920453761424],  # Position 2
+        ]
+    
+        orientations = {}
+    
+        for i, position in enumerate(positions):
+            self.robot.move_l(position, 0.5, 3)
+            time.sleep(0.3)
+            frames = self.pipeline.wait_for_frames()
+            aligned_frames = self.align.process(frames)
+            color_frame = aligned_frames.get_color_frame()
+            depth_frame = aligned_frames.get_depth_frame()
+    
+            if not color_frame or not depth_frame:
+                continue
+    
+            frame = np.asanyarray(color_frame.get_data())
+            results = self.detector.detect_objects(frame.copy())
+    
+            if results is not None:
+                for result in results:
+                    for box in result.boxes:
+                        bbox = box.xyxy[0].cpu().numpy()
+                        bbox = [int(coord) for coord in bbox[:4]]
+                        label = self.labels[int(box.cls[0])]
+                        confidence = box.conf.item()
+    
+                        if confidence > 0.45:
+                            if 'horizontal' in label.lower():
+                                logging.info(f"Horizontal object detected at position {i+1}.")
+                                orientations[f'box_{i+1}'] = 'horizontal'
+                            elif 'vertical' in label.lower():
+                                logging.info(f"Vertical object detected at position {i+1}.")
+                                orientations[f'box_{i+1}'] = 'vertical'
+    
+        logging.info(f"Orientation detection complete: {orientations}")
+        return orientations  # Return the orientations dictionary
+
     # moves robot to capture position
     def capture_position(self, slow=False):
         pickup_tcp = [-47.5 / 1000, -140 / 1000, 135 / 1000, math.radians(0), math.radians(0), math.radians(0)]

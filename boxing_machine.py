@@ -122,8 +122,11 @@ class BoxingMachine:
         logging.info("In main loop")
         logging.info("Get all packing positions")
 
-        #x, y, item_type = self.camera.detect_pickable_parts(slow=True)  # Get actual coordinates from vision
-        #self.check_part_type(item_type)
+        #initialization box position check
+        box_orientations = self.camera.initialize_position()
+
+        x, y, item_type = self.camera.detect_pickable_parts(slow=True)  # Get actual coordinates from vision
+        self.check_part_type(item_type)
 
         filled_boxes = self.pack_box.get_pack_pos('Green')
 
@@ -188,7 +191,9 @@ class BoxingMachine:
                             logging.info("Stopping main loop due to stop signal.")
                             return
 
-                        self.pack_box.place_part(part, part_type=item_type)  # Uncomment when ready
+                        box_orientation = box_orientations.get(f'box_{box_index+1}', 'vertical')  # Get the orientation for the current box
+                        self.pack_box.place_part(part, part_type=item_type, box_rotation=box_orientation)  # Pass the box orientation
+
 
                 count += 1
 
