@@ -95,7 +95,7 @@ class Pick_parts():
         '''STEP 5 MOVE BACK A BIT WHILE ROTATING BACK'''
         #small x offset for narrow parts
         if part_type != 'Big-BLue' and part_type != 'Holed': 
-            step_5_x_back = 11/1000            
+            step_5_x_back = 13/1000            
             step_5_z_up = 7/1000   
         else:                
             step_5_x_back = 0/1000
