@@ -228,24 +228,24 @@ class Pack_Box:
         if box_rotation == 'horizontal':   #high side parrallel to belt
             if rotation == 90 or rotation == -90:    #low side. 
                 if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue':
-                    z_offset_step_6 = 0/1000    #layer 0: negative z offset for pressing down the box a bit
+                    z_offset_step_6 = 2/1000    #layer 0: negative z offset for pressing down the box a bit
                 else: #big parts
                     z_offset_step_6 = 3/1000
             else:   #angled side. bit heigher than low side
                 if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue':
-                    z_offset_step_6 = 2/1000    #layer 0: negative z offset for pressing down the box a bit
+                    z_offset_step_6 = 5/1000    #layer 0: negative z offset for pressing down the box a bit
                 else: #big parts
                     z_offset_step_6 = 6/1000
 
         elif box_rotation == 'vertical': #high side not parrallel to belt
             if rotation == 0 or rotation == 180:
                 if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue':
-                    z_offset_step_6 = 0/1000    #layer 0: negative z offset for pressing down the box a bit
+                    z_offset_step_6 = 2/1000    #layer 0: negative z offset for pressing down the box a bit
                 else: #big parts
                     z_offset_step_6 = 3/1000
             else:   #angled side. bit heigher than low side
                 if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue':
-                    z_offset_step_6 = 2/1000    #layer 0: negative z offset for pressing down the box a bit
+                    z_offset_step_6 = 5/1000    #layer 0: negative z offset for pressing down the box a bit
                 else: #big parts
                     z_offset_step_6 = 6/1000
 

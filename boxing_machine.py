@@ -140,7 +140,7 @@ class BoxingMachine:
             'box_0': 'horizontal',
             'box_1': 'horizontal'
         }
-        #item_type, box_orientations = self.initialize_main_loop()
+        item_type, box_orientations = self.initialize_main_loop()
 
 
         #get packing positions

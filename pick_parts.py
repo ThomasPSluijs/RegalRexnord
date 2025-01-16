@@ -67,23 +67,23 @@ class Pick_parts():
 
         '''STEP 2 ROTATION'''
         #rotation about x of tool, for narrow parts the rotation needs to be a bit more
-        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': rotate = -30
+        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': rotate = -17
         else: rotate = -23
         rotate_x = [0,0,0,math.radians(rotate),math.radians(0),math.radians(0)]   
 
 
         '''STEP 3 Z LOCATION'''
         #belt z location, for some parts the gripper needs to be a little bit higher or lower
-        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': belt_z = [0,0,-124.5/1000,0,0,0]
+        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': belt_z = [0,0,-125/1000,0,0,0]
         elif part_type == 'Big-Blue': belt_z = [0,0,-119/1000,0,0,0]
         else: belt_z = [0,0,-119/1000,0,0,0]   
-        #logging.info(f"belt z: {belt_z} {part_type}") 
+        logging.info(f"belt z: {belt_z} {part_type}") 
 
         #one side needs to be a little bit higher. y > 0.05, row closest to boxes
         #if part_type == 'Big-Blue' and part_y > 0.05: belt_z = [0,0,-116/1000,0,0,0]
 
         #one side()
-        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': belt_z = [0,0,-122/1000,0,0,0]
+        #if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue' and part_y > 0.05: belt_z = [0,0,-122/1000,0,0,0]
         
 
         '''STEP 4 PICKUP MOVEMENT'''
@@ -94,8 +94,8 @@ class Pick_parts():
         '''STEP 5 MOVE BACK A BIT WHILE ROTATING BACK'''
         #small x offset for narrow parts
         if part_type != 'Big-BLue' and part_type != 'Holed': 
-            step_5_x_back = 8/1000            
-            step_5_z_up = 6/1000   
+            step_5_x_back = 4/1000            
+            step_5_z_up = 7/1000   
         else:                
             step_5_x_back = 0/1000
             step_5_z_up = 2/1000  
@@ -187,7 +187,7 @@ class Pick_parts():
         if part_type == 'Big-Blue' or part_type == 'Holed':
             speed,acc = 3,3
         else:
-            speed,acc = speed_slow, acc_slow
+            speed,acc = 0.1,0.1
         speed_acc_blend = [speed, acc, 0.0]
         for y in speed_acc_blend:
             path_step_4 = np.append(path_step_4, y)
@@ -294,9 +294,9 @@ class Pick_parts():
 
         #step 6.1
         #move up a bit
-        self.robot.move_add_l(step_6_1_relative_z)
+        #self.robot.move_add_l(step_6_1_relative_z)
 
-        self.pause()
+        #self.pause()
 
 
         '''rotate tcp'''
