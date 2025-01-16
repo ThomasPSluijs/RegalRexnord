@@ -69,6 +69,8 @@ class Pick_parts():
         #rotation about x of tool, for narrow parts the rotation needs to be a bit more
         if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': 
             rotate_1 = -15
+            rotate_2 = -19.8
+            rotate_3 = -17.8
             rotate = -24
         else: rotate = -23
         rotate_x = [0,0,0,math.radians(rotate),math.radians(0),math.radians(0)]   
@@ -203,6 +205,54 @@ class Pick_parts():
 
         #test!
         if part_type == 'Green' or part_type == 'Small-Blue':
+            if part_x > - 640/1000:
+
+                rotate = abs(rotate - rotate_3)
+                rotate_x = [0,0,0,math.radians(rotate),math.radians(0),math.radians(0)]   
+                pose1 = path_step_4.copy()
+                pose1 = pose1[:-3]
+                pose2 = rotate_x
+                result_pose = self.robot.pose_trans(pose1, pose2)
+                result_pose[2] -= 8/10000
+                path_step_4_1 = result_pose.copy()
+
+                speed_acc_blend = [speed_fast, acc_fast, 0.0]
+                for y in speed_acc_blend:
+                    path_step_4_1 = np.append(path_step_4_1, y) 
+
+            else:
+                rotate = abs(rotate - rotate_2)
+                rotate_x = [0,0,0,math.radians(rotate),math.radians(0),math.radians(0)]   
+                pose1 = path_step_4.copy()
+                pose1 = pose1[:-3]
+                pose2 = rotate_x
+                result_pose = self.robot.pose_trans(pose1, pose2)
+                result_pose[2] -= 8/10000
+                path_step_4_1 = result_pose.copy()
+
+                speed_acc_blend = [speed_fast, acc_fast, 0.0]
+                for y in speed_acc_blend:
+                    path_step_4_1 = np.append(path_step_4_1, y) 
+
+
+
+
+            cur_pos = path_step_4_1.copy()
+            cur_pos = cur_pos[:-3]
+            move_x = [x_2,0,0,0,0,0]  
+            new_linear_move = [cur_pos[i] +  move_x[i] for i in range(6)]
+
+            path_step_4_2 = new_linear_move.copy()
+            speed,acc = 0.3,0.3
+            speed_acc_blend = [speed, acc, 0.0]
+            for y in speed_acc_blend:
+                path_step_4_2 = np.append(path_step_4_2, y)
+
+            
+            rotate_x = [0,0,0,math.radians(rotate_2),math.radians(0),math.radians(0)]   
+
+
+            '''
             rotate = abs(rotate - rotate_1)
             rotate_x = [0,0,0,math.radians(rotate),math.radians(0),math.radians(0)]   
             pose1 = path_step_4.copy()
@@ -226,6 +276,7 @@ class Pick_parts():
             speed_acc_blend = [speed, acc, 0.0]
             for y in speed_acc_blend:
                 path_step_4_2 = np.append(path_step_4_2, y)
+                '''
 
         else:
             path_step_4_1 = path_step_4.copy()
