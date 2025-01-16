@@ -226,7 +226,7 @@ class CameraPosition:
                         if 'bad' in label.lower() and box.conf > 0.6:
                             bbox = box.xyxy[0].cpu().numpy()
                             bbox = [int(coord) for coord in bbox[:4]]
-                                                        # Draw a thick red bounding box for 'bad' objects
+                            # Draw a thick red bounding box for 'bad' objects
                             cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (0, 0, 255), 4)  # Red color, thickness 4
                             text = f'{label} ({box.conf.item():.2f})'
                             cv2.putText(frame, text, (bbox[0], bbox[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
@@ -244,7 +244,11 @@ class CameraPosition:
                             continue    #go to start of while loop, wait for new parts
 
 
-                        #check for pickable parts                     
+                        #check for pickable parts
+                        min_length = 170
+                        if label == 'Green' or label == 'Rubber' or label == 'Small-Blue': min_length += 20
+                        #small parts need more parts on belt, otherwise they bukkle up
+                        
                         if box.conf > 0.8 and label in ['Big-Blue', 'Green', 'Holed', 'Rubber', 'Small-Blue'] and length >= min_length and width * height < 75000:
                             current_coordinates = (x_left, y_middle)
                             logging.info("part found, checking if stable")
