@@ -2,6 +2,7 @@ import logging
 from math import floor
 import math
 import numpy as np
+from configuration import *
 
 
 #Place parts in boxes check 
@@ -91,9 +92,9 @@ class Pack_Box:
             else: place_extra_offset = 0
 
             if item_type == 'Big-Blue' or item_type == 'Holed':
-                z_pos_offset = -1.5/1000 #for differen parts, differen offset because box is not level
+                z_pos_offset = -1/1000 #for differen parts, differen offset because box is not level
             else:
-                z_pos_offset = -2/1000 #for differen parts, differen offset because box is not level
+                z_pos_offset = -1/1000 #for differen parts, differen offset because box is not level
 
 
             # For loop to go through total z parts to fill a box
@@ -121,7 +122,7 @@ class Pack_Box:
                             y_pos = box_center[1] - self.box_width / 2 + self.part_length / 2 + 0.010 + place_extra_offset  # y positive for further away from place side
                             rotation = -90
                     elif i == 2:
-                        z_pos_offset = -4/1000
+                        z_pos_offset = -2/1000
                         # Third part (bottom left)
                         if box_index == 0:
                             x_pos = box_center[0] - self.box_length / 2 + self.part_width / 2 + 0.010  # x positive for further away from box edge
@@ -132,7 +133,7 @@ class Pack_Box:
                             y_pos = box_center[1] + self.box_width / 2 - self.part_length / 2 - 0.003 - place_extra_offset  # y negative for further away from place side
                             rotation = 90
                     elif i == 3:
-                        z_pos_offset = -4/1000
+                        z_pos_offset = -2/1000
                         # Fourth part (bottom right)
                         if box_index == 0:
                             x_pos = box_center[0] + self.box_length / 2 - self.part_length / 2 - 0.013 - place_extra_offset  # x negative for further away from place side
@@ -189,12 +190,6 @@ class Pack_Box:
             acc_slow = 0.6
 
         box_center = self.box.box_centers[box_index]
-        #
-        # logging.info(f"Box center: {box_center}")
-
-        # TCP offsets
-        pickup_tcp = [-47.5/1000,-140/1000,135/1000,math.radians(0),math.radians(0),math.radians(0)]  #edge of part (x=centerpart, y=edge)
-        placement_tcp = [-47.5/1000,-52.5/1000,135/1000,math.radians(0),math.radians(0),math.radians(0)]  #center of part (x=center,y=center)
 
         #start rotation, this makes x,y,z aligned to the boxes
         start_rotation = [2.219, 2.227, -0.010]

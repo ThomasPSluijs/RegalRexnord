@@ -2,7 +2,7 @@ from UR5E_control import URControl
 import math
 import logging
 import numpy as np
-import keyboard
+from configuration import *
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -19,9 +19,6 @@ class Pick_parts():
 
     #picks parts from given x and y coordinate. y = center of part along y axis. x = edge of part closest to the robot
     def pick_parts(self, part_x, part_y,part_type='Green'):
-        #tcp section
-        pickup_tcp = [-47.5/1000,-140/1000,135/1000,0,0,0]  #edge of part (x=centerpart, y=edge)
-        rotate_tcp = [-47.5/1000, 42/1000, 135/1000, 0, 0, 0] 
         self.robot.set_tool_frame(pickup_tcp)
 
         #start rotation, this is aligned to the belt
@@ -43,17 +40,19 @@ class Pick_parts():
             if part_type == 'Big-Blue' or part_type == 'Holed':
                 part_x += 14/1000   #move bit further. closet to boxes
             else:
-                part_x += 14/1000
+                part_x += 17/1000
             #logging.info("move bit more on x")
         else: 
             if part_type == 'Big-Blue' or part_type == 'Holed':
                 part_x += 25/1000     #move bit less. furthes to boxes
             else: part_x += 22/1000
 
+        #part_x += 7 #offset because of new gripper
+
 
 
         #part length, some parts are a bit shorter so robot has to move less
-        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': part_length = 0.170
+        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': part_length = 0.178
         elif part_type == 'Big-Blue': part_length = 0.175
         else: part_length = 0.174
 
@@ -71,24 +70,21 @@ class Pick_parts():
             rotate_1 = -15
             rotate_2 = -19.8
             rotate_3 = -17.8
-            rotate = -24
+            rotate = -16
         else: rotate = -23
         rotate_x = [0,0,0,math.radians(rotate),math.radians(0),math.radians(0)]   
 
 
         '''STEP 3 Z LOCATION'''
         #belt z location, for some parts the gripper needs to be a little bit higher or lower
-        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': belt_z = [0,0,-122.5/1000,0,0,0]
+        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': belt_z = [0,0,-122/1000,0,0,0]
         elif part_type == 'Big-Blue': belt_z = [0,0,-119/1000,0,0,0]
         else: belt_z = [0,0,-119/1000,0,0,0]   
         logging.info(f"belt z: {belt_z} {part_type}") 
 
 
-        #one side needs to be a little bit higher. y > 0.05, row closest to boxes
-        #if part_type == 'Big-Blue' and part_y > 0.05: belt_z = [0,0,-116/1000,0,0,0]
-
         #one side()
-        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue' and part_y > 0.05: belt_z = [0,0,-122.5/1000,0,0,0]
+        #if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue' and part_y > 0.05: belt_z = [0,0,-122/1000,0,0,0]
         
 
         '''STEP 4 PICKUP MOVEMENT'''
@@ -99,7 +95,7 @@ class Pick_parts():
         '''STEP 5 MOVE BACK A BIT WHILE ROTATING BACK'''
         #small x offset for narrow parts
         if part_type != 'Big-BLue' and part_type != 'Holed': 
-            step_5_x_back = 7/1000            
+            step_5_x_back = 11/1000            
             step_5_z_up = 7/1000   
         else:                
             step_5_x_back = 0/1000
@@ -113,10 +109,6 @@ class Pick_parts():
 
 
         '''NEW PATH'''
-        '''STEP 6.1 MOVE UP A BIT RELATIVE'''
-        step_6_1_relative_z = [0,0,10/1000,0,0,0]
-
-
         '''STEP 7 ROTATE A BIT BACK SO PARTS DONT FALL OFF'''
         step_7_rotate_x_back = [0,0,0,math.radians(7),0,0]
 
@@ -184,10 +176,10 @@ class Pick_parts():
     
         #step 4
         #perform a relative x movement so parts get picked up
-        if part_type == 'Green' or part_type == 'Small-Blue':
-            x_1 = -100/1000
-            x_2 = -part_length-part_pos_x_offset - x_1
-            move_x = [x_1,0,0,0,0,0]  
+        #if part_type == 'Green' or part_type == 'Small-Blue':
+        #    x_1 = -100/1000
+        #    x_2 = -part_length-part_pos_x_offset - x_1
+        #    move_x = [x_1,0,0,0,0,0]  
 
         cur_pos = path_step_3.copy()
         cur_pos = cur_pos[:-3]
@@ -197,14 +189,17 @@ class Pick_parts():
         if part_type == 'Big-Blue' or part_type == 'Holed':
             speed,acc = 3,3
         else:
-            speed,acc = 0.6,0.6
+            speed,acc = 0.1,2
         speed_acc_blend = [speed, acc, 0.0]
         for y in speed_acc_blend:
             path_step_4 = np.append(path_step_4, y)
 
 
         #test!
+        
         if part_type == 'Green' or part_type == 'Small-Blue':
+            pass
+            '''
             if part_x > - 640/1000:
 
                 rotate = abs(rotate - rotate_3)
@@ -235,8 +230,6 @@ class Pick_parts():
                     path_step_4_1 = np.append(path_step_4_1, y) 
 
 
-
-
             cur_pos = path_step_4_1.copy()
             cur_pos = cur_pos[:-3]
             move_x = [x_2,0,0,0,0,0]  
@@ -250,9 +243,9 @@ class Pick_parts():
 
             
             rotate_x = [0,0,0,math.radians(rotate_2),math.radians(0),math.radians(0)]   
+            
 
-
-            '''
+            
             rotate = abs(rotate - rotate_1)
             rotate_x = [0,0,0,math.radians(rotate),math.radians(0),math.radians(0)]   
             pose1 = path_step_4.copy()
@@ -287,7 +280,7 @@ class Pick_parts():
 
         #step 5
         #rotate back
-        pose1 = path_step_4_2.copy()
+        pose1 = path_step_4.copy()
         pose1 = pose1[:-3]
         pose2 = rotate_x
         rotate_x[3] *= -1
@@ -320,8 +313,8 @@ class Pick_parts():
             path_step_1,
             path_step_2,
             path_step_3,
-            path_step_4,
-            path_step_4_1,
+            #path_step_4,
+            #path_step_4_1,
             #path_step_4_2,
             #path_step_5,
             #path_step_6,
@@ -335,9 +328,9 @@ class Pick_parts():
             #path_step_1,
             #path_step_2,
             #path_step_3,
-            #path_step_4,
+            path_step_4,
             #path_step_4_1,
-            path_step_4_2,
+            #path_step_4_2,
             path_step_5,
             path_step_6,
         ]

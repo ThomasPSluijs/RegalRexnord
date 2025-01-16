@@ -57,8 +57,8 @@ class CameraPosition:
 
     # moves robot to capture position
     def capture_position(self, slow=False):
-        pickup_tcp = [-47.5 / 1000, -140 / 1000, 135 / 1000, math.radians(0), math.radians(0), math.radians(0)]
-        self.robot.set_tcp(pickup_tcp)
+        capture_tcp = [-47.5 / 1000, -140 / 1000, 135 / 1000, math.radians(0), math.radians(0), math.radians(0)]
+        self.robot.set_tcp(capture_tcp)
 
         target_position = [-0.6639046352765678, -0.08494527187802497, 0.529720350746548, 2.222, 2.248, 0.004]
         if slow:
@@ -244,11 +244,7 @@ class CameraPosition:
                             continue    #go to start of while loop, wait for new parts
 
 
-                        #check for pickable parts
-                        min_length = 170
-                        if label == 'Green' or label == 'Rubber' or label == 'Small-Blue': min_length += 45
-                        #small parts need more parts on belt, otherwise they bukkle up
-                        
+                        #check for pickable parts                     
                         if box.conf > 0.8 and label in ['Big-Blue', 'Green', 'Holed', 'Rubber', 'Small-Blue'] and length >= min_length and width * height < 75000:
                             current_coordinates = (x_left, y_middle)
                             logging.info("part found, checking if stable")
