@@ -122,7 +122,7 @@ class CameraPosition:
                             logging.info(f"Detected object: {label} with confidence {confidence} at position {i+1}")
 
                             # Only consider the detection with the highest confidence
-                            if confidence > 0.25 and confidence > highest_confidence:
+                            if confidence > 0.3 and confidence > highest_confidence:
                                 highest_confidence = confidence
                                 best_bbox = bbox
                                 best_label = label
@@ -130,10 +130,10 @@ class CameraPosition:
                     if best_bbox and best_label:
                         # Assign orientation based on label
                         if 'horizontal' in best_label.lower():
-                            orientations[f'box_{i+1}'] = 'horizontal'
+                            orientations[f'box_{i}'] = 'horizontal'
                             color = (0, 255, 0)
                         elif 'vertical' in best_label.lower():
-                            orientations[f'box_{i+1}'] = 'vertical'
+                            orientations[f'box_{i}'] = 'vertical'
                             color = (255, 0, 0)
 
                         # Annotate the frame with the best detection
@@ -167,6 +167,7 @@ class CameraPosition:
         return orientations
 
 
+
     # main function that detects objects and returns the object locations
     def detect_pickable_parts(self, min_length=170, slow=False):
         self.capture_position(slow)
@@ -193,6 +194,8 @@ class CameraPosition:
                 logging.error(f"error with camera: {e}")
                 continue #go back to start
 
+
+            #we only want colorframe, if no colorframe, go to start
             if not color_frame or not depth_frame:
                 continue
 
@@ -205,67 +208,69 @@ class CameraPosition:
             if results is not None:
                 for result in results:
                     for box in result.boxes:
-                        if box.conf > 0.8:
+                        bbox = box.xyxy[0].cpu().numpy()
+                        bbox = [int(coord) for coord in bbox[:4]]
+                        x_left = bbox[0]
+                        y_middle = int((bbox[1] + bbox[3]) / 2)
+                        width = bbox[2] - bbox[0]
+                        height = bbox[3] - bbox[1]
+                        depth = depth_frame.get_distance(x_left, y_middle)
+                        label = self.labels[int(box.cls[0])]
+                        length = max(width, height)
+                        
+                        #check for bad parts 
+                        if 'bad' in label.lower() and box.conf > 0.6:
                             bbox = box.xyxy[0].cpu().numpy()
                             bbox = [int(coord) for coord in bbox[:4]]
-                            x_left = bbox[0]
-                            y_middle = int((bbox[1] + bbox[3]) / 2)
-                            width = bbox[2] - bbox[0]
-                            height = bbox[3] - bbox[1]
-                            depth = depth_frame.get_distance(x_left, y_middle)
-                            label = self.labels[int(box.cls[0])]
-                            length = max(width, height)
+                                                        # Draw a thick red bounding box for 'bad' objects
+                            cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (0, 0, 255), 4)  # Red color, thickness 4
+                            text = f'{label} ({box.conf.item():.2f})'
+                            cv2.putText(frame, text, (bbox[0], bbox[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+                            with self.frame_lock:
+                                self.last_frame = frame
 
-                            if 'bad' in label.lower() and box.conf > 0.6:
-                                # Draw a thick red bounding box for 'bad' objects
-                                cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (0, 0, 255), 4)  # Red color, thickness 4
-                                text = f'{label} ({box.conf.item():.2f})'
-                                cv2.putText(frame, text, (bbox[0], bbox[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-                                with self.frame_lock:
-                                    self.last_frame = frame
+                            self.boxing_machine.pause()
+                            self.boxing_machine.interface.start_button_pressed()
+                            self.boxing_machine.interface.update_status("bad placement on conveyor: please fix and resume")
 
-                                self.boxing_machine.pause()
-                                self.boxing_machine.interface.start_button_pressed()
-                                self.boxing_machine.interface.update_status("bad placement on conveyor: please fix and resume")
-
-                                logging.info("Bad position detected!")
-                                self.robot.set_digital_output(2, True)  # Turn output 2 to True (gate goes up)
-                                time.sleep(5)  # Wait for 5 seconds
-                                self.robot.set_digital_output(2, False)  # Turn output 2 to False (gate goes down)
-                                bad_detected = True
-                                continue
+                            logging.info("Bad position detected!")
+                            self.robot.set_digital_output(2, True)  # Turn output 2 to True (gate goes up)
+                            time.sleep(5)  # Wait for 5 seconds
+                            self.robot.set_digital_output(2, False)  # Turn output 2 to False (gate goes down)
+                            continue    #go to start of while loop, wait for new parts
 
 
-                            #small parts need more parts on belt, otherwise they bukkle up
-                            if label == 'Green' or label == 'Rubber' or label == 'Small-Blue': min_length += 30
+                        #check for pickable parts
+                        min_length = 170
+                        if label == 'Green' or label == 'Rubber' or label == 'Small-Blue': min_length += 30
+                        #small parts need more parts on belt, otherwise they bukkle up
+                        
+                        if box.conf > 0.8 and label in ['Big-Blue', 'Green', 'Holed', 'Rubber', 'Small-Blue'] and length >= min_length and width * height < 75000:
+                            current_coordinates = (x_left, y_middle)
+                            logging.info("part found, checking if stable")
+                            if self.is_stable(current_coordinates):
+                                logging.info("stable")
+                                xd, yd = self.transform_coordinates(x_left, y_middle, depth)
+                                logging.info(f"Detected (x, y, z): ({x_left}, {y_middle}, {depth}) conf: {box.conf}")
 
+                                if xd > -0.750 and  xd < -0.42 and yd > -0.152 and yd < 0.095: #maximium x value for safety purposes
+                                    # Draw box and label on the frame
+                                    cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 0, 0), 2)
+                                    cv2.circle(frame, (x_left, y_middle), 5, (0, 0, 255), -1)
+                                    text = f'X: {x_left}, Y: {y_middle}, Z: {depth:.2f}m'
+                                    cv2.putText(frame, text, (x_left, y_middle - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+                                    text = f'{label} ({box.conf.item():.2f})'
+                                    cv2.putText(frame, text, (bbox[0], bbox[1] - 40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
 
-                            #check for parts on belt, minium length and maximu area
-                            if label in ['Big-Blue', 'Green', 'Holed', 'Rubber', 'Small-Blue'] and length >= min_length and width * height < 75000:
-                                current_coordinates = (x_left, y_middle)
-                                if self.is_stable(current_coordinates):
-                                    logging.info("stable")
-                                    xd, yd = self.transform_coordinates(x_left, y_middle, depth)
-                                    logging.info(f"Detected (x, y, z): ({x_left}, {y_middle}, {depth}) conf: {box.conf}")
+                                    not_found = False       #parts found, so not_found = false. this will stop the while looop
 
-                                    if xd > -0.750 and  xd < -0.42 and yd > -0.152 and yd < 0.095: #maximium x value for safety purposes
-                                        # Draw box and label on the frame
-                                        cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 0, 0), 2)
-                                        cv2.circle(frame, (x_left, y_middle), 5, (0, 0, 255), -1)
-                                        text = f'X: {x_left}, Y: {y_middle}, Z: {depth:.2f}m'
-                                        cv2.putText(frame, text, (x_left, y_middle - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-                                        text = f'{label} ({box.conf.item():.2f})'
-                                        cv2.putText(frame, text, (bbox[0], bbox[1] - 40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-
-                                        not_found = False
-
-                                        with self.frame_lock:  # Update last_frame safely
-                                            self.last_frame = frame
-                                        return (xd, yd, label)
-                                    else:
-                                        logging.error("part out of reach")
+                                    with self.frame_lock:  # Update last_frame safely
+                                        self.last_frame = frame
+                                    return (xd, yd, label)
                                 else:
-                                    logging.info("not stable")
+                                    logging.error("part out of reach")
+                            else:
+                                logging.info("not stable")
 
         return (0, 0, 0)
 

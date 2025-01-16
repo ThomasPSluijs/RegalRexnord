@@ -25,7 +25,7 @@ class Pick_parts():
         self.robot.set_tool_frame(pickup_tcp)
 
         #start rotation, this is aligned to the belt
-        start_rotation = [2.230, 2.209, 0.013]
+        start_rotation = [2.211, 2.228, 0.013]
 
         #fast and slow speeds and accelerations. fast for general movements, slow for special movements. 
         speed_fast = 3
@@ -74,7 +74,7 @@ class Pick_parts():
 
         '''STEP 3 Z LOCATION'''
         #belt z location, for some parts the gripper needs to be a little bit higher or lower
-        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': belt_z = [0,0,-122/1000,0,0,0]
+        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': belt_z = [0,0,-124.5/1000,0,0,0]
         elif part_type == 'Big-Blue': belt_z = [0,0,-119/1000,0,0,0]
         else: belt_z = [0,0,-119/1000,0,0,0]   
         #logging.info(f"belt z: {belt_z} {part_type}") 
@@ -93,8 +93,12 @@ class Pick_parts():
 
         '''STEP 5 MOVE BACK A BIT WHILE ROTATING BACK'''
         #small x offset for narrow parts
-        if part_type != 'Big-BLue' and part_type != 'Holed': step_5_x_back = 8/1000                               
-        step_5_x_back = 0/1000
+        if part_type != 'Big-BLue' and part_type != 'Holed': 
+            step_5_x_back = 8/1000            
+            step_5_z_up = 6/1000   
+        else:                
+            step_5_x_back = 0/1000
+            step_5_z_up = 2/1000  
 
 
         '''STEP 6 MOVE BACK A BIT MORE'''
@@ -196,6 +200,7 @@ class Pick_parts():
         pose2 = rotate_x
         rotate_x[3] *= -1
         result_pose = self.robot.pose_trans(pose1, pose2)
+        result_pose[2] += step_5_z_up 
         result_pose[0] += step_5_x_back
 
         path_step_5 = result_pose.copy()
@@ -221,18 +226,42 @@ class Pick_parts():
         #move path 1 till 6 with pickup tcp
         path = [
             path_step_1,
+            #path_step_2,
+            #path_step_3,
+            #path_step_4,
+            #path_step_5,
+            #path_step_6,
+        ]
+        self.robot.move_l_path(path=path)
+
+        self.pause()
+
+        #move path 1 till 6 with pickup tcp
+        path = [
+            #path_step_1,
             path_step_2,
             path_step_3,
-            path_step_4,
+            #path_step_4,
             #path_step_5,
             #path_step_6,
         ]
         self.robot.move_l_path(path=path)
 
 
-        #self.boxing_machine.pause()
-        #self.boxing_machine.interface.start_button_pressed()
-        self.boxing_machine.wait_if_paused()
+        self.pause()
+
+        #move path 1 till 6 with pickup tcp
+        path = [
+            #path_step_1,
+            #path_step_2,
+            #path_step_3,
+            path_step_4,
+            #path_step_5,
+            #path_step_6,
+        ]
+        self.robot.move_l_path(path=path)
+
+        self.pause()
 
         #move path 1 till 6 with pickup tcp
         path = [
@@ -241,9 +270,24 @@ class Pick_parts():
             #path_step_3,
             #path_step_4,
             path_step_5,
+            #path_step_6,
+        ]
+        self.robot.move_l_path(path=path)
+
+        self.pause()
+
+        #move path 1 till 6 with pickup tcp
+        path = [
+            #path_step_1,
+            #path_step_2,
+            #path_step_3,
+            #path_step_4,
+            #path_step_5,
             path_step_6,
         ]
         self.robot.move_l_path(path=path)
+
+        self.pause()
         '''end pickup tcp'''
   
 
@@ -252,6 +296,7 @@ class Pick_parts():
         #move up a bit
         self.robot.move_add_l(step_6_1_relative_z)
 
+        self.pause()
 
 
         '''rotate tcp'''
@@ -261,7 +306,12 @@ class Pick_parts():
         pose1 = self.robot.get_tcp_pos()
         pose2 = step_7_rotate_x_back
         result_pose = self.robot.pose_trans(pose1, pose2)
-        if part_type == 'Big-Blue': self.robot.move_l(result_pose, speed_slow, acc_slow)
+        if part_type == 'Big-Blue': 
+            logging.info('perform step 7')
+            self.robot.move_l(result_pose, speed_slow, acc_slow)
+        else: 
+            logging.info('perform step 7')
+            self.robot.move_l(result_pose, speed_slow, acc_slow)
         '''end rotate tcp'''
 
 
@@ -324,6 +374,14 @@ class Pick_parts():
         ]
         self.robot.move_l_path(path=path)
         '''end pickup tcp'''
+
+    
+
+
+    def pause(self):
+        self.boxing_machine.pause()
+        self.boxing_machine.interface.start_button_pressed()
+        self.boxing_machine.wait_if_paused()
 
 
   

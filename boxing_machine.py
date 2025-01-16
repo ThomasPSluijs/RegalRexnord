@@ -113,31 +113,38 @@ class BoxingMachine:
             self.part.part_size_z = 0.009
             self.pack_box.part_height = self.part.part_size_z
 
-  
-    #main loop that fills all available boxes
-    def main_loop(self):
-        logging.info("In main loop")
 
+
+    def initialize_main_loop(self):
         #first move to safe normal working pos
         self.normal_mode()
-
 
         #initialization box position check
         box_orientations = self.camera.initialize_position()
         logging.info(f"box orientations: {box_orientations}")
 
-
-        time.sleep(1)
-
-
         #check part type on belt
         x, y, item_type = self.camera.detect_pickable_parts(slow=False)  # Get actual coordinates from vision
         self.check_part_type(item_type)
+        return item_type, box_orientations
+
+  
+    #main loop that fills all available boxes
+    def main_loop(self):
+        run_mode = 0        #0 is normal mode, 1 is only packing
+
+        logging.info("In main loop")
+
+        item_type = 'Small-Blue'
+        box_orientations = {
+            'box_0': 'horizontal',
+            'box_1': 'horizontal'
+        }
+        #item_type, box_orientations = self.initialize_main_loop()
 
 
         #get packing positions
         filled_boxes = self.pack_box.get_pack_pos(item_type)
-
 
 
         #start for loop to go through all packing positions and fill the boxes
@@ -152,7 +159,6 @@ class BoxingMachine:
             with self.thread_lock:
                 self.current_box = box_index
 
-            logging.info(f"box index: {box_index}")
 
             for part in box:
                 if box_index >= 0:
@@ -167,17 +173,20 @@ class BoxingMachine:
                         self.current_part_number = part['part_number']
                         self.total_parts = len(box)
 
-                    logging.info("Do vision")
+                    
                     self.wait_if_paused()
                     if self.stop_main_loop:  # Check after potentially long operations
                         self.stop_main_loop = False
                         logging.info("Stopping main loop due to stop signal.")
                         return
 
-                    x, y, item_type = self.camera.detect_pickable_parts()  # Get actual coordinates from vision
-                    logging.info(f"x: {x}   y: {y}   item_type: {item_type}")
+                    #check pickable parts
+                    if run_mode == 0:
+                        logging.info("check pickable parts with vision")
+                        x, y, item_type = self.camera.detect_pickable_parts()  # Get actual coordinates from vision
+                        logging.info(f"x: {x}   y: {y}   item_type: {item_type}")
 
-                    logging.info("pickup part")
+                    
                     if self.stop_main_loop:  # Check after potentially long operations
                         self.stop_main_loop = False
                         logging.info("Stopping main loop due to stop signal.")
@@ -188,17 +197,24 @@ class BoxingMachine:
                         logging.info("Stopping main loop due to stop signal.")
                         return
 
-                    self.pick_part.pick_parts(x, y, part_type=item_type)  # Uncomment when ready
 
+                    #pickup parts
+                    if run_mode == 0:
+                        logging.info("pickup part")
+                        self.pick_part.pick_parts(x, y, part_type=item_type)  # Uncomment when ready
+
+
+                    self.wait_if_paused()
+                    if self.stop_main_loop:  # Check after potentially long operations
+                        self.stop_main_loop = False
+                        logging.info("Stopping main loop due to stop signal.")
+                        return
+
+
+
+                    #place parts
                     logging.info("Place part")
-                    self.wait_if_paused()
-                    if self.stop_main_loop:  # Check after potentially long operations
-                        self.stop_main_loop = False
-                        logging.info("Stopping main loop due to stop signal.")
-                        return
-
-                    box_orientation = box_orientations.get(f'box_{box_index+1}')  # Get the orientation for the current box
-                    logging.info(f"Box orientation: {box_orientation}")
+                    box_orientation = box_orientations.get(f'box_{box_index}')  # Get the orientation for the current box
                     self.pack_box.place_part(part, part_type=item_type, box_rotation=box_orientation)  # Pass the box orientation
 
             box_index += 1

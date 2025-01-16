@@ -108,7 +108,7 @@ class Pack_Box:
                     elif i == 1:
                         # Second part (top right)
                         if box_index == 0:
-                            x_pos = box_center[0] + self.box_length / 2 - self.part_width / 2 - 0.012   # x negative for further away from box edge
+                            x_pos = box_center[0] + self.box_length / 2 - self.part_width / 2 - 0.009   # x negative for further away from box edge
                             y_pos = box_center[1] - self.box_width / 2 + self.part_length / 2 + 0.007 + place_extra_offset  # y positive for further away from place side
                             rotation = -90
                         elif box_index == 1:
@@ -333,7 +333,7 @@ class Pack_Box:
 
         x = 6
         path_step_2 = cur_pos.copy()
-        speed_acc_blend = [speed_fast, acc_fast, 0.05]       #
+        speed_acc_blend = [speed_fast, acc_fast, 0.1]       #
         for y in speed_acc_blend:
             path_step_2[x]=y
             x+=1
