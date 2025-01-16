@@ -4,7 +4,7 @@ from UR5E_control import URControl
 from camera_position import CameraPosition         # used for scanning the belt for detected parts
 from pick_parts import *                           # used for picking parts from belt. needs x and y coordinates
 from place_parts import *                          # used for getting place locations and placing parts in boxes
-import time
+from configuration import *
 
 logging.basicConfig(
     level=logging.INFO,
@@ -61,7 +61,6 @@ class BoxingMachine:
 
     def packing_mode(self):
         logging.info("move to packing mode")
-        pickup_tcp = [-47.5/1000,-140/1000,135/1000,0,0,0]  #edge of part (x=centerpart, y=edge)
         self.robot.set_tcp(pickup_tcp)
         logging.info(self.robot.get_tcp_pos())
         #first move to safe z pos
