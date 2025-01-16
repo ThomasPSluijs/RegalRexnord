@@ -129,28 +129,32 @@ class CameraPosition:
 
                     if best_bbox and best_label:
                         # Assign orientation based on label
+                        found = False
                         if 'horizontal' in best_label.lower():
                             orientations[f'box_{i}'] = 'horizontal'
                             color = (0, 255, 0)
+                            found = True
                         elif 'vertical' in best_label.lower():
                             orientations[f'box_{i}'] = 'vertical'
                             color = (255, 0, 0)
+                            found = True
 
-                        # Annotate the frame with the best detection
-                        cv2.rectangle(frame, (best_bbox[0], best_bbox[1]), (best_bbox[2], best_bbox[3]), color, 2)
-                        annotation = f"Box {i + 1}: {best_label} ({highest_confidence:.2f})"
-                        text_x = best_bbox[0]
-                        text_y = max(best_bbox[1] - 10, 20)  # Ensure text is always visible
-                        cv2.putText(frame, annotation, (text_x, text_y),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+                        if found:
+                            # Annotate the frame with the best detection
+                            cv2.rectangle(frame, (best_bbox[0], best_bbox[1]), (best_bbox[2], best_bbox[3]), color, 2)
+                            annotation = f"Box {i + 1}: {best_label} ({highest_confidence:.2f})"
+                            text_x = best_bbox[0]
+                            text_y = max(best_bbox[1] - 10, 20)  # Ensure text is always visible
+                            cv2.putText(frame, annotation, (text_x, text_y),
+                                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
-                        # Assign the annotated frame to the correct box
-                        if i == 0:
-                            frame_0 = frame
-                        elif i == 1:
-                            frame_1 = frame
+                            # Assign the annotated frame to the correct box
+                            if i == 0:
+                                frame_0 = frame
+                            elif i == 1:
+                                frame_1 = frame
 
-                        not_found[i] = False
+                            not_found[i] = False
 
         # Ensure both frames have the same height for horizontal concatenation
         h_min = min(frame_0.shape[0], frame_1.shape[0])
@@ -242,7 +246,7 @@ class CameraPosition:
 
                         #check for pickable parts
                         min_length = 170
-                        if label == 'Green' or label == 'Rubber' or label == 'Small-Blue': min_length += 30
+                        if label == 'Green' or label == 'Rubber' or label == 'Small-Blue': min_length += 45
                         #small parts need more parts on belt, otherwise they bukkle up
                         
                         if box.conf > 0.8 and label in ['Big-Blue', 'Green', 'Holed', 'Rubber', 'Small-Blue'] and length >= min_length and width * height < 75000:
@@ -253,7 +257,7 @@ class CameraPosition:
                                 xd, yd = self.transform_coordinates(x_left, y_middle, depth)
                                 logging.info(f"Detected (x, y, z): ({x_left}, {y_middle}, {depth}) conf: {box.conf}")
 
-                                if xd > -0.750 and  xd < -0.42 and yd > -0.152 and yd < 0.095: #maximium x value for safety purposes
+                                if xd > -0.750 and  xd < -0.42 and yd > -0.152 and yd < 0.090: #maximium x value for safety purposes
                                     # Draw box and label on the frame
                                     cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 0, 0), 2)
                                     cv2.circle(frame, (x_left, y_middle), 5, (0, 0, 255), -1)

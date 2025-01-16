@@ -67,23 +67,26 @@ class Pick_parts():
 
         '''STEP 2 ROTATION'''
         #rotation about x of tool, for narrow parts the rotation needs to be a bit more
-        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': rotate = -17
+        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': 
+            rotate_1 = -15
+            rotate = -24
         else: rotate = -23
         rotate_x = [0,0,0,math.radians(rotate),math.radians(0),math.radians(0)]   
 
 
         '''STEP 3 Z LOCATION'''
         #belt z location, for some parts the gripper needs to be a little bit higher or lower
-        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': belt_z = [0,0,-125/1000,0,0,0]
+        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': belt_z = [0,0,-122.5/1000,0,0,0]
         elif part_type == 'Big-Blue': belt_z = [0,0,-119/1000,0,0,0]
         else: belt_z = [0,0,-119/1000,0,0,0]   
         logging.info(f"belt z: {belt_z} {part_type}") 
+
 
         #one side needs to be a little bit higher. y > 0.05, row closest to boxes
         #if part_type == 'Big-Blue' and part_y > 0.05: belt_z = [0,0,-116/1000,0,0,0]
 
         #one side()
-        #if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue' and part_y > 0.05: belt_z = [0,0,-122/1000,0,0,0]
+        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue' and part_y > 0.05: belt_z = [0,0,-122.5/1000,0,0,0]
         
 
         '''STEP 4 PICKUP MOVEMENT'''
@@ -94,7 +97,7 @@ class Pick_parts():
         '''STEP 5 MOVE BACK A BIT WHILE ROTATING BACK'''
         #small x offset for narrow parts
         if part_type != 'Big-BLue' and part_type != 'Holed': 
-            step_5_x_back = 4/1000            
+            step_5_x_back = 7/1000            
             step_5_z_up = 7/1000   
         else:                
             step_5_x_back = 0/1000
@@ -179,6 +182,11 @@ class Pick_parts():
     
         #step 4
         #perform a relative x movement so parts get picked up
+        if part_type == 'Green' or part_type == 'Small-Blue':
+            x_1 = -100/1000
+            x_2 = -part_length-part_pos_x_offset - x_1
+            move_x = [x_1,0,0,0,0,0]  
+
         cur_pos = path_step_3.copy()
         cur_pos = cur_pos[:-3]
         new_linear_move = [cur_pos[i] +  move_x[i] for i in range(6)]
@@ -187,15 +195,48 @@ class Pick_parts():
         if part_type == 'Big-Blue' or part_type == 'Holed':
             speed,acc = 3,3
         else:
-            speed,acc = 0.1,0.1
+            speed,acc = 0.6,0.6
         speed_acc_blend = [speed, acc, 0.0]
         for y in speed_acc_blend:
             path_step_4 = np.append(path_step_4, y)
 
 
+        #test!
+        if part_type == 'Green' or part_type == 'Small-Blue':
+            rotate = abs(rotate - rotate_1)
+            rotate_x = [0,0,0,math.radians(rotate),math.radians(0),math.radians(0)]   
+            pose1 = path_step_4.copy()
+            pose1 = pose1[:-3]
+            pose2 = rotate_x
+            result_pose = self.robot.pose_trans(pose1, pose2)
+            path_step_4_1 = result_pose.copy()
+            rotate_x = [0,0,0,math.radians(rotate_1),math.radians(0),math.radians(0)]   
+
+            speed_acc_blend = [speed_fast, acc_fast, 0.0]
+            for y in speed_acc_blend:
+                path_step_4_1 = np.append(path_step_4_1, y) 
+
+            cur_pos = path_step_4_1.copy()
+            cur_pos = cur_pos[:-3]
+            move_x = [x_2,0,0,0,0,0]  
+            new_linear_move = [cur_pos[i] +  move_x[i] for i in range(6)]
+
+            path_step_4_2 = new_linear_move.copy()
+            speed,acc = 0.3,0.3
+            speed_acc_blend = [speed, acc, 0.0]
+            for y in speed_acc_blend:
+                path_step_4_2 = np.append(path_step_4_2, y)
+
+        else:
+            path_step_4_1 = path_step_4.copy()
+            path_step_4_2 = path_step_4.copy()
+
+        #path_step_4 = path_step_4_2.copy()
+
+
         #step 5
         #rotate back
-        pose1 = path_step_4.copy()
+        pose1 = path_step_4_2.copy()
         pose1 = pose1[:-3]
         pose2 = rotate_x
         rotate_x[3] *= -1
@@ -226,36 +267,11 @@ class Pick_parts():
         #move path 1 till 6 with pickup tcp
         path = [
             path_step_1,
-            #path_step_2,
-            #path_step_3,
-            #path_step_4,
-            #path_step_5,
-            #path_step_6,
-        ]
-        self.robot.move_l_path(path=path)
-
-        self.pause()
-
-        #move path 1 till 6 with pickup tcp
-        path = [
-            #path_step_1,
             path_step_2,
             path_step_3,
-            #path_step_4,
-            #path_step_5,
-            #path_step_6,
-        ]
-        self.robot.move_l_path(path=path)
-
-
-        self.pause()
-
-        #move path 1 till 6 with pickup tcp
-        path = [
-            #path_step_1,
-            #path_step_2,
-            #path_step_3,
             path_step_4,
+            path_step_4_1,
+            #path_step_4_2,
             #path_step_5,
             #path_step_6,
         ]
@@ -269,34 +285,12 @@ class Pick_parts():
             #path_step_2,
             #path_step_3,
             #path_step_4,
+            #path_step_4_1,
+            path_step_4_2,
             path_step_5,
-            #path_step_6,
-        ]
-        self.robot.move_l_path(path=path)
-
-        self.pause()
-
-        #move path 1 till 6 with pickup tcp
-        path = [
-            #path_step_1,
-            #path_step_2,
-            #path_step_3,
-            #path_step_4,
-            #path_step_5,
             path_step_6,
         ]
         self.robot.move_l_path(path=path)
-
-        self.pause()
-        '''end pickup tcp'''
-  
-
-
-        #step 6.1
-        #move up a bit
-        #self.robot.move_add_l(step_6_1_relative_z)
-
-        #self.pause()
 
 
         '''rotate tcp'''
