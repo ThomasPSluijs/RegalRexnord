@@ -632,8 +632,10 @@ class Pack_Box:
             else:
                 logging.info("no bad position detected")
 
-            self.boxing_machine.wait_if_paused()
+            #self.boxing_machine.wait_if_paused()
 
             #move to take pic pos
             target_position = [-0.6639046352765678, -0.08494527187802497, 0.529720350746548, 2.222, 2.248, 0.004]
             self.robot.move_l(target_position, speed_fast, acc_fast)
+
+            self.boxing_machine.wait_if_paused()
