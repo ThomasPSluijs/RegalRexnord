@@ -175,7 +175,7 @@ class CameraPosition:
     # main function that detects objects and returns the object locations
     def detect_pickable_parts(self, min_length=170, slow=False):
         self.capture_position(slow)
-        time.sleep(0.3)
+        time.sleep(1)
         not_found = True
         logging.info("start capturing frames")
 
