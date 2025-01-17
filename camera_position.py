@@ -224,24 +224,26 @@ class CameraPosition:
                         
                         #check for bad parts 
                         if 'bad' in label.lower() and box.conf > 0.6:
+                            current_coordinates = (x_left, y_middle)
                             bbox = box.xyxy[0].cpu().numpy()
                             bbox = [int(coord) for coord in bbox[:4]]
-                            # Draw a thick red bounding box for 'bad' objects
-                            cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (0, 0, 255), 4)  # Red color, thickness 4
-                            text = f'{label} ({box.conf.item():.2f})'
-                            cv2.putText(frame, text, (bbox[0], bbox[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-                            with self.frame_lock:
-                                self.last_frame = frame
+                            if self.is_stable(current_coordinates):
+                                # Draw a thick red bounding box for 'bad' objects
+                                cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (0, 0, 255), 4)  # Red color, thickness 4
+                                text = f'{label} ({box.conf.item():.2f})'
+                                cv2.putText(frame, text, (bbox[0], bbox[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+                                with self.frame_lock:
+                                    self.last_frame = frame
 
-                            self.boxing_machine.pause()
-                            self.boxing_machine.interface.start_button_pressed()
-                            self.boxing_machine.interface.update_status("bad placement on conveyor: please fix and resume")
+                                self.boxing_machine.pause()
+                                self.boxing_machine.interface.start_button_pressed()
+                                self.boxing_machine.interface.update_status("bad placement on conveyor: please fix and resume")
 
-                            logging.info("Bad position detected!")
-                            self.robot.set_digital_output(2, True)  # Turn output 2 to True (gate goes up)
-                            time.sleep(5)  # Wait for 5 seconds
-                            self.robot.set_digital_output(2, False)  # Turn output 2 to False (gate goes down)
-                            continue    #go to start of while loop, wait for new parts
+                                logging.info("Bad position detected!")
+                                self.robot.set_digital_output(2, True)  # Turn output 2 to True (gate goes up)
+                                time.sleep(5)  # Wait for 5 seconds
+                                self.robot.set_digital_output(2, False)  # Turn output 2 to False (gate goes down)
+                                continue    #go to start of while loop, wait for new parts
 
 
                         #check for pickable parts
@@ -321,6 +323,7 @@ class CameraPosition:
 
 
     def check_bad_part_placement(self, bad_confidence=0.6):
+        time.sleep(0.3)
         #try 4 times
         tries = 4
         for i in range(tries):
