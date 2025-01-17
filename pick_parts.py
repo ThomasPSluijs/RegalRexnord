@@ -31,20 +31,24 @@ class Pick_parts():
         speed_middle = 1
         acc_middle = 1
 
-        speed_slow = 0.7
-        acc_slow = 0.7
+        if part_type == 'Big-Blue':
+            speed_slow = 1.5
+            acc_slow = 1
+        else:
+            speed_slow = 1
+            acc_slow = 0.8            
 
 
         #part_x offset, one side needs a little bit more than the other side (or tune the camera calibration)
         if part_y > 0.00: 
             if part_type == 'Big-Blue' or part_type == 'Holed':
-                part_x += 14/1000   #move bit further. closet to boxes
+                part_x += 15/1000   #move bit further. closet to boxes
             else:
                 part_x += 17/1000
             #logging.info("move bit more on x")
         else: 
             if part_type == 'Big-Blue' or part_type == 'Holed':
-                part_x += 25/1000     #move bit less. furthes to boxes
+                part_x += 19/1000     #move bit less. furthes to boxes
             else: part_x += 22/1000
 
         #part_x += 7 #offset because of new gripper
@@ -53,7 +57,7 @@ class Pick_parts():
 
         #part length, some parts are a bit shorter so robot has to move less
         if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': part_length = 0.178
-        elif part_type == 'Big-Blue': part_length = 0.175
+        elif part_type == 'Big-Blue': part_length = 0.184
         else: part_length = 0.174
 
 
@@ -321,7 +325,7 @@ class Pick_parts():
         ]
         self.robot.move_l_path(path=path)
 
-        self.pause()
+        #self.pause()
 
         #move path 1 till 6 with pickup tcp
         path = [
