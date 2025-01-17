@@ -312,12 +312,6 @@ class UserInterface:
         # Camera View Section
         self.camview = customtkinter.CTkFrame(master=self.root, corner_radius=0, fg_color=self.background_color)
         self.camview.grid(row=0, column=1, padx=0, pady=0, sticky="")
-        height, width = 420, 640  # Define the size of the image
-        #yellow_color = [255, 255, 0]  # RGB values for yellow
-        #numpy_image = np.full((height, width, 3), yellow_color, dtype=np.uint8)
-        #pil_image = Image.fromarray(numpy_image) # Convert the NumPy array to a PIL image
-        #self.my_image = customtkinter.CTkImage(light_image=pil_image, size=(640 / self.camscale, 420 / self.camscale))
-
         self.light_image = Image.open("Regal_Rexnord_Corporation_logo.jpg")  
         self.my_image = customtkinter.CTkImage(light_image=self.light_image, size=(640 / self.camscale, 420 / self.camscale))
 
