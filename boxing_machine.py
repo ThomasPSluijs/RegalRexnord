@@ -144,7 +144,7 @@ class BoxingMachine:
 
         #get packing positions
         filled_boxes = self.pack_box.get_pack_pos(item_type)
-        logging.info(filled_boxes[0])
+        #logging.info(filled_boxes[0])
 
 
         #start for loop to go through all packing positions and fill the boxes
