@@ -190,8 +190,8 @@ class UserInterface:
         customtkinter.set_default_color_theme("green")
 
         # Configure window
-        #self.root.attributes("-fullscreen", True)       #should be true and uncommented
-        self.root.geometry('1024x600')                      #should be deleted
+        self.root.attributes("-fullscreen", True)       #should be true and uncommented
+        #self.root.geometry('1024x600')                      #should be deleted
         self.root.configure(bg='gray14')
 
         # Setup close event
