@@ -8,6 +8,7 @@ import numpy as np
 from ultralytics import YOLO
 import threading
 import time
+import keyboard
 
 # Suppress logging for this example
 logging.basicConfig(
@@ -250,6 +251,7 @@ class CameraPosition:
                         min_length = 170
                         if label == 'Green' or label == 'Rubber' or label == 'Small-Blue': min_length += 20
                         #small parts need more parts on belt, otherwise they bukkle up
+
                         
                         if box.conf > 0.8 and label in ['Big-Blue', 'Green', 'Holed', 'Rubber', 'Small-Blue'] and length >= min_length and width * height < 75000:
                             current_coordinates = (x_left, y_middle)
@@ -257,8 +259,54 @@ class CameraPosition:
                             if self.is_stable(current_coordinates):
                                 logging.info("stable")
                                 xd, yd = self.transform_coordinates(x_left, y_middle, depth)
-                                logging.info(f"Detected (x, y, z): ({x_left}, {y_middle}, {depth}) conf: {box.conf}")
+                                logging.info(f"Detected (x, y): ({xd}, {yd}, conf: {box.conf}")
+                                
 
+                                #new calculation type. for now, only small blue and green.
+                                if label == 'Small-Blue' or label == 'Green':
+                                    x_barrier_close_box = -818.8
+                                    x_barrier_away_box = -819.8
+
+                                    part_width = 14.25
+                                    offset = 0
+                                    #vision_length = length - offset
+                                    if yd > 0:  #close box
+                                        vision_length = abs(x_barrier_close_box) - abs(xd*1000)
+                                    else:   #away box
+                                        vision_length = abs(x_barrier_away_box) - abs(xd*1000) + 3
+
+                                    #if yd > 0: vision_length += 3
+                                    tot_parts = vision_length/part_width
+                                    if 0.45 < (tot_parts % 1) < 0.55:
+                                        logging.error(f"edge case retake picture: {tot_parts % 1}")
+                                        continue
+
+                                    tot_parts = round(vision_length/part_width)
+                                    new_length = tot_parts * part_width + offset
+                                    logging.info(f"vision length: {vision_length}  new length: {new_length}  tot parts: {tot_parts}")
+                                    
+
+                                    if yd > 0:  #close box
+                                        xd = x_barrier_close_box + new_length - 1
+                                    else:       #away box
+                                        xd = x_barrier_away_box + new_length - 3
+
+                                    xd /=1000
+
+                                    cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 0, 0), 2)
+                                    cv2.circle(frame, (x_left, y_middle), 5, (0, 0, 255), -1)
+                                    text = f'X: {x_left}, Y: {y_middle}, Z: {depth:.2f}m'
+                                    cv2.putText(frame, text, (x_left, y_middle - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+                                    text = f'{label} ({box.conf.item():.2f})'
+                                    cv2.putText(frame, text, (bbox[0], bbox[1] - 40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+
+                                    #not_found = False       #parts found, so not_found = false. this will stop the while looop
+
+                                    with self.frame_lock:  # Update last_frame safely
+                                        self.last_frame = frame
+
+                                
+                                #check if detected object is within reach, after that draw frame and return coordinates
                                 if xd > -0.750 and  xd < -0.42 and yd > -0.152 and yd < 0.090: #maximium x value for safety purposes
                                     # Draw box and label on the frame
                                     cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 0, 0), 2)
@@ -272,6 +320,9 @@ class CameraPosition:
 
                                     with self.frame_lock:  # Update last_frame safely
                                         self.last_frame = frame
+
+                                    logging.info(f"new xd: {xd}")
+                                    #keyboard.wait('space')
                                     return (xd, yd, label)
                                 else:
                                     logging.error("part out of reach")

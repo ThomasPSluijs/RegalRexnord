@@ -139,7 +139,7 @@ class BoxingMachine:
             'box_0': 'horizontal',
             'box_1': 'horizontal'
         }
-        item_type, box_orientations = self.initialize_main_loop()
+        #item_type, box_orientations = self.initialize_main_loop()
 
 
         #get packing positions
@@ -201,7 +201,7 @@ class BoxingMachine:
                     #pickup parts
                     if run_mode == 0:
                         logging.info("pickup part")
-                        self.pick_part.pick_parts(x, y, part_type=item_type)  # Uncomment when ready
+                        #self.pick_part.pick_parts(x, y, part_type=item_type)  # Uncomment when ready
 
 
                     self.wait_if_paused()
@@ -214,8 +214,8 @@ class BoxingMachine:
 
                     #place parts
                     logging.info("Place part")
-                    box_orientation = box_orientations.get(f'box_{box_index}')  # Get the orientation for the current box
-                    self.pack_box.place_part(part, part_type=item_type, box_rotation=box_orientation)  # Pass the box orientation
+                    #box_orientation = box_orientations.get(f'box_{box_index}')  # Get the orientation for the current box
+                    #self.pack_box.place_part(part, part_type=item_type, box_rotation=box_orientation)  # Pass the box orientation
 
             box_index += 1
 

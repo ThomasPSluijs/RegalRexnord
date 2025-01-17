@@ -53,7 +53,7 @@ class Pick_parts():
 
 
         #part length, some parts are a bit shorter so robot has to move less
-        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': part_length = 0.178
+        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': part_length = 0.1794 + 4/1000
         elif part_type == 'Big-Blue': part_length = 0.184
         else: part_length = 0.174
 
@@ -92,23 +92,23 @@ class Pick_parts():
 
         '''STEP 5 MOVE BACK A BIT WHILE ROTATING BACK'''
         #small x offset for narrow parts
-        if part_type != 'Big-BLue' and part_type != 'Holed': 
-            step_5_x_back = 13/1000            
+        if part_type != 'Big-BLue' and part_type != 'Holed':    #small parts
+            step_5_x_back = 0/1000            #was 11
             step_5_z_up = 7/1000   
-        else:                
+        else:                       #big partss
             step_5_x_back = 0/1000
             step_5_z_up = 2/1000  
 
 
         '''STEP 6 MOVE BACK A BIT MORE'''
-        if part_type != 'Big-Blue' and part_type != 'Holed': step_6_x_back=[6/1000,0,0,0,0,0]
-        else: step_6_x_back=[2/1000,0,0,0,0,0]
+        if part_type != 'Big-Blue' and part_type != 'Holed': step_6_x_back=[12/1000,0,0,0,0,0]   #was 6 #smaal parts
+        else: step_6_x_back=[2/1000,0,0,0,0,0]  #was 2  #big parts
         '''END PATH'''
 
 
         '''NEW PATH'''
         '''STEP 7 ROTATE A BIT BACK SO PARTS DONT FALL OFF'''
-        step_7_rotate_x_back = [0,0,0,math.radians(7),0,0]
+        step_7_rotate_x_back = [0/1000,0,0,math.radians(7),0,0]
 
 
         '''STEP 8 MOVE UP RELATIVE'''
