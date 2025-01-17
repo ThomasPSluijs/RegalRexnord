@@ -51,9 +51,6 @@ class Pick_parts():
                 part_x += 19/1000     #move bit less. furthes to boxes
             else: part_x += 22/1000
 
-        #part_x += 7 #offset because of new gripper
-
-
 
         #part length, some parts are a bit shorter so robot has to move less
         if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': part_length = 0.178
@@ -71,9 +68,6 @@ class Pick_parts():
         '''STEP 2 ROTATION'''
         #rotation about x of tool, for narrow parts the rotation needs to be a bit more
         if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': 
-            rotate_1 = -15
-            rotate_2 = -19.8
-            rotate_3 = -17.8
             rotate = -16
         else: rotate = -23
         rotate_x = [0,0,0,math.radians(rotate),math.radians(0),math.radians(0)]   
@@ -180,11 +174,6 @@ class Pick_parts():
     
         #step 4
         #perform a relative x movement so parts get picked up
-        #if part_type == 'Green' or part_type == 'Small-Blue':
-        #    x_1 = -100/1000
-        #    x_2 = -part_length-part_pos_x_offset - x_1
-        #    move_x = [x_1,0,0,0,0,0]  
-
         cur_pos = path_step_3.copy()
         cur_pos = cur_pos[:-3]
         new_linear_move = [cur_pos[i] +  move_x[i] for i in range(6)]
@@ -198,88 +187,6 @@ class Pick_parts():
         for y in speed_acc_blend:
             path_step_4 = np.append(path_step_4, y)
 
-
-        #test!
-        
-        if part_type == 'Green' or part_type == 'Small-Blue':
-            pass
-            '''
-            if part_x > - 640/1000:
-
-                rotate = abs(rotate - rotate_3)
-                rotate_x = [0,0,0,math.radians(rotate),math.radians(0),math.radians(0)]   
-                pose1 = path_step_4.copy()
-                pose1 = pose1[:-3]
-                pose2 = rotate_x
-                result_pose = self.robot.pose_trans(pose1, pose2)
-                result_pose[2] -= 8/10000
-                path_step_4_1 = result_pose.copy()
-
-                speed_acc_blend = [speed_fast, acc_fast, 0.0]
-                for y in speed_acc_blend:
-                    path_step_4_1 = np.append(path_step_4_1, y) 
-
-            else:
-                rotate = abs(rotate - rotate_2)
-                rotate_x = [0,0,0,math.radians(rotate),math.radians(0),math.radians(0)]   
-                pose1 = path_step_4.copy()
-                pose1 = pose1[:-3]
-                pose2 = rotate_x
-                result_pose = self.robot.pose_trans(pose1, pose2)
-                result_pose[2] -= 8/10000
-                path_step_4_1 = result_pose.copy()
-
-                speed_acc_blend = [speed_fast, acc_fast, 0.0]
-                for y in speed_acc_blend:
-                    path_step_4_1 = np.append(path_step_4_1, y) 
-
-
-            cur_pos = path_step_4_1.copy()
-            cur_pos = cur_pos[:-3]
-            move_x = [x_2,0,0,0,0,0]  
-            new_linear_move = [cur_pos[i] +  move_x[i] for i in range(6)]
-
-            path_step_4_2 = new_linear_move.copy()
-            speed,acc = 0.3,0.3
-            speed_acc_blend = [speed, acc, 0.0]
-            for y in speed_acc_blend:
-                path_step_4_2 = np.append(path_step_4_2, y)
-
-            
-            rotate_x = [0,0,0,math.radians(rotate_2),math.radians(0),math.radians(0)]   
-            
-
-            
-            rotate = abs(rotate - rotate_1)
-            rotate_x = [0,0,0,math.radians(rotate),math.radians(0),math.radians(0)]   
-            pose1 = path_step_4.copy()
-            pose1 = pose1[:-3]
-            pose2 = rotate_x
-            result_pose = self.robot.pose_trans(pose1, pose2)
-            path_step_4_1 = result_pose.copy()
-            rotate_x = [0,0,0,math.radians(rotate_1),math.radians(0),math.radians(0)]   
-
-            speed_acc_blend = [speed_fast, acc_fast, 0.0]
-            for y in speed_acc_blend:
-                path_step_4_1 = np.append(path_step_4_1, y) 
-
-            cur_pos = path_step_4_1.copy()
-            cur_pos = cur_pos[:-3]
-            move_x = [x_2,0,0,0,0,0]  
-            new_linear_move = [cur_pos[i] +  move_x[i] for i in range(6)]
-
-            path_step_4_2 = new_linear_move.copy()
-            speed,acc = 0.3,0.3
-            speed_acc_blend = [speed, acc, 0.0]
-            for y in speed_acc_blend:
-                path_step_4_2 = np.append(path_step_4_2, y)
-                '''
-
-        else:
-            path_step_4_1 = path_step_4.copy()
-            path_step_4_2 = path_step_4.copy()
-
-        #path_step_4 = path_step_4_2.copy()
 
 
         #step 5
@@ -318,14 +225,12 @@ class Pick_parts():
             path_step_2,
             path_step_3,
             #path_step_4,
-            #path_step_4_1,
-            #path_step_4_2,
             #path_step_5,
             #path_step_6,
         ]
         self.robot.move_l_path(path=path)
 
-        #self.pause()
+        self.pause()
 
         #move path 1 till 6 with pickup tcp
         path = [
@@ -333,8 +238,6 @@ class Pick_parts():
             #path_step_2,
             #path_step_3,
             path_step_4,
-            #path_step_4_1,
-            #path_step_4_2,
             path_step_5,
             path_step_6,
         ]
