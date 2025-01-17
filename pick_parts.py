@@ -231,14 +231,37 @@ class Pick_parts():
         self.robot.move_l_path(path=path)
 
         self.pause()
-
         #move path 1 till 6 with pickup tcp
         path = [
             #path_step_1,
             #path_step_2,
             #path_step_3,
             path_step_4,
+            #path_step_5,
+            #path_step_6,
+        ]
+        self.robot.move_l_path(path=path)
+
+        self.pause()
+        #move path 1 till 6 with pickup tcp
+        path = [
+            #path_step_1,
+            #path_step_2,
+            #path_step_3,
+            #path_step_4,
             path_step_5,
+            #path_step_6,
+        ]
+        self.robot.move_l_path(path=path)
+
+        self.pause()
+        #move path 1 till 6 with pickup tcp
+        path = [
+            #path_step_1,
+            #path_step_2,
+            #path_step_3,
+            #path_step_4,
+            #path_step_5,
             path_step_6,
         ]
         self.robot.move_l_path(path=path)
