@@ -121,6 +121,7 @@ class Pack_Box:
                         elif box_index == 1:
                             x_pos = box_center[0] + self.box_length / 2 - self.part_width / 2 - 0.009  # x negative for further away from box edge
                             y_pos = box_center[1] - self.box_width / 2 + self.part_length / 2 + 0.013 + place_extra_offset  # y positive for further away from place side
+                            if item_type == 'Small-Blue': x_pos -= 0.004
                             rotation = -90
                     elif i == 2:
                         if item_type == 'Big-Blue':
@@ -135,6 +136,7 @@ class Pack_Box:
                         elif box_index == 1:
                             x_pos = box_center[0] - self.box_length / 2 + self.part_width / 2 + 0.006  # x positive for further away from box edge
                             y_pos = box_center[1] + self.box_width / 2 - self.part_length / 2 - 0.007 - place_extra_offset  # y negative for further away from place side
+                            if item_type == 'Small-Blue': x_pos += 0.009
                             rotation = 90
                     elif i == 3:
                         if item_type == 'Big-Blue':
@@ -232,28 +234,29 @@ class Pack_Box:
         if box_rotation == 'horizontal':   #high side parrallel to belt
             if rotation == 90 or rotation == -90:    #low side. 
                 if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue':
-                    z_offset_step_6 = -2/1000    
+                    z_offset_step_6 = -3/1000    
                 else: #big parts
                     z_offset_step_6 = 3/1000
             else:   #angled side. bit heigher than low side
                 if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue':
-                    z_offset_step_6 = 1/1000    
+                    z_offset_step_6 = -1/1000    
                 else: #big parts
                     z_offset_step_6 = 6/1000
 
         elif box_rotation == 'vertical': #high side not parrallel to belt
             if rotation == 0 or rotation == 180:
                 if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue':
-                    z_offset_step_6 = -2/1000   
+                    z_offset_step_6 = -3/1000   
                 else: #big parts
                     z_offset_step_6 = 3/1000
             else:   #angled side. bit heigher than low side
                 if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue':
-                    z_offset_step_6 = 1/1000    
+                    z_offset_step_6 = -1/1000    
                 else: #big parts
                     z_offset_step_6 = 6/1000
 
 
+        offset_step_8_extra = 0
         
         '''STEP 7: rotate about x so parts can be placed'''
         if part_type == 'Big-Blue' or part_type == 'Holed': rotate_x = -23
@@ -265,20 +268,34 @@ class Pack_Box:
                 if rotation == 0 or rotation == 180:
                     #logging.info("---rotate also around y wile placing!---")
                     rotate_y = 5    #rotate 5 degrees about y of tool. this way placing is parralle to the bottom of the box
+                    if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-BLue': 
+                        rotate_y = 2
+                        offset_step_8_extra = 10
             elif box_rotation == 'vertical':
                 if rotation == 90 or rotation == -90:
                     #logging.info("---rotate also around y wile placing!---")
                     rotate_y = 5    #rotate 5 degrees about y of tool. this way placing is parralle to the bottom of the box
+                    if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-BLue': 
+                        rotate_y = 2
+                        offset_step_8_extra = 10
 
         else:
             if box_rotation == 'horizontal':
                 if rotation == 0 or rotation == 180:
                     #logging.info("---rotate also around y wile placing!---")
                     rotate_y = 3    #rotate 5 degrees about y of tool. this way placing is parralle to the bottom of the box
+                    if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-BLue': 
+                        rotate_y = 1
+                        offset_step_8_extra = 10
             elif box_rotation == 'vertical':
                 if rotation == 90 or rotation == -90:
                     #logging.info("---rotate also around y wile placing!---")
-                    rotate_y = 3    #rotate 5 degrees about y of tool. this way placing is parralle to the bottom of the box     
+                    rotate_y = 3    #rotate 5 degrees about y of tool. this way placing is parralle to the bottom of the box   
+                    if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-BLue': 
+                        rotate_y = 1 
+                        offset_step_8_extra = 10
+
+
 
 
         rotate_x_step_7 = [0,0,0,math.radians(rotate_x),math.radians(rotate_y),math.radians(0)]
@@ -289,6 +306,7 @@ class Pack_Box:
             offset_step_8=157    
         else:
             offset_step_8=157
+        
 
         z_offset_step_8=0
         rotation = part['rotation']
@@ -334,7 +352,7 @@ class Pack_Box:
 
         '''STEP 9: rotate more about x for last placing movement'''
         if part_type == 'Big-Blue' or part_type == 'Holed': rotation = -10
-        elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': rotation = -13
+        elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': rotation = -15
         rotate_x_step_9 = [0,0,0,math.radians(rotation),math.radians(0),math.radians(0)]
 
 
@@ -499,16 +517,16 @@ class Pack_Box:
         #step 8: depending on rotation, move x or y or a bit of z
         if rotation_angle == 0:
             #move x positive
-            offset= [offset_step_8/1000,0,z_offset_step_8/1000,0,0,0]
+            offset= [offset_step_8/1000,offset_step_8_extra/1000,z_offset_step_8/1000,0,0,0]
         elif rotation_angle == -90:
             #move y positive
-            offset= [0,offset_step_8/1000,z_offset_step_8/1000,0,0,0]
+            offset= [-offset_step_8_extra/1000,offset_step_8/1000,z_offset_step_8/1000,0,0,0]
         elif rotation_angle == 90:
             #move y negative
-            offset= [0,-offset_step_8/1000,z_offset_step_8/1000,0,0,0]  
+            offset= [offset_step_8_extra/1000,-offset_step_8/1000,z_offset_step_8/1000,0,0,0]  
         elif rotation_angle == 180:
             #move y negatie
-            offset= [-offset_step_8/1000,0,z_offset_step_8/1000,0,0,0]
+            offset= [-offset_step_8/1000,-offset_step_8_extra/1000,z_offset_step_8/1000,0,0,0]
 
         cur_pos = path_step_7.copy()
         cur_pos = cur_pos[:-3]

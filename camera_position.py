@@ -271,7 +271,7 @@ class CameraPosition:
 
                                 #new calculation type. for now, only small blue and green.
                                 if label == 'Small-Blue' or label == 'Green' or label == 'Rubber':
-                                    part_width = 14    #was 14.25
+                                    part_width = 14.25    #was 14.25
                                 elif label == 'Big-Blue':
                                     part_width = 24.4
                                 elif label == 'Holed':
@@ -294,7 +294,7 @@ class CameraPosition:
                                 tot_parts = vision_length/part_width
                                 if round(tot_parts) == 14 and label == 'Green' or label == 'Small-Blue' or label == 'Rubber':
                                     vision_length += 5
-                                    
+
                                 tot_parts = vision_length/part_width
                                 logging.info(f"tot parts not rounded: {tot_parts}")
                                 if 0.40 < (tot_parts % 1) < 0.60:
@@ -312,8 +312,8 @@ class CameraPosition:
                                     offset_close = -1.5
                                     offset_away = -1.5
                                 elif label == 'Green' or label == 'Small-Blue' or label == 'Rubber':
-                                    offset_close = 6.5
-                                    offset_away =  4.5
+                                    offset_close = 3
+                                    offset_away =  1
 
 
                                 if yd > 0:  #close box
@@ -328,7 +328,7 @@ class CameraPosition:
 
                                 
                                 #check if detected object is within reach, after that draw frame and return coordinates
-                                if xd > -0.750 and  xd < -0.41 and yd > -0.152 and yd < 0.090: #maximium x value for safety purposes
+                                if xd > -0.750 and  xd < -0.40 and yd > -0.152 and yd < 0.090: #maximium x value for safety purposes
                                     # Draw box and label on the frame
                                     cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 0, 0), 2)
                                     cv2.circle(frame, (x_left, y_middle), 5, (0, 0, 255), -1)
@@ -342,8 +342,6 @@ class CameraPosition:
                                     with self.frame_lock:  # Update last_frame safely
                                         self.last_frame = frame
 
-                                    #logging.info(f"new xd: {xd}")
-                                    #keyboard.wait('space')
                                     return (xd, yd, label)
                                 else:
                                     logging.error("part out of reach")

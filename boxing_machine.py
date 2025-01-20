@@ -44,6 +44,7 @@ class BoxingMachine:
         self.pause_event.set()  # Initially not paused
 
         self.current_part_number = 1
+        self.last_part = 0
         self.total_parts = 392
         self.current_box = 0
         self.boxes_are_full = False
@@ -131,6 +132,7 @@ class BoxingMachine:
     #main loop that fills all available boxes
     def main_loop(self):
         run_mode = 0        #0 is normal mode, 1 is only packing
+        self.last_part = 0
 
         logging.info("In main loop")
 
@@ -217,6 +219,8 @@ class BoxingMachine:
                     #logging.info("Place part")
                     box_orientation = box_orientations.get(f'box_{box_index}')  # Get the orientation for the current box
                     self.pack_box.place_part(part, part_type=item_type, box_rotation=box_orientation)  # Pass the box orientation
+
+                    self.last_part = part
 
             box_index += 1
 
