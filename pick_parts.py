@@ -25,9 +25,6 @@ class Pick_parts():
         start_rotation = [2.211, 2.228, 0.013]
 
         #fast and slow speeds and accelerations. fast for general movements, slow for special movements. 
-        speed_fast = 3
-        acc_fast = 3
-
         speed_middle = 1
         acc_middle = 1
 
@@ -37,19 +34,6 @@ class Pick_parts():
         else:
             speed_slow = 1
             acc_slow = 0.8            
-
-
-        #part_x offset, one side needs a little bit more than the other side (or tune the camera calibration)
-        if part_y > 0.00: 
-            if part_type == 'Big-Blue' or part_type == 'Holed':
-                part_x += 15/1000   #move bit further. closet to boxes
-            else:
-                part_x += 17/1000
-            #logging.info("move bit more on x")
-        else: 
-            if part_type == 'Big-Blue' or part_type == 'Holed':
-                part_x += 19/1000     #move bit less. furthes to boxes
-            else: part_x += 22/1000
 
 
         #part length, some parts are a bit shorter so robot has to move less
@@ -81,9 +65,6 @@ class Pick_parts():
         logging.info(f"belt z: {belt_z} {part_type}") 
 
 
-        #one side()
-        #if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue' and part_y > 0.05: belt_z = [0,0,-122/1000,0,0,0]
-        
 
         '''STEP 4 PICKUP MOVEMENT'''
         #total x movement when tool is rotated and aligned to pick up the parts. moves partlength + offset
@@ -102,7 +83,7 @@ class Pick_parts():
 
         '''STEP 6 MOVE BACK A BIT MORE'''
         if part_type != 'Big-Blue' and part_type != 'Holed': step_6_x_back=[12/1000,0,0,0,0,0]   #was 6 #smaal parts
-        else: step_6_x_back=[2/1000,0,0,0,0,0]  #was 2  #big parts
+        else: step_6_x_back=[4/1000,0,0,0,0,0]  #was 2  #big parts
         '''END PATH'''
 
 
@@ -219,6 +200,20 @@ class Pick_parts():
         
         self.boxing_machine.wait_if_paused()
 
+
+        #move path 1 till 6 with pickup tcp
+        path = [
+            path_step_1,
+            path_step_2,
+            path_step_3,
+            path_step_4,
+            path_step_5,
+            path_step_6,
+        ]
+        self.robot.move_l_path(path=path)
+
+
+        '''
         #move path 1 till 6 with pickup tcp
         path = [
             path_step_1,
@@ -264,7 +259,7 @@ class Pick_parts():
             #path_step_5,
             path_step_6,
         ]
-        self.robot.move_l_path(path=path)
+        self.robot.move_l_path(path=path) '''
 
 
         '''rotate tcp'''

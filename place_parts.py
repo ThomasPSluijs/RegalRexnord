@@ -89,7 +89,7 @@ class Pack_Box:
             layer_number = 1
 
             if item_type == 'Big-Blue': place_extra_offset=4/1000
-            else: place_extra_offset = 0
+            else: place_extra_offset = 6/1000
 
             if item_type == 'Big-Blue' or item_type == 'Holed':
                 z_pos_offset = -1/1000 #for differen parts, differen offset because box is not level
@@ -114,8 +114,9 @@ class Pack_Box:
                     elif i == 1:
                         # Second part (top right)
                         if box_index == 0:
-                            x_pos = box_center[0] + self.box_length / 2 - self.part_width / 2 - 0.012   # x negative for further away from box edge
+                            x_pos = box_center[0] + self.box_length / 2 - self.part_width / 2 - 0.013   # x negative for further away from box edge
                             y_pos = box_center[1] - self.box_width / 2 + self.part_length / 2 + 0.004 + place_extra_offset  # y positive for further away from place side
+                            if item_type == 'Small-Blue': x_pos -= 0.003
                             rotation = -90
                         elif box_index == 1:
                             x_pos = box_center[0] + self.box_length / 2 - self.part_width / 2 - 0.009  # x negative for further away from box edge
@@ -129,7 +130,7 @@ class Pack_Box:
                         # Third part (bottom left)
                         if box_index == 0:
                             x_pos = box_center[0] - self.box_length / 2 + self.part_width / 2 + 0.010  # x positive for further away from box edge
-                            y_pos = box_center[1] + self.box_width / 2 - self.part_length / 2 - 0.012 - place_extra_offset  # y negative for further away from place side
+                            y_pos = box_center[1] + self.box_width / 2 - self.part_length / 2 - 0.010 - place_extra_offset  # y negative for further away from place side
                             rotation = 90
                         elif box_index == 1:
                             x_pos = box_center[0] - self.box_length / 2 + self.part_width / 2 + 0.006  # x positive for further away from box edge
@@ -185,9 +186,6 @@ class Pack_Box:
         cur_layer = part['layer_number']
 
         #fast and slow speeds and accelerations. fast for general movements, slow for special movements. 
-        speed_fast = 3
-        acc_fast = 3
-
         if part_type == 'Big-Blue' or part_type == 'Holed':                          
             speed_slow = 2
             acc_slow = 1.5
@@ -210,7 +208,7 @@ class Pack_Box:
 
 
         '''STEP 3: move to desired z height for placing + offset'''
-        z_offset_step_3 = 30/1000
+        z_offset_step_3 = 27/1000
 
 
         '''STEP 4: rotate parts, no tuning here'''
@@ -234,24 +232,24 @@ class Pack_Box:
         if box_rotation == 'horizontal':   #high side parrallel to belt
             if rotation == 90 or rotation == -90:    #low side. 
                 if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue':
-                    z_offset_step_6 = 1/1000    #layer 0: negative z offset for pressing down the box a bit
+                    z_offset_step_6 = -2/1000    
                 else: #big parts
                     z_offset_step_6 = 3/1000
             else:   #angled side. bit heigher than low side
                 if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue':
-                    z_offset_step_6 = 5/1000    #layer 0: negative z offset for pressing down the box a bit
+                    z_offset_step_6 = 1/1000    
                 else: #big parts
                     z_offset_step_6 = 6/1000
 
         elif box_rotation == 'vertical': #high side not parrallel to belt
             if rotation == 0 or rotation == 180:
                 if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue':
-                    z_offset_step_6 = 1/1000    #layer 0: negative z offset for pressing down the box a bit
+                    z_offset_step_6 = -2/1000   
                 else: #big parts
                     z_offset_step_6 = 3/1000
             else:   #angled side. bit heigher than low side
                 if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue':
-                    z_offset_step_6 = 5/1000    #layer 0: negative z offset for pressing down the box a bit
+                    z_offset_step_6 = 1/1000    
                 else: #big parts
                     z_offset_step_6 = 6/1000
 
@@ -259,7 +257,7 @@ class Pack_Box:
         
         '''STEP 7: rotate about x so parts can be placed'''
         if part_type == 'Big-Blue' or part_type == 'Holed': rotate_x = -23
-        elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': rotate_x = -30
+        elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': rotate_x = -18
         rotate_y = 0
         rotation = part['rotation']
         if part['layer_number'] < 7:
@@ -288,9 +286,9 @@ class Pack_Box:
 
         '''step 8: perform placing movement. because box higher in the middle, move z a bit up'''
         if part_type == 'Big-Blue' or part_type == 'Holed':
-            offset_step_8=157    #should be 175
+            offset_step_8=157    
         else:
-            offset_step_8=153
+            offset_step_8=157
 
         z_offset_step_8=0
         rotation = part['rotation']
@@ -336,7 +334,7 @@ class Pack_Box:
 
         '''STEP 9: rotate more about x for last placing movement'''
         if part_type == 'Big-Blue' or part_type == 'Holed': rotation = -10
-        elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': rotation = -5
+        elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': rotation = -13
         rotate_x_step_9 = [0,0,0,math.radians(rotation),math.radians(0),math.radians(0)]
 
 

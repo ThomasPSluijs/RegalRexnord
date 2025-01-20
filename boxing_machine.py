@@ -106,7 +106,7 @@ class BoxingMachine:
             self.part.part_size_z = 0.0085 
             self.pack_box.part_height = self.part.part_size_z
         elif part_type == 'Rubber':
-            self.part.part_size_z = 0.01
+            self.part.part_size_z = 0.01055
             self.pack_box.part_height = self.part.part_size_z
         elif part_type == 'Small-Blue':
             self.part.part_size_z = 0.009
@@ -139,7 +139,7 @@ class BoxingMachine:
             'box_0': 'horizontal',
             'box_1': 'horizontal'
         }
-        #item_type, box_orientations = self.initialize_main_loop()
+        item_type, box_orientations = self.initialize_main_loop()
 
 
         #get packing positions
@@ -182,7 +182,7 @@ class BoxingMachine:
 
                     #check pickable parts
                     if run_mode == 0:
-                        logging.info("check pickable parts with vision")
+                        #logging.info("check pickable parts with vision")
                         x, y, item_type = self.camera.detect_pickable_parts()  # Get actual coordinates from vision
                         logging.info(f"x: {x}   y: {y}   item_type: {item_type}")
 
@@ -200,8 +200,9 @@ class BoxingMachine:
 
                     #pickup parts
                     if run_mode == 0:
-                        logging.info("pickup part")
-                        #self.pick_part.pick_parts(x, y, part_type=item_type)  # Uncomment when ready
+                        #logging.info("pickup part")
+                        #pass
+                        self.pick_part.pick_parts(x, y, part_type=item_type)  # Uncomment when ready
 
 
                     self.wait_if_paused()
@@ -213,9 +214,9 @@ class BoxingMachine:
 
 
                     #place parts
-                    logging.info("Place part")
-                    #box_orientation = box_orientations.get(f'box_{box_index}')  # Get the orientation for the current box
-                    #self.pack_box.place_part(part, part_type=item_type, box_rotation=box_orientation)  # Pass the box orientation
+                    #logging.info("Place part")
+                    box_orientation = box_orientations.get(f'box_{box_index}')  # Get the orientation for the current box
+                    self.pack_box.place_part(part, part_type=item_type, box_rotation=box_orientation)  # Pass the box orientation
 
             box_index += 1
 
