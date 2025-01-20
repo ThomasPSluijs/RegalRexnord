@@ -54,7 +54,7 @@ class UserInterface:
 
         '''start conveyer'''
         self.conveyor = Conveyor()
-        conveyer_start = threading.Thread(target=self.conveyor.run, args=(self.machine.robot,),daemon=True)
+       # conveyer_start = threading.Thread(target=self.conveyor.run, args=(self.machine.robot,),daemon=True)
         #conveyer_start.start()
 
 
@@ -144,7 +144,7 @@ class UserInterface:
                 placements = self.machine.current_part_number 
                 box_no = self.machine.current_box
                 boxes_full = self.machine.boxes_are_full
-            
+                totalplacements = self.machine.total_parts
             if boxes_full:
                  self.started_before = False
                  logging.info("boxes are full")
@@ -154,8 +154,14 @@ class UserInterface:
                  self.machine.boxes_are_full = False
                  self.stopped = True
             
-            totalplacements = self.machine.total_parts
             progress = placements / totalplacements
+
+            if box_no == 1:
+                box1state = "filling" #other states are: empty, full or error
+                box1partnr = placements
+                box1layernr = self.machine.pack_box.filled_boxes[0][2]
+                self.boxstate_text1.configure(text=(f"box 1:\n status: {box1state}\n parts: {box1partnr}\n layer: {box1layernr} "),
+)
 
             self.progressbar.set(progress)
             self.percentage_value = int(progress*100)
@@ -191,7 +197,7 @@ class UserInterface:
 
         # Configure window
         #self.root.attributes("-fullscreen", True)       #should be true and uncommented
-        self.root.geometry('1024x600')                      #should be deleted
+        self.root.geometry('960x540')                      #should be deleted
         self.root.configure(bg='gray14')
 
         # Setup close event
@@ -311,13 +317,38 @@ class UserInterface:
 
         # Camera View Section
         self.camview = customtkinter.CTkFrame(master=self.root, corner_radius=0, fg_color=self.background_color)
-        self.camview.grid(row=0, column=1, padx=0, pady=0, sticky="")
+        self.camview.grid(row=0, column=1, padx=0, pady=(30,0), sticky="")
         self.light_image = Image.open("Regal_Rexnord_Corporation_logo.jpg")  
         self.my_image = customtkinter.CTkImage(light_image=self.light_image, size=(640 / self.camscale, 420 / self.camscale))
 
         self.image_label = customtkinter.CTkLabel(self.camview, image=self.my_image, text="")
         self.image_label.image = self.my_image
         self.image_label.grid(row=0, column=0, padx=(20, 0), sticky="")
+
+        self.boxstate = customtkinter.CTkLabel(self.camview, text="", fg_color="transparent")
+        self.boxstate.grid(row=1, column=0, padx=0, pady=0, sticky="we")
+        box1state = 0
+        box1partnr = 0
+        box1layernr = 0
+        self.boxstate_text1 = customtkinter.CTkLabel(
+            master=self.boxstate,
+            text=(f"box 1:\n status: {box1state}\n parts: {box1partnr}\n layer: {box1layernr} "),
+            font=(self.font, self.fontsize, "bold"),
+            fg_color="transparent",
+            text_color="white",
+        )
+        self.boxstate_text1.grid(row=1, column=0, padx=(120,0), sticky="nw")
+        box2state = 0
+        box2partnr = 0
+        box2layernr = 0
+        self.boxstate_text2 = customtkinter.CTkLabel(
+            master=self.boxstate,
+            text=(f"box 2:\n status: {box2state}\n parts: {box2partnr}\n layer: {box2layernr} "),
+            font=(self.font, self.fontsize, "bold"),
+            fg_color="transparent",
+            text_color="white",
+        )
+        self.boxstate_text2.grid(row=1, column=1, padx=(0,100), sticky="ne")
 
 
         # Progress Section
@@ -360,15 +391,15 @@ class UserInterface:
     def running_mode_func(self):
             #go to start position
             print('moving to start position')
-            move_to_start_pos_t = threading.Thread(target=self.machine.normal_mode, daemon=True) 
-            move_to_start_pos_t.start() 
+           # move_to_start_pos_t = threading.Thread(target=self.machine.normal_mode, daemon=True) 
+            #move_to_start_pos_t.start() 
 
     #gets called when packing mode is called. puts robot in packing mode
     def packing_mode_func(self):
             #go to packing place
             print('moving to packing position')
-            move_to_pack_pos_t = threading.Thread(target=self.machine.packing_mode, daemon=True) 
-            move_to_pack_pos_t.start() 
+            #move_to_pack_pos_t = threading.Thread(target=self.machine.packing_mode, daemon=True) 
+            #move_to_pack_pos_t.start() 
         
 
 
