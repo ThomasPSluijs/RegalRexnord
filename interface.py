@@ -41,7 +41,7 @@ class UserInterface:
         self.start_button_color = self.button_color 
 
         self.leftbar_button_width = 160
-        self.camscale = 1.2
+        self.camscale = 1
 
         self.machine_run_t = None #placeholder for machine thread
         self.stop_event = threading.Event() #event to signal thread to stop
@@ -221,7 +221,7 @@ class UserInterface:
 
         # Configure window
         self.root.attributes("-fullscreen", True)       #should be true and uncommented
-        #self.root.geometry('960x540')                      #should be deleted
+        self.root.geometry('1024x600')                      #should be deleted
         self.root.configure(bg='gray14')
 
         # Setup close event
@@ -231,8 +231,9 @@ class UserInterface:
         self.root.grid_rowconfigure(0, weight=1)  # row for leftbar and camview
         self.root.grid_columnconfigure(0, weight=0)  # first column for leftbar
         self.root.grid_columnconfigure(1, weight=0)  # second column for camview
-        self.root.grid_columnconfigure(2, weight=0)  # third column for next placement
-
+        self.root.grid_columnconfigure(2, weight=1)  # third column for next placement
+        self.root.grid_columnconfigure(3, weight=0)  # third column for next placement
+        
         # Left Bar (Sidebar)
         self.leftbar = customtkinter.CTkFrame(master=self.root, corner_radius=0)
         self.leftbar.grid(row=0, column=0, sticky="nswe")
@@ -341,7 +342,7 @@ class UserInterface:
 
         # Camera View Section
         self.camview = customtkinter.CTkFrame(master=self.root, corner_radius=0, fg_color=self.background_color)
-        self.camview.grid(row=0, column=1, padx=0, pady=(30,0), sticky="")
+        self.camview.grid(row=0, column=1, padx=(20,0), pady=(30,0), sticky="")
         self.light_image = Image.open("Regal_Rexnord_Corporation_logo.jpg")  
         self.my_image = customtkinter.CTkImage(light_image=self.light_image, size=(640 / self.camscale, 420 / self.camscale))
 
@@ -354,7 +355,7 @@ class UserInterface:
         
         self.boxstate_text1 = customtkinter.CTkLabel(
             master=self.boxstate,
-            text=(f"box 1:\n status: empty\n parts: 0\n layer: 0 "),
+            text=(f"box 1:\n status: empty\n parts: 0\n layer: 1 "),
             font=(self.font, self.fontsize, "bold"),
             fg_color="transparent",
             text_color="white",
@@ -363,7 +364,7 @@ class UserInterface:
 
         self.boxstate_text2 = customtkinter.CTkLabel(
             master=self.boxstate,
-            text=(f"box 2:\n status: empty\n parts: 0\n layer: 0"),
+            text=(f"box 2:\n status: empty\n parts: 0\n layer: 1"),
             font=(self.font, self.fontsize, "bold"),
             fg_color="transparent",
             text_color="white",
@@ -373,7 +374,7 @@ class UserInterface:
 
         # Progress Section
         self.progress = customtkinter.CTkFrame(master=self.root, fg_color=self.frame_color)
-        self.progress.grid(row=0, column=2, padx=(30,0), pady=0, sticky="nswe")
+        self.progress.grid(row=0, column=3, padx=(30,0), pady=0, sticky="nswe")
         self.progress.grid_rowconfigure(0, weight=20)
         self.progress.grid_rowconfigure(1, weight=1)
 
@@ -409,17 +410,17 @@ class UserInterface:
 
     #gets called when running_mode button is pressed. puts the robot in correct starting position
     def running_mode_func(self):
-            #go to start position
-            print('moving to start position')
-           # move_to_start_pos_t = threading.Thread(target=self.machine.normal_mode, daemon=True) 
-            #move_to_start_pos_t.start() 
+        #go to start position
+        #print('moving to start position')
+        move_to_start_pos_t = threading.Thread(target=self.machine.normal_mode, daemon=True) 
+        move_to_start_pos_t.start() 
 
     #gets called when packing mode is called. puts robot in packing mode
     def packing_mode_func(self):
-            #go to packing place
-            print('moving to packing position')
-            #move_to_pack_pos_t = threading.Thread(target=self.machine.packing_mode, daemon=True) 
-            #move_to_pack_pos_t.start() 
+        #go to packing place
+        #print('moving to packing position')
+        move_to_pack_pos_t = threading.Thread(target=self.machine.packing_mode, daemon=True) 
+        move_to_pack_pos_t.start() 
         
 
 
