@@ -15,6 +15,7 @@ logging.basicConfig(
     filemode="a",  # Append to the file; use 'w' to overwrite
 )
 
+logging.info("test 123")
 
 
 #class that stores information for the boxes:
