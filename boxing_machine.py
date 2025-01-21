@@ -7,9 +7,11 @@ from place_parts import *                          # used for getting place loca
 from configuration import *
 
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
+    level=logging.DEBUG,  # Set the minimum log level
+    format="%(asctime)s - %(levelname)s - %(message)s",  # Log format
+    datefmt="%Y-%m-%d %H:%M:%S",  # Timestamp format
+    filename="log.txt",  # Log file location
+    filemode="a",  # Append to the file; use 'w' to overwrite
 )
           
  
@@ -168,7 +170,7 @@ class BoxingMachine:
 
 
             for part in box:
-                if box_index >= 0 and part['layer_number'] >= 0:
+                if box_index >= 0 and part['layer_number'] >= 7:
                     if self.stop_main_loop:  # Check if stop signal is set
                         logging.info("Stopping main loop due to stop signal.")
                         self.stop_main_loop = False

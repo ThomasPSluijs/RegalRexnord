@@ -8,9 +8,11 @@ from configuration import *
 #Place parts in boxes check 
 
 logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
+    level=logging.DEBUG,  # Set the minimum log level
+    format="%(asctime)s - %(levelname)s - %(message)s",  # Log format
+    datefmt="%Y-%m-%d %H:%M:%S",  # Timestamp format
+    filename="log.txt",  # Log file location
+    filemode="a",  # Append to the file; use 'w' to overwrite
 )
 
 
@@ -274,14 +276,14 @@ class Pack_Box:
         if part['layer_number'] < 7:
             if box_rotation == 'horizontal':
                 if rotation == 0 or rotation == 180:
-                    #logging.info("---rotate also around y wile placing!---")
+                    logging.info("---rotate also around y wile placing!---")
                     rotate_y = 5    #rotate 5 degrees about y of tool. this way placing is parralle to the bottom of the box
                     if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-BLue': 
                         rotate_y = 2
                         offset_step_8_extra = 10
             elif box_rotation == 'vertical':
                 if rotation == 90 or rotation == -90:
-                    #logging.info("---rotate also around y wile placing!---")
+                    logging.info("---rotate also around y wile placing!---")
                     rotate_y = 5    #rotate 5 degrees about y of tool. this way placing is parralle to the bottom of the box
                     if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-BLue': 
                         rotate_y = 2
@@ -290,14 +292,14 @@ class Pack_Box:
         else:
             if box_rotation == 'horizontal':
                 if rotation == 0 or rotation == 180:
-                    #logging.info("---rotate also around y wile placing!---")
+                    logging.info("---rotate also around y wile placing!---")
                     rotate_y = 3    #rotate 5 degrees about y of tool. this way placing is parralle to the bottom of the box
                     if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-BLue': 
                         rotate_y = 1
                         offset_step_8_extra = 10
             elif box_rotation == 'vertical':
                 if rotation == 90 or rotation == -90:
-                    #logging.info("---rotate also around y wile placing!---")
+                    logging.info("---rotate also around y wile placing!---")
                     rotate_y = 3    #rotate 5 degrees about y of tool. this way placing is parralle to the bottom of the box   
                     if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-BLue': 
                         rotate_y = 1 
@@ -323,37 +325,37 @@ class Pack_Box:
                 if rotation == 90 or rotation == -90: #move z up if moving to high side
                     if part_type == 'Big-Blue' or part_type == 'Holed': 
                         z_offset_step_8 = 5
-                        #logging.info("---while placing move z up!!--")
+                        logging.info("---while placing move z up!!--")
                     elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': 
                         z_offset_step_8 = 6
-                        #logging.info("---while placing move z up!!--")
+                        logging.info("---while placing move z up!!--")
             
             elif  box_rotation == 'vertical':    #high side not parrallel to belt
                 if rotation == 0 or rotation == 180:   #move z up if moving to high side
                     if part_type == 'Big-Blue' or part_type == 'Holed': 
                         z_offset_step_8 = 5
-                        #logging.info("while placing move z up!!")
+                        logging.info("while placing move z up!!")
                     elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': 
                         z_offset_step_8 = 6
-                        #logging.info("while placing move z up!!")
+                        logging.info("while placing move z up!!")
         else:
             if box_rotation == 'horizontal':       #high side parrallel to belt
                 if rotation == 90 or rotation == -90: #move z up if moving to high side
                     if part_type == 'Big-Blue' or part_type == 'Holed': 
                         z_offset_step_8 = 4
-                        #logging.info("---while placing move z up!!--")
+                        logging.info("---while placing move z up!!--")
                     elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': 
                         z_offset_step_8 = 6
-                        #logging.info("---while placing move z up!!--")
+                        logging.info("---while placing move z up!!--")
             
             elif  box_rotation == 'vertical':    #high side not parrallel to belt
                 if rotation == 0 or rotation == 180:   #move z up if moving to high side
                     if part_type == 'Big-Blue' or part_type == 'Holed': 
                         z_offset_step_8 = 4
-                        #logging.info("while placing move z up!!")
+                        logging.info("while placing move z up!!")
                     elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': 
                         z_offset_step_8 = 6
-                        #logging.info("while placing move z up!!")
+                        logging.info("while placing move z up!!")
 
 
 
