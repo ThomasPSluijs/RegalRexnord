@@ -151,30 +151,41 @@ class UserInterface:
                  self.start_but.configure(text=self.start_button_msg, fg_color=self.start_button_color, hover_color=self.start_button_color)
                  self.machine.boxes_are_full = False
                  self.stopped = True
-            if self.machine.pack_box.filled_boxes:
-                parts = self.machine.pack_box.filled_boxes[0][5]
-                placements = self.machine.pack_box.filled_boxes[0][1]
-                layer_no = self.machine.pack_box.filled_boxes[0][2] 
-                box_no = self.machine.pack_box.filled_boxes[0][0]
-                progress = placements / totalplacements
 
-                if box_no == 0:
-                    box1state = "filling" #other states should be: empty, full or error
-                    box1partnr = parts
-                    box1layernr = layer_no
-                    self.boxstate_text1.configure(text=(f"box 1:\n status: {box1state}\n parts: {box1partnr}\n layer: {box1layernr}"))
-                    
-                if box_no == 1:
-                    box2state = "filling" #other states should be: empty, full or error
-                    box1state = "full"
-                    box2partnr = parts
-                    box2layernr = layer_no
-                    self.boxstate_text1.configure(text=(f"box 1:\n status: {box1state}\n parts: {box1partnr}\n layer: {box1layernr}"))
-                    self.boxstate_text2.configure(text=(f"box 2:\n status: {box2state}\n parts: {box2partnr}\n layer: {box2layernr}"))
+
+            box_no = self.machine.current_box
+            progress = placements / totalplacements
+
+            part_box_0 = self.machine.last_part_box_0
+            part_box_1 = self.machine.last_part_box_1
+            if part_box_0 == 0:
+                part_box_0 =  {"box_number": 0,
+                    "part_number": 0,
+                    "layer_number": 1,
+                    "partcount": 0}
+            if part_box_1 == 0:
+                part_box_1 =  {"box_number": 0,
+                    "part_number": 0,
+                    "layer_number": 1,
+                    "partcount": 0}
+
+            if box_no == 0:
+                box1state = "filling" #other states should be: empty, full or error
+                box1partnr = part_box_0['partcount']
+                box1layernr = part_box_0['layer_number']
+                self.boxstate_text1.configure(text=(f"box 1:\n status: {box1state}\n parts: {box1partnr}\n layer: {box1layernr}"))
                 
-                if box_no > 1:
-                    box2state = "full"
-                    self.boxstate_text2.configure(text=(f"box 2:\n status: {box2state}\n parts: {box2partnr}\n layer: {box2layernr}"))
+            if box_no == 1:
+                box2state = "filling" #other states should be: empty, full or error
+                box1state = "full"
+                box2partnr = part_box_1['partcount']
+                box2layernr = part_box_1['layer_number']
+                self.boxstate_text1.configure(text=(f"box 1:\n status: {box1state}\n parts: {box1partnr}\n layer: {box1layernr}"))
+                self.boxstate_text2.configure(text=(f"box 2:\n status: {box2state}\n parts: {box2partnr}\n layer: {box2layernr}"))
+            
+            if boxes_full:
+                box2state = "full"
+                self.boxstate_text2.configure(text=(f"box 2:\n status: {box2state}\n parts: {box2partnr}\n layer: {box2layernr}"))
                 
                 self.progressbar.set(progress)
                 self.percentage_value = int(progress*100)
