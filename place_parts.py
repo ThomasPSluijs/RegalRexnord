@@ -92,7 +92,7 @@ class Pack_Box:
             else: place_extra_offset = 6/1000
 
             if item_type == 'Big-Blue':
-                z_pos_offset = -8/1000 #for differen parts, differen offset because box is not level
+                z_pos_offset = -4/1000 #for differen parts, differen offset because box is not level
             elif item_type == 'Holed':
                 z_pos_offset = -6/1000
             elif item_type == 'Green' or item_type == 'Small-Blue' or item_type == 'Rubber':
