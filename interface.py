@@ -134,6 +134,10 @@ class UserInterface:
         self.started_before = False
         self.stopped = True
 
+    def restart_button_pressed(self):
+        """Herstart het huidige script."""
+        python = sys.executable
+        os.execl(python, python, *sys.argv)
 
     '''update placementes of parts on the display'''
     def update_placements(self):
@@ -242,8 +246,8 @@ class UserInterface:
         self.leftbar.grid_rowconfigure(1, weight=0)
         self.leftbar.grid_rowconfigure(2, weight=0)
         self.leftbar.grid_rowconfigure(3, weight=0)
-        self.leftbar.grid_rowconfigure(4, weight=1)  # Empty space below labels (bottom space)
-        self.leftbar.grid_rowconfigure(5, weight=0)
+        self.leftbar.grid_rowconfigure(4, weight=0)  # Empty space below labels (bottom space)
+        self.leftbar.grid_rowconfigure(5, weight=1)
         self.leftbar.grid_rowconfigure(6, weight=0)
 
 
@@ -304,6 +308,18 @@ class UserInterface:
         )
         self.stop_but.grid(row=3, column=0, pady=(20, 0), padx=0, sticky="w")
 
+        self.restart_but = customtkinter.CTkButton(
+            master=self.leftbar,
+            corner_radius=0,
+            text=("Restart"),
+            font=(self.font, self.fontsize),
+            width=self.leftbar_button_width,
+            height=60,
+            fg_color=self.start_button_color,
+            anchor="w",
+            command=self.restart_button_pressed  # Add functionality here
+        )
+        self.restart_but.grid(row=4, column=0, pady=(20, 0), padx=0, sticky="w")
 
         # Add Status Text at the Top Center
         self.status_text = customtkinter.CTkLabel(
