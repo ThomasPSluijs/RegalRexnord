@@ -224,8 +224,9 @@ class Pack_Box:
 
         '''STEP 3: move to desired z height for placing + offset'''
         z_offset_step_3 = 27/1000
-        if part['top_layer']: z_offset_step_3=15/1000
-        self.boxing_machine.interface.update_status("last layer!!!")
+        if part['top_layer']: 
+            z_offset_step_3=15/1000
+            self.boxing_machine.interface.update_status("last layer!!!")
 
 
         '''STEP 4: rotate parts, no tuning here'''
