@@ -44,7 +44,8 @@ class BoxingMachine:
         self.pause_event.set()  # Initially not paused
 
         self.current_part_number = 1
-        self.last_part = 0
+        self.last_part_box_0 = 0
+        self.last_part_box_1 = 0
         self.total_parts = 392
         self.current_box = 0
         self.boxes_are_full = False
@@ -66,7 +67,7 @@ class BoxingMachine:
         logging.info(self.robot.get_tcp_pos())
         #first move to safe z pos
         target_position = [-0.3315005050673199, 0.08452186932980371, -0.07197736577529477, 2.166779782637334, 1.8998528338341554, 0.5314223354981934]
-        self.robot.move_l(target_position, 0.3, 3)
+        self.robot.move_l(target_position, 0.3, 0.3)
 
     def normal_mode(self):
         logging.info("move to normal working mode")
@@ -74,7 +75,7 @@ class BoxingMachine:
         pickup_tcp = [-47.5/1000,-140/1000,135/1000,0,0,0]  #edge of part (x=centerpart, y=edge)
         self.robot.set_tcp(pickup_tcp)
         target_position = [-0.6639046352765678, -0.08494527187802497, 0.529720350746548, 2.222, 2.248, 0.004]
-        self.robot.move_l(target_position, 0.3, 3)
+        self.robot.move_l(target_position, 0.3, 0.3)
 
     def wait_if_paused(self):
         logging.info("Waiting if paused...")
@@ -120,7 +121,11 @@ class BoxingMachine:
         self.normal_mode()
 
         #initialization box position check
-        box_orientations = self.camera.initialize_position()
+        box_orientations = {
+            'box_0': 'horizontal',
+            'box_1': 'horizontal'
+        }
+        #box_orientations = self.camera.initialize_position()
         logging.info(f"box orientations: {box_orientations}")
 
         #check part type on belt
@@ -132,11 +137,12 @@ class BoxingMachine:
     #main loop that fills all available boxes
     def main_loop(self):
         run_mode = 0        #0 is normal mode, 1 is only packing
-        self.last_part = 0
+        self.last_part_box_0 = 0
+        self.last_part_box_1 = 0
 
         logging.info("In main loop")
 
-        item_type = 'Small-Blue'
+        item_type = 'Big-Blue'
         box_orientations = {
             'box_0': 'horizontal',
             'box_1': 'horizontal'
@@ -163,7 +169,7 @@ class BoxingMachine:
 
 
             for part in box:
-                if box_index >= 0:
+                if box_index >= 0 and part['layer_number'] >= 3:
                     if self.stop_main_loop:  # Check if stop signal is set
                         logging.info("Stopping main loop due to stop signal.")
                         self.stop_main_loop = False
@@ -220,7 +226,12 @@ class BoxingMachine:
                     box_orientation = box_orientations.get(f'box_{box_index}')  # Get the orientation for the current box
                     self.pack_box.place_part(part, part_type=item_type, box_rotation=box_orientation)  # Pass the box orientation
 
-                    self.last_part = part
+                    if box_index == 0:
+                        self.last_part_box_0 = part
+                    elif box_index == 1:
+                        self.last_part_box_1 = part
+
+                    
 
             box_index += 1
 

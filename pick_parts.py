@@ -61,7 +61,7 @@ class Pick_parts():
         #belt z location, for some parts the gripper needs to be a little bit higher or lower
         if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': belt_z = [0,0,-122.5/1000,0,0,0]
         elif part_type == 'Big-Blue': belt_z = [0,0,-119/1000,0,0,0]
-        else: belt_z = [0,0,-119/1000,0,0,0]   
+        elif part_type == 'Holed': belt_z = [0,0,-122/1000,0,0,0]   
         logging.info(f"belt z: {belt_z} {part_type}") 
 
 
@@ -201,65 +201,43 @@ class Pick_parts():
         self.boxing_machine.wait_if_paused()
 
 
-        #move path 1 till 6 with pickup tcp
-        path = [
-            path_step_1,
-            path_step_2,
-            path_step_3,
-            path_step_4,
-            path_step_5,
-            path_step_6,
-        ]
-        self.robot.move_l_path(path=path)
-
-
         '''
         #move path 1 till 6 with pickup tcp
         path = [
             path_step_1,
             path_step_2,
             path_step_3,
+            path_step_4,
+            path_step_5,
+            path_step_6,
+        ]
+        self.robot.move_l_path(path=path) '''
+
+
+        
+        #move path 1 till 6 with pickup tcp
+        path = [
+            path_step_1,
+            path_step_2,
+            path_step_3,
             #path_step_4,
             #path_step_5,
             #path_step_6,
         ]
         self.robot.move_l_path(path=path)
 
-        self.pause()
+        #self.pause()
         #move path 1 till 6 with pickup tcp
         path = [
             #path_step_1,
             #path_step_2,
             #path_step_3,
             path_step_4,
-            #path_step_5,
-            #path_step_6,
-        ]
-        self.robot.move_l_path(path=path)
-
-        self.pause()
-        #move path 1 till 6 with pickup tcp
-        path = [
-            #path_step_1,
-            #path_step_2,
-            #path_step_3,
-            #path_step_4,
             path_step_5,
-            #path_step_6,
-        ]
-        self.robot.move_l_path(path=path)
-
-        self.pause()
-        #move path 1 till 6 with pickup tcp
-        path = [
-            #path_step_1,
-            #path_step_2,
-            #path_step_3,
-            #path_step_4,
-            #path_step_5,
             path_step_6,
         ]
-        self.robot.move_l_path(path=path) '''
+        self.robot.move_l_path(path=path)
+
 
 
         '''rotate tcp'''

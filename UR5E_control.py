@@ -15,6 +15,8 @@ logging.basicConfig(
 )
 
 
+
+
 ##########################
 #class for controlling UR robot with UR_RDTE. gives easy way to use the library. 
 # you need to enter the robot ip. us connect() for connecting etc.
@@ -224,3 +226,8 @@ class URControl:
         # Move the robot to the new rotation
         self.move_l(current_pose, speed, acc)  # Execute a linear move to the updated pose
 
+
+if __name__ == '__main__':
+    robot = URControl('192.168.0.1')
+    robot.connect()
+    robot.stop_robot_control()

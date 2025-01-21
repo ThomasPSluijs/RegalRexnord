@@ -91,10 +91,15 @@ class Pack_Box:
             if item_type == 'Big-Blue': place_extra_offset=4/1000
             else: place_extra_offset = 6/1000
 
-            if item_type == 'Big-Blue' or item_type == 'Holed':
+            if item_type == 'Big-Blue':
+                z_pos_offset = -8/1000 #for differen parts, differen offset because box is not level
+            elif item_type == 'Holed':
+                z_pos_offset = -6/1000
+            elif item_type == 'Green' or item_type == 'Small-Blue' or item_type == 'Rubber':
                 z_pos_offset = -1/1000 #for differen parts, differen offset because box is not level
             else:
-                z_pos_offset = -1/1000 #for differen parts, differen offset because box is not level
+                logging.info("no z pos ofsset defined")
+                z_pos_offset = -1/1000
 
 
             # For loop to go through total z parts to fill a box
@@ -124,10 +129,9 @@ class Pack_Box:
                             if item_type == 'Small-Blue': x_pos -= 0.004
                             rotation = -90
                     elif i == 2:
-                        if item_type == 'Big-Blue':
-                            z_pos_offset = -4/1000
-                        else:
-                            z_pos_offset = -2/1000
+                        if item_type == 'Big-Blue': z_pos_offset = -4/1000
+                        elif item_type == 'Holed': z_pos_offset = -6/1000
+                        else: z_pos_offset = -2/1000
                         # Third part (bottom left)
                         if box_index == 0:
                             x_pos = box_center[0] - self.box_length / 2 + self.part_width / 2 + 0.010  # x positive for further away from box edge
@@ -139,10 +143,9 @@ class Pack_Box:
                             if item_type == 'Small-Blue': x_pos += 0.009
                             rotation = 90
                     elif i == 3:
-                        if item_type == 'Big-Blue':
-                            z_pos_offset = -4/1000
-                        else:
-                            z_pos_offset = -2/1000
+                        if item_type == 'Big-Blue': z_pos_offset = -4/1000
+                        elif item_type == 'Holed': z_pos_offset = -6/1000
+                        else: z_pos_offset = -2/1000
                         # Fourth part (bottom right)
                         if box_index == 0:
                             x_pos = box_center[0] + self.box_length / 2 - self.part_length / 2 - 0.013 - place_extra_offset  # x negative for further away from place side
