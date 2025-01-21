@@ -141,8 +141,6 @@ class UserInterface:
         # Reset alle labels eerst, zodat ze niet over elkaar heen staan
             placements,box_no,boxes_full = 0,0,0
             with self.machine.thread_lock:
-                placements = self.machine.current_part_number 
-                box_no = self.machine.current_box
                 boxes_full = self.machine.boxes_are_full
                 totalplacements = self.machine.total_parts
             if boxes_full:
@@ -153,20 +151,35 @@ class UserInterface:
                  self.start_but.configure(text=self.start_button_msg, fg_color=self.start_button_color, hover_color=self.start_button_color)
                  self.machine.boxes_are_full = False
                  self.stopped = True
-            
-            progress = placements / totalplacements
+            if self.machine.pack_box.filled_boxes:
+                parts = self.machine.pack_box.filled_boxes[0][5]
+                placements = self.machine.pack_box.filled_boxes[0][1]
+                layer_no = self.machine.pack_box.filled_boxes[0][2] 
+                box_no = self.machine.pack_box.filled_boxes[0][0]
+                progress = placements / totalplacements
 
-            if box_no == 1:
-                box1state = "filling" #other states are: empty, full or error
-                box1partnr = placements
-                box1layernr = self.machine.pack_box.filled_boxes[0][2]
-                self.boxstate_text1.configure(text=(f"box 1:\n status: {box1state}\n parts: {box1partnr}\n layer: {box1layernr} "),
-)
-
-            self.progressbar.set(progress)
-            self.percentage_value = int(progress*100)
-            self.percentage.configure(text=f"{self.percentage_value}%")
-            time.sleep(0.5)
+                if box_no == 0:
+                    box1state = "filling" #other states should be: empty, full or error
+                    box1partnr = parts
+                    box1layernr = layer_no
+                    self.boxstate_text1.configure(text=(f"box 1:\n status: {box1state}\n parts: {box1partnr}\n layer: {box1layernr}"))
+                    
+                if box_no == 1:
+                    box2state = "filling" #other states should be: empty, full or error
+                    box1state = "full"
+                    box2partnr = parts
+                    box2layernr = layer_no
+                    self.boxstate_text1.configure(text=(f"box 1:\n status: {box1state}\n parts: {box1partnr}\n layer: {box1layernr}"))
+                    self.boxstate_text2.configure(text=(f"box 2:\n status: {box2state}\n parts: {box2partnr}\n layer: {box2layernr}"))
+                
+                if box_no > 1:
+                    box2state = "full"
+                    self.boxstate_text2.configure(text=(f"box 2:\n status: {box2state}\n parts: {box2partnr}\n layer: {box2layernr}"))
+                
+                self.progressbar.set(progress)
+                self.percentage_value = int(progress*100)
+                self.percentage.configure(text=f"{self.percentage_value}%")
+                time.sleep(0.5)
 
 
 
@@ -327,23 +340,19 @@ class UserInterface:
 
         self.boxstate = customtkinter.CTkLabel(self.camview, text="", fg_color="transparent")
         self.boxstate.grid(row=1, column=0, padx=0, pady=0, sticky="we")
-        box1state = 0
-        box1partnr = 0
-        box1layernr = 0
+        
         self.boxstate_text1 = customtkinter.CTkLabel(
             master=self.boxstate,
-            text=(f"box 1:\n status: {box1state}\n parts: {box1partnr}\n layer: {box1layernr} "),
+            text=(f"box 1:\n status: empty\n parts: 0\n layer: 0 "),
             font=(self.font, self.fontsize, "bold"),
             fg_color="transparent",
             text_color="white",
         )
         self.boxstate_text1.grid(row=1, column=0, padx=(120,0), sticky="nw")
-        box2state = 0
-        box2partnr = 0
-        box2layernr = 0
+
         self.boxstate_text2 = customtkinter.CTkLabel(
             master=self.boxstate,
-            text=(f"box 2:\n status: {box2state}\n parts: {box2partnr}\n layer: {box2layernr} "),
+            text=(f"box 2:\n status: empty\n parts: 0\n layer: 0"),
             font=(self.font, self.fontsize, "bold"),
             fg_color="transparent",
             text_color="white",
