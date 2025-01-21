@@ -8,7 +8,7 @@ import numpy as np
 from ultralytics import YOLO
 import threading
 import time
-import keyboard
+from configuration import*
 
 # Suppress logging for this example
 logging.basicConfig(
@@ -66,7 +66,7 @@ class CameraPosition:
             logging.info("check part type, move to camera position")
             self.robot.move_l(target_position, 0.3, 0.3)
         else:
-            self.robot.move_l(target_position, 3, 3)
+            self.robot.move_l(target_position, speed_fast, acc_fast)
 
     # transform camera coordinates to real world (robot) coordinates
     def transform_coordinates(self, xp, yp, zp):
@@ -292,7 +292,7 @@ class CameraPosition:
 
                                 #if yd > 0: vision_length += 3
                                 tot_parts = vision_length/part_width
-                                if round(tot_parts) == 14 and label == 'Green' or label == 'Small-Blue' or label == 'Rubber':
+                                if round(tot_parts) == 14 or round(tot_parts) == 15 or round(tot_parts) == 16 and label == 'Green' or label == 'Small-Blue' or label == 'Rubber':
                                     vision_length += 5
 
                                 tot_parts = vision_length/part_width
@@ -308,12 +308,12 @@ class CameraPosition:
                                 logging.info(f"vision length: {vision_length}  new length: {new_length}  tot parts: {tot_parts}")
                                 
 
-                                if label == 'Big-Blue':
+                                if label == 'Big-Blue' or label == 'Holed':
                                     offset_close = -1.5
                                     offset_away = -1.5
                                 elif label == 'Green' or label == 'Small-Blue' or label == 'Rubber':
-                                    offset_close = 3
-                                    offset_away =  1
+                                    offset_close = 2.5
+                                    offset_away =  0
 
 
                                 if yd > 0:  #close box
