@@ -165,13 +165,16 @@ class Pack_Box:
                     else:
                         partcount = part_number * 12
                     # Store the positions with box number, part number, layer number
+                    if layer_number == total_z_parts: top_layer = True
+                    else: top_layer = False
                     part_positions_box.append({
                         "box_number": box_index,
                         "part_number": part_number,
                         "layer_number": layer_number,
                         "position": (x_pos, y_pos, _z_pos),
                         "rotation": rotation,
-                        "partcount": partcount
+                        "partcount": partcount,
+                        "top_layer": top_layer
                     })
 
                     # Increment the part number
@@ -221,6 +224,8 @@ class Pack_Box:
 
         '''STEP 3: move to desired z height for placing + offset'''
         z_offset_step_3 = 27/1000
+        if part['top_layer']: z_offset_step_3=15/1000
+        self.boxing_machine.interface.update_status("last layer!!!")
 
 
         '''STEP 4: rotate parts, no tuning here'''
