@@ -158,13 +158,18 @@ class Pack_Box:
 
                     _z_pos = z_pos + z_pos_offset
 
+                    if item_type in ('Big-Blue', 'Holed'):
+                        partcount = part_number * 7
+                    else:
+                        partcount = part_number * 12
                     # Store the positions with box number, part number, layer number
                     part_positions_box.append({
                         "box_number": box_index,
                         "part_number": part_number,
                         "layer_number": layer_number,
                         "position": (x_pos, y_pos, _z_pos),
-                        "rotation": rotation
+                        "rotation": rotation,
+                        "partcount": partcount
                     })
 
                     # Increment the part number
