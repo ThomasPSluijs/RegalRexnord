@@ -125,7 +125,7 @@ class BoxingMachine:
             'box_0': 'horizontal',
             'box_1': 'horizontal'
         }
-        #box_orientations = self.camera.initialize_position()
+        box_orientations = self.camera.initialize_position()
         logging.info(f"box orientations: {box_orientations}")
 
         #check part type on belt
@@ -152,7 +152,6 @@ class BoxingMachine:
 
         #get packing positions
         filled_boxes = self.pack_box.get_pack_pos(item_type)
-        #logging.info(filled_boxes[0])
 
 
         #start for loop to go through all packing positions and fill the boxes
@@ -169,7 +168,7 @@ class BoxingMachine:
 
 
             for part in box:
-                if box_index >= 0 and part['layer_number'] >= 3:
+                if box_index >= 0 and part['layer_number'] >= 0:
                     if self.stop_main_loop:  # Check if stop signal is set
                         logging.info("Stopping main loop due to stop signal.")
                         self.stop_main_loop = False
