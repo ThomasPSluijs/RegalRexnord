@@ -297,6 +297,9 @@ class CameraPosition:
                                 if round(tot_parts) == 14 or round(tot_parts) == 15 or round(tot_parts) == 16 and label == 'Green' or label == 'Small-Blue' or label == 'Rubber':
                                     vision_length += 5
 
+                                if round(tot_parts) == 9 or round(tot_parts) == 10 or round(tot_parts) == 11 and label == 'Holed' or label == 'Big-Blue':
+                                    vision_length += 5
+
                                 tot_parts = vision_length/part_width
                                 logging.info(f"tot parts not rounded: {tot_parts}")
                                 if 0.40 < (tot_parts % 1) < 0.60:
@@ -309,6 +312,7 @@ class CameraPosition:
                                 new_length = tot_parts * part_width + offset
                                 logging.info(f"vision length: {vision_length}  new length: {new_length}  tot parts: {tot_parts}")
                                 
+                                self.boxing_machine.interface.update_status(f"parts on belt: {tot_parts}")
 
                                 if label == 'Big-Blue' or label == 'Holed':
                                     offset_close = -1.5
