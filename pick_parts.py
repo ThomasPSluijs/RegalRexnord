@@ -4,12 +4,6 @@ import logging
 import numpy as np
 from configuration import *
 
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
-
 
 class Pick_parts():
     def __init__(self, robot, boxing_machine):

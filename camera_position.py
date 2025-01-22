@@ -10,14 +10,6 @@ import threading
 import time
 from configuration import*
 
-# Suppress logging for this example
-logging.basicConfig(
-    level=logging.DEBUG,  # Set the minimum log level
-    format="%(asctime)s - %(levelname)s - %(message)s",  # Log format
-    datefmt="%Y-%m-%d %H:%M:%S",  # Timestamp format
-    filename="log.txt",  # Log file location
-    filemode="a",  # Append to the file; use 'w' to overwrite
-)
 
 # yolo log filter
 class YoloLogFilter(logging.Filter):
@@ -234,6 +226,7 @@ class CameraPosition:
                         label = self.labels[int(box.cls[0])]
                         length = max(width, height)
                         
+                        #logging.info(f"labels: {label}  conf: {box.conf}")
                         #check for bad parts 
                         if 'bad' in label.lower() and box.conf > 0.6:
                             current_coordinates = (x_left, y_middle)

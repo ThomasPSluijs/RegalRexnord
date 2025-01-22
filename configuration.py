@@ -26,7 +26,7 @@ console_handler.setFormatter(logging.Formatter('%(asctime)s [%(name)s] %(levelna
 # Basic configuration for logging
 logging.basicConfig(
     level=logging.INFO,  # Set global logging level
-    handlers=[file_handler, console_handler]  # Add the handlers
+    handlers=[file_handler,console_handler]  # Add the handlers
 )
 
 # Example usage

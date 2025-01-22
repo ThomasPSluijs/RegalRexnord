@@ -6,16 +6,8 @@ from pick_parts import *                           # used for picking parts from
 from place_parts import *                          # used for getting place locations and placing parts in boxes
 from configuration import *
 
-logging.basicConfig(
-    level=logging.DEBUG,  # Set the minimum log level
-    format="%(asctime)s - %(levelname)s - %(message)s",  # Log format
-    datefmt="%Y-%m-%d %H:%M:%S",  # Timestamp format
-    filename="log.txt",  # Log file location
-    filemode="a",  # Append to the file; use 'w' to overwrite
-)
-          
- 
-   
+
+             
 #main class for the boxingmachine. this class will be controlled via the user interface
 class BoxingMachine:
     def __init__(self, robot_ip,interface):
@@ -80,7 +72,7 @@ class BoxingMachine:
         self.robot.move_l(target_position, 0.3, 0.3)
 
     def wait_if_paused(self):
-        logging.info("Waiting if paused...")
+        #logging.info("Waiting if paused...")
         if self.interface.stopped: 
             logging.info("interface stopped, stop main loop")
             self.stop_main_loop = True
