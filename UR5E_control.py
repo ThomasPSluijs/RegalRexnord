@@ -5,7 +5,7 @@ import rtde_io # For robot IO
 import time
 import logging
 import numpy as np
-
+from configuration import*
 
 
 logging.basicConfig(

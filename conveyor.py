@@ -1,6 +1,6 @@
 import time
 import logging
-from UR5E_control import URControl
+from configuration import*
 
 logging.basicConfig(
     level=logging.INFO,

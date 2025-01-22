@@ -10,6 +10,7 @@ import numpy as np
 from conveyor import Conveyor
 import cv2
 import subprocess
+from configuration import*
 
 
 logging.basicConfig(
