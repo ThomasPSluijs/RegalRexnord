@@ -13,7 +13,7 @@ import logging
 from logging.handlers import TimedRotatingFileHandler
 
 # Path to log file in the logs folder
-log_file = 'logs/regalrexnord.log'
+log_file = 'regalrexnord.log'
 
 # Configure the TimedRotatingFileHandler to create a new log file each day and keep 7 days of logs
 file_handler = TimedRotatingFileHandler(log_file, when="midnight", interval=1, backupCount=7)
