@@ -9,6 +9,7 @@ import logging
 import numpy as np
 from conveyor import Conveyor
 import cv2
+import subprocess
 
 
 logging.basicConfig(
@@ -134,10 +135,16 @@ class UserInterface:
         self.started_before = False
         self.stopped = True
 
-    def restart_button_pressed(self):
-        """Herstart het huidige script."""
-        python = sys.executable
-        os.execl(python, python, *sys.argv)
+    def restart_button_pressed():
+        """Herstart de service 'regalrexnordrobot'."""
+        try:
+            # Voer het commando uit
+            subprocess.run(["sudo", "service", "regalrexnordrobot", "restart"], check=True)
+            print("Service regalrexnordrobot is succesvol herstart.")
+        except subprocess.CalledProcessError as e:
+            print(f"Er trad een fout op bij het herstarten van de service: {e}")
+        except Exception as e:
+            print(f"Een onverwachte fout is opgetreden: {e}")
 
     '''update placementes of parts on the display'''
     def update_placements(self):
