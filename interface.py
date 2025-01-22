@@ -135,7 +135,8 @@ class UserInterface:
         self.started_before = False
         self.stopped = True
 
-    def restart_button_pressed():
+    def restart_button_pressed(self):
+        logging.error("restart button pressed")
         """Herstart de service 'regalrexnordrobot'."""
         try:
             # Voer het commando uit
