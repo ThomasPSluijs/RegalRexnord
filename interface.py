@@ -91,6 +91,7 @@ class UserInterface:
             self.start_button_msg = "pause"
             self.start_button_color = "red"
             self.start_but.configure(text=self.start_button_msg, fg_color=self.start_button_color, hover_color=self.start_button_color)
+            self.state_color = "green"
 
             #calls a thread to start running the machine. if started before, just resume
             if self.started_before == False: 
@@ -116,6 +117,7 @@ class UserInterface:
             self.start_button_color = '#106A43'
             self.start_but.configure(text=self.start_button_msg, fg_color=self.start_button_color, hover_color=self.start_button_color)
 
+            self.state_color = "red"
             self.start_button = True
 
 
@@ -131,6 +133,7 @@ class UserInterface:
         self.start_button_color = '#106A43'
         self.start_but.configure(text=self.start_button_msg, fg_color=self.start_button_color, hover_color=self.start_button_color)
         self.start_button = True
+        self.state_color = "red"
 
         self.update_status("stopped: replace boxes before starting")
         self.started_before = False

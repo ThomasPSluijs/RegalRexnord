@@ -848,3 +848,7 @@
 2025-01-22 10:43:24,859 [root] INFO: labels: Big-Blue  conf: tensor([0.9557])
 2025-01-22 10:43:24,953 [root] INFO: labels: Big-Blue  conf: tensor([0.9574])
 2025-01-22 10:43:24,954 [root] INFO: labels: Big-Blue  conf: tensor([0.9557])
+2025-01-22 10:51:02,167 [root] INFO: This is an info message.
+2025-01-22 10:51:02,168 [root] WARNING: This is a warning message.
+2025-01-22 10:51:04,225 [root] INFO: Connected to robot: 192.168.0.1 on attempt 1
+2025-01-22 10:51:04,256 [root] INFO: stopped connection with robot
