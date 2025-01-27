@@ -93,14 +93,8 @@ class UserInterface:
             self.start_but.configure(text=self.start_button_msg, fg_color=self.start_button_color, hover_color=self.start_button_color)
             self.state_color = "green"
 
-            self.statuslight = customtkinter.CTkLabel(
-                master=self.leftbar,
-                width=38,
-                height=38,
-                corner_radius=19,
-                fg_color=self.state_color,
-                text=None
-            )
+            # Update the color of the statuslight
+            self.statuslight.configure(fg_color=self.state_color)
 
             #calls a thread to start running the machine. if started before, just resume
             if self.started_before == False: 
@@ -128,14 +122,9 @@ class UserInterface:
 
             self.state_color = "red"
 
-            self.statuslight = customtkinter.CTkLabel(
-                master=self.leftbar,
-                width=38,
-                height=38,
-                corner_radius=19,
-                fg_color=self.state_color,
-                text=None
-            )
+            # Update the color of the statuslight
+            self.statuslight.configure(fg_color=self.state_color)
+
             self.start_button = True
 
 
@@ -153,14 +142,9 @@ class UserInterface:
         self.start_button = True
         self.state_color = "red"
 
-        self.statuslight = customtkinter.CTkLabel(
-            master=self.leftbar,
-            width=38,
-            height=38,
-            corner_radius=19,
-            fg_color=self.state_color,
-            text=None
-        )
+       # Update the color of the statuslight
+        self.statuslight.configure(fg_color=self.state_color)
+
 
         self.update_status("stopped: replace boxes before starting")
         self.started_before = False
@@ -203,7 +187,7 @@ class UserInterface:
 
                 part_box_0 = self.machine.last_part_box_0
                 part_box_1 = self.machine.last_part_box_1
-                
+
             if part_box_0 == 0:
                 part_box_0 =  {"box_number": 0,
                     "part_number": 0,
@@ -214,6 +198,8 @@ class UserInterface:
                     "part_number": 0,
                     "layer_number": 1,
                     "partcount": 0}
+                
+            self.progressbar.set(progress)
 
             if box_no == 0:
                 box1state = "filling" #other states should be: empty, full or error
@@ -232,8 +218,7 @@ class UserInterface:
             if boxes_full:
                 box2state = "full"
                 self.boxstate_text2.configure(text=(f"box 2:\n status: {box2state}\n parts: {box2partnr}\n layer: {box2layernr}"))
-                
-                self.progressbar.set(progress)
+        
                 self.percentage_value = int(progress*100)
                 self.percentage.configure(text=f"{self.percentage_value}%")
                 time.sleep(0.5)
