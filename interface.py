@@ -166,7 +166,7 @@ class UserInterface:
     def update_placements(self):
         while True:
         # Reset alle labels eerst, zodat ze niet over elkaar heen staan
-            placements,box_no,boxes_full = 0,0,0
+            #placements,box_no,boxes_full = 0,0,0
             with self.machine.thread_lock:
                 boxes_full = self.machine.boxes_are_full
                 totalplacements = self.machine.total_parts
