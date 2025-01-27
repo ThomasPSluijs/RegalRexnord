@@ -132,7 +132,7 @@ class BoxingMachine:
     #main loop that fills all available boxes
     def main_loop(self):
         self.placements = 0
-        run_mode = 1        #0 is normal mode, 1 is only packing
+        run_mode = 0        #0 is normal mode, 1 is only packing
         self.last_part_box_0 = 0
         self.last_part_box_1 = 0
 
