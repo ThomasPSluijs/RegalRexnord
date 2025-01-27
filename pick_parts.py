@@ -31,7 +31,7 @@ class Pick_parts():
 
 
         #part length, some parts are a bit shorter so robot has to move less
-        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': part_length = 0.1794 + 7.5/1000
+        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': part_length = 0.1794 + 7.8/1000
         elif part_type == 'Big-Blue': part_length = 0.184
         else: part_length = 0.174
 
