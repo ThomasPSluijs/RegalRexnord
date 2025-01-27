@@ -134,7 +134,7 @@ class Pack_Box:
                     elif i == 2:
                         if item_type == 'Big-Blue': z_pos_offset = -4/1000
                         elif item_type == 'Holed': z_pos_offset = -6/1000
-                        else: z_pos_offset = -2/1000
+                        else: z_pos_offset = -5/1000
                         # Third part (bottom left)
                         if box_index == 0:
                             x_pos = box_center[0] - self.box_length / 2 + self.part_width / 2 + 0.013  # x positive for further away from box edge
@@ -649,23 +649,24 @@ class Pack_Box:
             cur_joint_pos[5] = math.radians(-70)
             self.robot.move_j(cur_joint_pos, 3, 3)
 
-            #rotate more for checking
-            x_offset=-133/1000
-            y_offset=-100/1000
-            z_height=0.6
-            check_placement_pos = [box_center[0]+x_offset, box_center[1] + y_offset, z_height, 2.222,2.248,0.004]
-            self.robot.move_l(check_placement_pos, speed_fast, acc_fast) #slow for testing !!! 
+            if part_type == 'Big-Blue' or part_type == 'Holed':
+                #rotate more for checking
+                x_offset=-133/1000
+                y_offset=-100/1000
+                z_height=0.6
+                check_placement_pos = [box_center[0]+x_offset, box_center[1] + y_offset, z_height, 2.222,2.248,0.004]
+                self.robot.move_l(check_placement_pos, speed_fast, acc_fast) #slow for testing !!! 
 
-            bad_detected = self.boxing_machine.camera.check_bad_part_placement()
-            if bad_detected:
-                logging.info("bad placement detected")
-                self.boxing_machine.pause()
-                self.boxing_machine.interface.start_button_pressed()
-                self.boxing_machine.interface.update_status("please fix placement position, then press resume")
-            else:
-                logging.info("no bad position detected")
+                bad_detected = self.boxing_machine.camera.check_bad_part_placement()
+                if bad_detected:
+                    logging.info("bad placement detected")
+                    self.boxing_machine.pause()
+                    self.boxing_machine.interface.start_button_pressed()
+                    self.boxing_machine.interface.update_status("please fix placement position, then press resume")
+                else:
+                    logging.info("no bad position detected")
 
-            #self.boxing_machine.wait_if_paused()
+                #self.boxing_machine.wait_if_paused()
 
             #move to take pic pos
             target_position = [-0.6639046352765678, -0.08494527187802497, 0.529720350746548, 2.222, 2.248, 0.004]
