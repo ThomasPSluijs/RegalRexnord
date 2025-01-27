@@ -225,8 +225,10 @@ class Pack_Box:
 
         '''STEP 3: move to desired z height for placing + offset'''
         z_offset_step_3 = 27/1000
+        lastlayer=False
         if part['top_layer']: 
-            z_offset_step_3=15/1000
+            z_offset_step_3=27/1000
+            lastlayer = True
             self.boxing_machine.interface.update_status("last layer!!!")
 
 
@@ -240,7 +242,9 @@ class Pack_Box:
 
         '''step 5.1 t/m step 10 in 1 PATH'''
         '''STEP 5.1: rotate a bit before fully going to proper z'''
-        if part_type == 'Big-Blue' or part_type == 'Holed': rotate_x = -8
+        if part_type == 'Big-Blue' or part_type == 'Holed': 
+            rotate_x = -8
+            if lastlayer: rotate_x = -4
         elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': rotate_x = -2
         rotate_x_step_5_1 = [0,0,0,math.radians(rotate_x),math.radians(0),math.radians(0)]     #shouold be -5
 
@@ -283,34 +287,34 @@ class Pack_Box:
         if part['layer_number'] < 7:
             if box_rotation == 'horizontal':
                 if rotation == 0 or rotation == 180:
-                    logging.info("---rotate also around y wile placing!---")
+                    #logging.info("---rotate also around y wile placing!---")
                     rotate_y = 5    #rotate 5 degrees about y of tool. this way placing is parralle to the bottom of the box
                     if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-BLue': 
                         rotate_y = 2
-                        offset_step_8_extra = 10
+                        offset_step_8_extra = 5
             elif box_rotation == 'vertical':
                 if rotation == 90 or rotation == -90:
-                    logging.info("---rotate also around y wile placing!---")
+                    #logging.info("---rotate also around y wile placing!---")
                     rotate_y = 5    #rotate 5 degrees about y of tool. this way placing is parralle to the bottom of the box
                     if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-BLue': 
                         rotate_y = 2
-                        offset_step_8_extra = 10
+                        offset_step_8_extra = 5
 
         else:
             if box_rotation == 'horizontal':
                 if rotation == 0 or rotation == 180:
-                    logging.info("---rotate also around y wile placing!---")
+                    #logging.info("---rotate also around y wile placing!---")
                     rotate_y = 3    #rotate 5 degrees about y of tool. this way placing is parralle to the bottom of the box
                     if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-BLue': 
                         rotate_y = 1
-                        offset_step_8_extra = 10
+                        offset_step_8_extra = 5
             elif box_rotation == 'vertical':
                 if rotation == 90 or rotation == -90:
-                    logging.info("---rotate also around y wile placing!---")
+                    #logging.info("---rotate also around y wile placing!---")
                     rotate_y = 3    #rotate 5 degrees about y of tool. this way placing is parralle to the bottom of the box   
                     if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-BLue': 
                         rotate_y = 1 
-                        offset_step_8_extra = 10
+                        offset_step_8_extra = 5
 
 
 
@@ -407,6 +411,24 @@ class Pack_Box:
         cur_pos[0] = box_center[0]     # Align x position with box center
         cur_pos[1] = box_center[1]     # Align y position with box center
         cur_pos[2] = z_above_box               # Set a safe z height above the box
+
+        #step 8: depending on rotation, move x or y or a bit of z
+        if rotation_angle == 0:
+            #move x positive
+            if lastlayer: cur_pos[0] += 15/1000
+            offset= [offset_step_8/1000,offset_step_8_extra/1000,z_offset_step_8/1000,0,0,0]
+        elif rotation_angle == -90:
+            if lastlayer:  cur_pos[1] += 15/1000
+            #move y positive
+            offset= [-offset_step_8_extra/1000,offset_step_8/1000,z_offset_step_8/1000,0,0,0]
+        elif rotation_angle == 90:
+            if lastlayer: cur_pos[1] -= 15/1000
+            #move y negative
+            offset= [offset_step_8_extra/1000,-offset_step_8/1000,z_offset_step_8/1000,0,0,0]  
+        elif rotation_angle == 180:
+            if lastlayer: cur_pos[0] -= 15/1000
+            #move y negatie
+            offset= [-offset_step_8/1000,-offset_step_8_extra/1000,z_offset_step_8/1000,0,0,0]
 
         x = 6
         path_step_2 = cur_pos.copy()
