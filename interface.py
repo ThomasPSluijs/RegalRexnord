@@ -170,6 +170,7 @@ class UserInterface:
             with self.machine.thread_lock:
                 boxes_full = self.machine.boxes_are_full
                 totalplacements = self.machine.total_parts
+                placements = self.machine.placements
             if boxes_full:
                  self.started_before = False
                  logging.info("boxes are full")

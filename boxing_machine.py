@@ -40,7 +40,8 @@ class BoxingMachine:
         self.current_part_number = 1
         self.last_part_box_0 = 0
         self.last_part_box_1 = 0
-        self.total_parts = 392
+        self.total_parts = 0
+        self.placements = 0
         self.current_box = 0
         self.boxes_are_full = False
         self.thread_lock = threading.Lock()
@@ -130,6 +131,7 @@ class BoxingMachine:
   
     #main loop that fills all available boxes
     def main_loop(self):
+        self.placements = 0
         run_mode = 1        #0 is normal mode, 1 is only packing
         self.last_part_box_0 = 0
         self.last_part_box_1 = 0
@@ -221,6 +223,7 @@ class BoxingMachine:
                     self.pack_box.place_part(part, part_type=item_type, box_rotation=box_orientation)  # Pass the box orientation
 
                     with self.thread_lock:
+                        self.placements += 1
                         if box_index == 0:
                             self.last_part_box_0 = part
                         elif box_index == 1:
@@ -232,5 +235,5 @@ class BoxingMachine:
 
         with self.thread_lock:
             self.boxes_are_full = True
-
+            
         self.stop_main_loop = False
