@@ -336,37 +336,37 @@ class Pack_Box:
                 if rotation == 90 or rotation == -90: #move z up if moving to high side
                     if part_type == 'Big-Blue' or part_type == 'Holed': 
                         z_offset_step_8 = 5
-                        logging.info("---while placing move z up!!--")
+                        #logging.info("---while placing move z up!!--")
                     elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': 
                         z_offset_step_8 = 6
-                        logging.info("---while placing move z up!!--")
+                        #logging.info("---while placing move z up!!--")
             
             elif  box_rotation == 'vertical':    #high side not parrallel to belt
                 if rotation == 0 or rotation == 180:   #move z up if moving to high side
                     if part_type == 'Big-Blue' or part_type == 'Holed': 
                         z_offset_step_8 = 5
-                        logging.info("while placing move z up!!")
+                        #logging.info("while placing move z up!!")
                     elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': 
                         z_offset_step_8 = 6
-                        logging.info("while placing move z up!!")
+                        #logging.info("while placing move z up!!")
         else:
             if box_rotation == 'horizontal':       #high side parrallel to belt
                 if rotation == 90 or rotation == -90: #move z up if moving to high side
                     if part_type == 'Big-Blue' or part_type == 'Holed': 
                         z_offset_step_8 = 4
-                        logging.info("---while placing move z up!!--")
+                        #logging.info("---while placing move z up!!--")
                     elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': 
                         z_offset_step_8 = 6
-                        logging.info("---while placing move z up!!--")
+                        #logging.info("---while placing move z up!!--")
             
             elif  box_rotation == 'vertical':    #high side not parrallel to belt
                 if rotation == 0 or rotation == 180:   #move z up if moving to high side
                     if part_type == 'Big-Blue' or part_type == 'Holed': 
                         z_offset_step_8 = 4
-                        logging.info("while placing move z up!!")
+                        #logging.info("while placing move z up!!")
                     elif part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': 
                         z_offset_step_8 = 6
-                        logging.info("while placing move z up!!")
+                        #logging.info("while placing move z up!!")
 
 
 

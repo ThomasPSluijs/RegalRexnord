@@ -171,7 +171,7 @@ class UserInterface:
                 boxes_full = self.machine.boxes_are_full
                 totalplacements = self.machine.total_parts
                 placements = self.machine.placements
-                logging.info(f"placements: {placements}")
+                #logging.info(f"placements: {placements}")
             if boxes_full:
                  self.started_before = False
                  logging.info("boxes are full")
@@ -188,7 +188,7 @@ class UserInterface:
                 part_box_0 = self.machine.last_part_box_0
                 part_box_1 = self.machine.last_part_box_1
             
-            
+
             if placements == 0: progress = 0
             else:
                 progress = placements / totalplacements
@@ -205,7 +205,9 @@ class UserInterface:
                     "partcount": 0}
                 
             self.progressbar.set(progress)
-            logging.info(f"placements: {placements}  totalplacementes: {totalplacements}")
+            self.percentage_value = int(progress*100)
+            self.percentage.configure(text=f"{self.percentage_value}%")
+            #logging.info(f"placements: {placements}  totalplacementes: {totalplacements}")
 
             if box_no == 0:
                 box1state = "filling" #other states should be: empty, full or error
@@ -224,9 +226,6 @@ class UserInterface:
             if boxes_full:
                 box2state = "full"
                 self.boxstate_text2.configure(text=(f"box 2:\n status: {box2state}\n parts: {box2partnr}\n layer: {box2layernr}"))
-        
-                self.percentage_value = int(progress*100)
-                self.percentage.configure(text=f"{self.percentage_value}%")
                 time.sleep(0.5)
 
 
