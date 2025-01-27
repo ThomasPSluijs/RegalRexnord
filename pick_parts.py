@@ -48,7 +48,7 @@ class Pick_parts():
         if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': 
             rotate = -14
         else: rotate = -23
-        rotate_x = [0,0,0,math.radians(rotate),math.radians(0),math.radians(0)]   
+        rotate_x = [0,0,0,math.radians(rotate),math.radians(0.5),math.radians(0)]   
 
 
         '''STEP 3 Z LOCATION'''
