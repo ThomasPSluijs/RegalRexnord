@@ -130,18 +130,19 @@ class BoxingMachine:
   
     #main loop that fills all available boxes
     def main_loop(self):
-        run_mode = 0        #0 is normal mode, 1 is only packing
+        run_mode = 1        #0 is normal mode, 1 is only packing
         self.last_part_box_0 = 0
         self.last_part_box_1 = 0
 
         logging.info("In main loop")
 
-        item_type = 'Big-Blue'
+        item_type = 'Small-Blue'
         box_orientations = {
             'box_0': 'horizontal',
             'box_1': 'horizontal'
         }
-        item_type, box_orientations = self.initialize_main_loop()
+        if run_mode == 0:
+            item_type, box_orientations = self.initialize_main_loop()
 
 
         #get packing positions
