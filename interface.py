@@ -188,7 +188,10 @@ class UserInterface:
                 part_box_0 = self.machine.last_part_box_0
                 part_box_1 = self.machine.last_part_box_1
             
-            progress = placements / totalplacements
+            
+            if placements == 0: progress = 0
+            else:
+                progress = placements / totalplacements
 
             if part_box_0 == 0:
                 part_box_0 =  {"box_number": 0,
