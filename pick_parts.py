@@ -31,7 +31,7 @@ class Pick_parts():
 
 
         #part length, some parts are a bit shorter so robot has to move less
-        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': part_length = 0.1794 + 4.5/1000
+        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': part_length = 0.1794 + 5.5/1000
         elif part_type == 'Big-Blue': part_length = 0.184
         else: part_length = 0.174
 
@@ -53,7 +53,7 @@ class Pick_parts():
 
         '''STEP 3 Z LOCATION'''
         #belt z location, for some parts the gripper needs to be a little bit higher or lower
-        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': belt_z = [0,0,-123/1000,0,0,0]
+        if part_type == 'Green' or part_type == 'Rubber' or part_type == 'Small-Blue': belt_z = [0,0,-123.5/1000,0,0,0]
         elif part_type == 'Big-Blue': belt_z = [0,0,-119/1000,0,0,0]
         elif part_type == 'Holed': belt_z = [0,0,-122/1000,0,0,0]   
         logging.info(f"belt z: {belt_z} {part_type}") 
