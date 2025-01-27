@@ -182,11 +182,11 @@ class UserInterface:
 
             with self.machine.thread_lock:
                 box_no = self.machine.current_box
-                progress = placements / totalplacements
-
-
+        
                 part_box_0 = self.machine.last_part_box_0
                 part_box_1 = self.machine.last_part_box_1
+            
+            progress = placements / totalplacements
 
             if part_box_0 == 0:
                 part_box_0 =  {"box_number": 0,
@@ -200,6 +200,7 @@ class UserInterface:
                     "partcount": 0}
                 
             self.progressbar.set(progress)
+            logging.info(f"placements: {placements}  totalplacementes: {totalplacements}")
 
             if box_no == 0:
                 box1state = "filling" #other states should be: empty, full or error

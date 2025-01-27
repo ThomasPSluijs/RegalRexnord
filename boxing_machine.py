@@ -138,7 +138,7 @@ class BoxingMachine:
 
         item_type = 'Small-Blue'
         box_orientations = {
-            'box_0': 'horizontal',
+            'box_0': 'vertical',
             'box_1': 'horizontal'
         }
         if run_mode == 0:
