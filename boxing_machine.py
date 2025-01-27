@@ -219,10 +219,11 @@ class BoxingMachine:
                     box_orientation = box_orientations.get(f'box_{box_index}')  # Get the orientation for the current box
                     self.pack_box.place_part(part, part_type=item_type, box_rotation=box_orientation)  # Pass the box orientation
 
-                    if box_index == 0:
-                        self.last_part_box_0 = part
-                    elif box_index == 1:
-                        self.last_part_box_1 = part
+                    with self.thread_lock:
+                        if box_index == 0:
+                            self.last_part_box_0 = part
+                        elif box_index == 1:
+                            self.last_part_box_1 = part
 
                     
 

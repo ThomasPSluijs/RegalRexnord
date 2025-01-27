@@ -192,15 +192,18 @@ class UserInterface:
                  self.start_button_msg = "start"
                  self.start_button_color = '#106A43'
                  self.start_but.configure(text=self.start_button_msg, fg_color=self.start_button_color, hover_color=self.start_button_color)
-                 self.machine.boxes_are_full = False
+                 with self.machine.thread_lock:
+                    self.machine.boxes_are_full = False
                  self.stopped = True
 
+            with self.machine.thread_lock:
+                box_no = self.machine.current_box
+                progress = placements / totalplacements
 
-            box_no = self.machine.current_box
-            progress = placements / totalplacements
 
-            part_box_0 = self.machine.last_part_box_0
-            part_box_1 = self.machine.last_part_box_1
+                part_box_0 = self.machine.last_part_box_0
+                part_box_1 = self.machine.last_part_box_1
+                
             if part_box_0 == 0:
                 part_box_0 =  {"box_number": 0,
                     "part_number": 0,
