@@ -155,7 +155,7 @@ class Pick_parts():
 
         path_step_4 = new_linear_move.copy()
         if part_type == 'Big-Blue' or part_type == 'Holed':
-            speed,acc = 3,3
+            speed,acc = 2,1.5
         else:
             speed,acc = 0.08,0.1
         speed_acc_blend = [speed, acc, 0.0]
