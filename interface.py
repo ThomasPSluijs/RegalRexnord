@@ -93,6 +93,15 @@ class UserInterface:
             self.start_but.configure(text=self.start_button_msg, fg_color=self.start_button_color, hover_color=self.start_button_color)
             self.state_color = "green"
 
+            self.statuslight = customtkinter.CTkLabel(
+                master=self.leftbar,
+                width=38,
+                height=38,
+                corner_radius=19,
+                fg_color=self.state_color,
+                text=None
+            )
+
             #calls a thread to start running the machine. if started before, just resume
             if self.started_before == False: 
                 logging.info("start new machine thread!")
@@ -118,6 +127,15 @@ class UserInterface:
             self.start_but.configure(text=self.start_button_msg, fg_color=self.start_button_color, hover_color=self.start_button_color)
 
             self.state_color = "red"
+
+            self.statuslight = customtkinter.CTkLabel(
+                master=self.leftbar,
+                width=38,
+                height=38,
+                corner_radius=19,
+                fg_color=self.state_color,
+                text=None
+            )
             self.start_button = True
 
 
@@ -134,6 +152,15 @@ class UserInterface:
         self.start_but.configure(text=self.start_button_msg, fg_color=self.start_button_color, hover_color=self.start_button_color)
         self.start_button = True
         self.state_color = "red"
+
+        self.statuslight = customtkinter.CTkLabel(
+            master=self.leftbar,
+            width=38,
+            height=38,
+            corner_radius=19,
+            fg_color=self.state_color,
+            text=None
+        )
 
         self.update_status("stopped: replace boxes before starting")
         self.started_before = False
