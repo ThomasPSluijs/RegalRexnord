@@ -157,7 +157,7 @@ class Pick_parts():
         if part_type == 'Big-Blue' or part_type == 'Holed':
             speed,acc = 3,3
         else:
-            speed,acc = 0.1,2
+            speed,acc = 0.08,0.1
         speed_acc_blend = [speed, acc, 0.0]
         for y in speed_acc_blend:
             path_step_4 = np.append(path_step_4, y)
