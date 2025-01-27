@@ -288,7 +288,9 @@ class CameraPosition:
                                 #if yd > 0: vision_length += 3
                                 tot_parts = vision_length/part_width
                                 if round(tot_parts) == 14 or round(tot_parts) == 15 or round(tot_parts) == 16 and label == 'Green' or label == 'Small-Blue' or label == 'Rubber':
-                                    vision_length += 5
+                                    if yd > 0: #close to box
+                                        vision_length += 5
+                                    else: vision_length += 9
 
                                 if round(tot_parts) == 9 or round(tot_parts) == 10 or round(tot_parts) == 11 and label == 'Holed' or label == 'Big-Blue':
                                     vision_length += 5
@@ -344,8 +346,10 @@ class CameraPosition:
                                     return (xd, yd, label)
                                 else:
                                     logging.error("part out of reach")
+                                    self.boxing_machine.interface.update_status("parts are out of reach")
                             else:
                                 logging.info("not stable")
+                                self.boxing_machine.interface.update_status("parts are still moving/not stable")
 
         return (0, 0, 0)
 
