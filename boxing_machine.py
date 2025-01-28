@@ -165,7 +165,7 @@ class BoxingMachine:
 
 
             for part in box:
-                if box_index >= 0 and part['layer_number'] >= 0:
+                if box_index == 0 and part['layer_number'] >= 5 or box_index == 1:
                     if self.stop_main_loop:  # Check if stop signal is set
                         logging.info("Stopping main loop due to stop signal.")
                         self.stop_main_loop = False
