@@ -138,13 +138,14 @@ class BoxingMachine:
 
         logging.info("In main loop")
 
-        item_type = 'Small-Blue'
+        item_type = 'Big-Blue'
         box_orientations = {
-            'box_0': 'vertical',
+            'box_0': 'horizontal',
             'box_1': 'horizontal'
         }
         if run_mode == 0:
-            item_type, box_orientations = self.initialize_main_loop()
+            pass
+            #item_type, box_orientations = self.initialize_main_loop()
 
 
         #get packing positions

@@ -1,0 +1,9 @@
+2025-01-28 12:05:29,907 [root] INFO: This is an info message.
+2025-01-28 12:05:29,907 [root] WARNING: This is a warning message.
+2025-01-28 12:05:34,871 [root] INFO: test 123
+2025-01-28 12:05:36,736 [root] INFO: Connected to robot: 192.168.0.1 on attempt 1
+2025-01-28 12:05:36,737 [root] INFO: tcp pos: [-0.6639038973625251, -0.08495041931679047, 0.5297198590791629, -2.1949031260663445, -2.2206519327284413, -0.003991253308099822]
+2025-01-28 12:06:40,185 [root] INFO: This is an info message.
+2025-01-28 12:06:40,186 [root] WARNING: This is a warning message.
+2025-01-28 12:06:42,102 [root] INFO: Connected to robot: 192.168.0.1 on attempt 1
+2025-01-28 12:06:42,133 [root] INFO: stopped connection with robot
