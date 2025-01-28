@@ -220,7 +220,7 @@ class Pick_parts():
         ]
         self.robot.move_l_path(path=path)
 
-        self.pause()
+        #self.pause()
         #move path 1 till 6 with pickup tcp
         path = [
             #path_step_1,
