@@ -327,9 +327,11 @@ class CameraPosition:
 
                                 xd /=1000
 
-                                
+
+                                if label == 'Big-Blue' or label == 'Holed': min_parts = 7
+                                else: min_parts = 14
                                 #check if detected object is within reach, after that draw frame and return coordinates
-                                if xd > -0.750 and  xd < -0.40 and yd > -0.152 and yd < 0.090: #maximium x value for safety purposes
+                                if xd > -0.750 and  xd < -0.40 and yd > -0.152 and yd < 0.090 and tot_parts >= min_parts: #maximium x value for safety purposes
                                     # Draw box and label on the frame
                                     cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 0, 0), 2)
                                     cv2.circle(frame, (x_left, y_middle), 5, (0, 0, 255), -1)
@@ -347,9 +349,11 @@ class CameraPosition:
                                 else:
                                     logging.error("part out of reach")
                                     self.boxing_machine.interface.update_status("parts are out of reach")
+                                    continue
                             else:
                                 logging.info("not stable")
                                 self.boxing_machine.interface.update_status("parts are still moving/not stable")
+                                continue
 
         return (0, 0, 0)
 
