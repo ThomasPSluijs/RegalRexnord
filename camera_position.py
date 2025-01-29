@@ -26,12 +26,13 @@ class CameraPosition:
         self.detector = ObjectDetector()
         self.robot = robot
         self.boxing_machine = boxing_machine
-        self.pipeline = rs.pipeline()
-        self.config = rs.config()
-        self.config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
-        self.config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
-        self.pipeline.start(self.config)
-        self.align = rs.align(rs.stream.color)
+        #self.pipeline = rs.pipeline()
+        #self.config = rs.config()
+        #self.config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
+        #self.config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
+        #self.pipeline.start(self.config)
+        #self.align = rs.align(rs.stream.color)
+        self.connect_camera()
         self.labels = self.detector.labels
 
         self.last_frame = None                  #last frame storage so interface can show last frame
@@ -47,6 +48,30 @@ class CameraPosition:
 
         self.row_threshold = 6  # Stability threshold in pixels
         self.row_gap_threshold = 50  # Distance to separate rows (adjust as necessary)
+
+
+    def connect_camera(self):
+        max_retries = 10
+        retry_delay = 0.5  # Delay in seconds between retries
+
+
+        for attempt in range(1, max_retries + 1):
+            try:
+                self.pipeline = rs.pipeline()
+                self.config = rs.config()
+                self.config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
+                self.config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
+                self.pipeline.start(self.config)
+                self.align = rs.align(rs.stream.color)
+                logging.info(f"Connected to camera on attempt {attempt}")
+                return  # Exit the method upon successful connection
+            except Exception as e:
+                logging.error(f"Attempt {attempt} failed: {e}")
+                if attempt < max_retries:
+                    time.sleep(retry_delay)  # Wait before retrying
+                else:
+                    logging.error("Max retries reached. Unable to connect to the camera.")
+                    raise
 
 
 
@@ -92,10 +117,15 @@ class CameraPosition:
             time.sleep(0.3)
 
             while not_found[i]:
-                frames = self.pipeline.wait_for_frames()
-                aligned_frames = self.align.process(frames)
-                color_frame = aligned_frames.get_color_frame()
-                depth_frame = aligned_frames.get_depth_frame()
+                try:
+                    frames = self.pipeline.wait_for_frames()
+                    aligned_frames = self.align.process(frames)
+                    color_frame = aligned_frames.get_color_frame()
+                    depth_frame = aligned_frames.get_depth_frame()
+                except Exception as e:
+                    logging.error(f"error with camera: {e}")
+                    self.connect_camera()
+                    continue #go back to start
 
                 if not color_frame or not depth_frame:
                     continue
@@ -200,6 +230,7 @@ class CameraPosition:
                 depth_frame = aligned_frames.get_depth_frame()
             except Exception as e:
                 logging.error(f"error with camera: {e}")
+                self.connect_camera()
                 continue #go back to start
 
 
@@ -405,8 +436,15 @@ class CameraPosition:
         tries = 4
         for i in range(tries):
             #get frames and check if we have a color frame
-            frames = self.pipeline.wait_for_frames()
-            color_frame = frames.get_color_frame()
+            try:
+                frames = self.pipeline.wait_for_frames()
+                aligned_frames = self.align.process(frames)
+                color_frame = aligned_frames.get_color_frame()
+                #depth_frame = aligned_frames.get_depth_frame()
+            except Exception as e:
+                logging.error(f"error with camera: {e}")
+                self.connect_camera()
+                continue #go back to start
             if not color_frame:
                 logging.error("No color frame captured")
                 break
